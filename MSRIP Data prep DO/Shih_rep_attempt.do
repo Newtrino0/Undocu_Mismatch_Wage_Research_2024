@@ -1,10 +1,10 @@
 *** SET DIRECTORIES
-global dofiles "C:\Users\XCITE-admin\Documents\GitHub\Stata_Work\MSRIP Data prep"
+global dofiles "C:\Users\mario\Documents\GitHub\Stata_Work\MSRIP Data prep"
 
 /*global figures /disk/homedirs/nber/ekuka/DACA/Replication/figures
 global tables /disk/homedirs/nber/ekuka/DACA/Replication/tables
 */
-global rawdata "C:\Users\XCITE-admin\Documents\Local_XCITE_MSRIP"
+global rawdata "C:\Users\mario\Documents\Local_Mario_MSRIP"
 *global prepdata /homes/nber/ekuka/DACA/Replication/prepdata
 
 
@@ -24,7 +24,7 @@ cd $dofiles/ */
 *** READ DATA
 ******************************
 cd $rawdata
-use "usa_00006.dta", clear
+use "usa_00008.dta", clear
 *cd $dofiles/
 describe
 
@@ -130,17 +130,17 @@ drop momloc poploc momrule
 label var livewpar "Parent(s) in HH"
 label var singlemom "Single Mother HH"
 	
-/* Metro area
+* Metro area
 gen inmetro = metro==2 | metro==3 | metro==4
 replace inmetro=. if metro==0
 drop metro
 rename inmetro metro
 label var metro "Live in Metro Area"
-*/
 
 
 
-/* Country of birth and language
+
+* Country of birth and language
 gen english = language==1
 gen spanish = language==12
 gen nonfluent = (speakeng==1 | speakeng==6)
@@ -148,7 +148,7 @@ drop language* speakeng
 label var english "English Primary Language"
 label var spanish "Spanish Primary Language"
 label var nonfluent "Poor English"
-*/
+
 
 *Insurance and poverty
 gen healthins = (hcovany==2)
