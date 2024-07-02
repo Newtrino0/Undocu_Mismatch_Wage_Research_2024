@@ -23,7 +23,7 @@ cd $dofiles/ */
 *** READ DATA
 ******************************
 cd $rawdata
-use "usa_00008.dta", clear
+use "usa_00009.dta", clear
 *cd $dofiles/
 describe
 
@@ -143,7 +143,7 @@ label var metro "Live in Metro Area"
 gen english = language==1
 gen spanish = language==12
 *gen nonfluent = (speakeng==1 | speakeng==6)
-drop language* speakeng
+*drop language* speakeng
 label var english "English Primary Language"
 label var spanish "Spanish Primary Language"
 *label var nonfluent "Poor English"
@@ -304,18 +304,5 @@ gen a1922 = 1 if age>=19 & age<=22
 gen a2330 = 1 if age>=23 & age<=30
 
 
-************
-*** MERGE IN NEEDED ACS DATA (CLEANED IN STEP 1)
-*************
-merge m:1 county using "$prepdata/CA_county_shares_elig_0511.dta"
 
-tab county if _merge==1, m 
-di "Num of counties not avail = `r(r)'"
-tab county if _merge==3, m 
-di "Num of counties avail= `r(r)'"
-
-* Keep the 34 counties that have data available in ACS
-keep if _merge==3
-drop _merge
-sum
 
