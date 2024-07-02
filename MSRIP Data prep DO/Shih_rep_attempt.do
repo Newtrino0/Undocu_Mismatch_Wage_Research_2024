@@ -5,8 +5,7 @@ global dofiles "C:\Users\mario\Documents\GitHub\Stata_Work\MSRIP Data prep"
 global tables /disk/homedirs/nber/ekuka/DACA/Replication/tables
 */
 global rawdata "C:\Users\mario\Documents\Local_Mario_MSRIP"
-*global prepdata /homes/nber/ekuka/DACA/Replication/prepdata
-
+global prepdata "C:\Users\mario\Documents\Local_Mario_MSRIP\data\Replication\prepdata"
 
 *** SET CODE
 cap log close
@@ -143,11 +142,11 @@ label var metro "Live in Metro Area"
 * Country of birth and language
 gen english = language==1
 gen spanish = language==12
-gen nonfluent = (speakeng==1 | speakeng==6)
+*gen nonfluent = (speakeng==1 | speakeng==6)
 drop language* speakeng
 label var english "English Primary Language"
 label var spanish "Spanish Primary Language"
-label var nonfluent "Poor English"
+*label var nonfluent "Poor English"
 
 
 *Insurance and poverty
