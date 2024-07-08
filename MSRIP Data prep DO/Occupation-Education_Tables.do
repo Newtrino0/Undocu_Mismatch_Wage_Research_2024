@@ -1,10 +1,10 @@
 *** SET DIRECTORIES
-global dofiles "C:\Users\mario\Documents\GitHub\Stata_Work\MSRIP Data prep"
+global dofiles "C:\Users\mario\Documents\GitHub\MSRIP_Stata_Work\MSRIP Data prep DO"
 
 /*global figures /disk/homedirs/nber/ekuka/DACA/Replication/figures
 global tables /disk/homedirs/nber/ekuka/DACA/Replication/tables
 */
-global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP"
+global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
 *global prepdata "C:\Users\mario\Documents\Local_Mario_MSRIP\data\Replication\prepdata"
 
 *** SET CODE
