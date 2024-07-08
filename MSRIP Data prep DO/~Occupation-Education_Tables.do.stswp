@@ -11,6 +11,8 @@ global rawdata "C:\Users\XCITE-admin\Documents\Local_XCITE_MSRIP\MSRIP_Data"
 cap log close
 set more off, perm
 
+*ssc install hsmode
+
 /*log using $dofiles/clean_data.log, replace
 cd $dofiles/ */
 
@@ -65,6 +67,8 @@ label var yrsed "Years of Education"
 replace degfield =0 if degfield==.
 gen degfieldS = string(degfield)
 
+**Run this after edits are made since makes the runs longer**
+/*
 replace degfieldS = "N/A" if degfieldS ==	"0"
 replace degfieldS = "Agriculture" if degfieldS ==	"11"
 replace degfieldS = "Environment and Natural Resources" if degfieldS ==	"13"
@@ -104,16 +108,14 @@ replace degfieldS = "Fine Arts" if degfieldS ==	"60"
 replace degfieldS = "Medical and Health Sciences and Services" if degfieldS ==	"61"
 replace degfieldS = "Business" if degfieldS ==	"62"
 replace degfieldS = "History" if degfieldS ==	"64"
-
-
+*/
 
 *Remove empty fields for occupation denoted by a 0, and empty fields for yrsed denoted by 0 and 999
 replace occ=. if occ==0
 drop if missing(occ)
 
-replace yrsed=. if yrsed==0 | yrsed==999
+replace yrsed=. if yrsed==1 | yrsed==999
 drop if missing(yrsed)
-
 
 					 ***********************************************
 ************************ STEP 2: Create relevant variables ************************
@@ -124,8 +126,12 @@ drop if missing(yrsed)
 gen edu_cat="HS or less" if yrsed<=12
 replace edu_cat="College" if yrsed>12
 
+gen edu_att = "College Diploma" if educd>=101
+replace edu_att = "HS Diploma and some college" if educd<101
+replace edu_att = "HS Diploma" if educd<65
+replace edu_att = "No HS Diploma" if educd<62
 
-keep edu_cat occ yrsed degfield degfieldS
+keep edu_cat edu_att occ yrsed degfield degfieldS
 
 
 sort occ edu_cat 
@@ -134,10 +140,8 @@ by occ edu_cat : gen count=_N
 by occ : gen total=_N
 gen proportion=count/total
 
-*by occ: egen median_yrs= median(yrsed)
-
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
-table occ, stat(freq) stat(median yrsed) stat(max count)
+table occ, stat(freq) stat(median yrsed)
 
 
 *college degree requirements for an occupation
@@ -151,14 +155,22 @@ by occ degfieldS: gen count2=_N
 *filter for largest two values by occ
 
 *finding mode of degfield
-egen mod_deg = mode(degfield), by(occ) missing maxmode
+/*
 egen mod_degS = mode(degfieldS), by(occ) missing maxmode
 egen med_yrs = median(yrsed), by(occ)
-
+*/
 
 
 *collapse so that there is one row per occupational code
 *collapse (median)yrsed, by(occ)
+
+* Subset the data for the specific group
+
+by occ: egen mode_deg = mode(degfield)
+*collapse (median)yrsed mode_deg, by(occ)
+list
+
+
 
 
 *merge this information back to the Shih sample by occ
