@@ -117,6 +117,8 @@ drop if missing(occ)
 replace yrsed=. if yrsed==1 | yrsed==999
 drop if missing(yrsed)
 
+drop if degfield==0
+
 					 ***********************************************
 ************************ STEP 2: Create relevant variables ************************
 					 ***********************************************
@@ -130,6 +132,11 @@ gen edu_att = "College Diploma" if educd>=101
 replace edu_att = "HS Diploma and some college" if educd<101
 replace edu_att = "HS Diploma" if educd<65
 replace edu_att = "No HS Diploma" if educd<62
+
+
+tab edu_att
+tab occ
+tab degfield
 
 keep edu_cat edu_att occ yrsed degfield degfieldS
 
@@ -161,16 +168,65 @@ egen med_yrs = median(yrsed), by(occ)
 */
 
 
-*collapse so that there is one row per occupational code
-*collapse (median)yrsed, by(occ)
+
 
 * Subset the data for the specific group
 
-by occ: egen mode_deg = mode(degfield)
-*collapse (median)yrsed mode_deg, by(occ)
+by occ: egen mode1_deg = mode(degfield)
+by occ: egen mode1_occ = mode(occ)
+
+*by occ: egen mode2_deg = mode(degfield)[, missing]
+
+
+tab mode1_occ
+tab mode1_deg
+
+
+*collapse so that there is one row per occupational code
+collapse (mean)mode1_deg (median)yrsed, by(occ)
+
+*Label after collapsing
+replace mode1_deg = "N/A" if mode1_deg ==	"0"
+replace mode1_deg = "Agriculture" if mode1_deg ==	"11"
+replace mode1_deg = "Environment and Natural Resources" if mode1_deg ==	"13"
+replace mode1_deg = "Architecture" if mode1_deg ==	"14"
+replace mode1_deg = "Area, Ethnic, and Civilization Studies" if mode1_deg ==	"15"
+replace mode1_deg = "Communications" if mode1_deg ==	"19"
+replace mode1_deg = "Communication Technologies" if mode1_deg ==	"20"
+replace mode1_deg = "Computer and Information Sciences" if mode1_deg ==	"21"
+replace mode1_deg = "Cosmetology Services and Culinary Arts" if mode1_deg ==	"22"
+replace mode1_deg = "Education Administration and Teaching" if mode1_deg ==	"23"
+replace mode1_deg = "Engineering" if mode1_deg ==	"24"
+replace mode1_deg = "Engineering Technologies" if mode1_deg ==	"25"
+replace mode1_deg = "Linguistics and Foreign Languages" if mode1_deg ==	"26"
+replace mode1_deg = "Family and Consumer Sciences" if mode1_deg ==	"29"
+replace mode1_deg = "Law" if mode1_deg ==	"32"
+replace mode1_deg = "English Language, Literature, and Composition" if mode1_deg ==	"33"
+replace mode1_deg = "Liberal Arts and Humanities" if mode1_deg ==	"34"
+replace mode1_deg = "Library Science" if mode1_deg ==	"35"
+replace mode1_deg = "Biology and Life Sciences" if mode1_deg ==	"36"
+replace mode1_deg = "Mathematics and Statistics" if mode1_deg ==	"37"
+replace mode1_deg = "Military Technologies" if mode1_deg ==	"38"
+replace mode1_deg = "Interdisciplinary and Multi-Disciplinary Studies (General)" if mode1_deg ==	"40"
+replace mode1_deg = "Physical Fitness, Parks, Recreation, and Leisure" if mode1_deg ==	"41"
+replace mode1_deg = "Philosophy and Religious Studies" if mode1_deg ==	"48"
+replace mode1_deg = "Theology and Religious Vocations" if mode1_deg ==	"49"
+replace mode1_deg = "Physical Sciences" if mode1_deg ==	"50"
+replace mode1_deg = "Nuclear, Industrial Radiology, and Biological Technologies" if mode1_deg ==	"51"
+replace mode1_deg = "Psychology" if mode1_deg ==	"52"
+replace mode1_deg = "Criminal Justice and Fire Protection" if mode1_deg ==	"53"
+replace mode1_deg = "Public Affairs, Policy, and Social Work" if mode1_deg ==	"54"
+replace mode1_deg = "Social Sciences" if mode1_deg ==	"55"
+replace mode1_deg = "Construction Services" if mode1_deg ==	"56"
+replace mode1_deg = "Electrical and Mechanic Repairs and Technologies" if mode1_deg ==	"57"
+replace mode1_deg = "Precision Production and Industrial Arts" if mode1_deg ==	"58"
+replace mode1_deg = "Transportation Sciences and Technologies" if mode1_deg ==	"59"
+replace mode1_deg = "Fine Arts" if mode1_deg ==	"60"
+replace mode1_deg = "Medical and Health Sciences and Services" if mode1_deg ==	"61"
+replace mode1_deg = "Business" if mode1_deg ==	"62"
+replace mode1_deg = "History" if mode1_deg ==	"64"
+
+
 list
-
-
-
 
 *merge this information back to the Shih sample by occ
