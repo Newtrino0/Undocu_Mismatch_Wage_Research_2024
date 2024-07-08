@@ -183,7 +183,7 @@ tab mode1_deg
 
 
 *collapse so that there is one row per occupational code
-collapse (mean)mode1_deg (median)yrsed, by(occ)
+collapse (median)yrsed (mean)mode1_deg, by(occ)
 
 *Label after collapsing
 replace mode1_deg = "N/A" if mode1_deg ==	"0"
