@@ -228,6 +228,7 @@ replace mode1_degS = "Medical and Health Sciences and Services" if mode1_degS ==
 replace mode1_degS = "Business" if mode1_degS ==	"62"
 replace mode1_degS = "History" if mode1_degS ==	"64"
 
+drop mode1_deg
 
 list
 
