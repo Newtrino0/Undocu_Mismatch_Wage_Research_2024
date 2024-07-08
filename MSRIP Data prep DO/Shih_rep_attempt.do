@@ -300,7 +300,7 @@ tab ageimm htus, m
 gen a1922 = 1 if age>=19 & age<=22
 gen a2330 = 1 if age>=23 & age<=30
 gen a2330 = 1 if age>=23 & age<=30
-gen a2330 = 1 if age>=23 & age<=30
+
 
 
 

@@ -1,6 +1,6 @@
 ***Find descriptive statistics of occupation***
 *** SET DIRECTORIES
-global dofiles "C:\Users\XCITE-admin\Documents\GitHub\Stata_Work\MSRIP Data prep"
+global dofiles "C:\Users\mario\Documents\GitHub\MSRIP_Stata_Work\MSRIP Data prep DO"
 
 /*global figures /disk/homedirs/nber/ekuka/DACA/Replication/figures
 global tables /disk/homedirs/nber/ekuka/DACA/Replication/tables

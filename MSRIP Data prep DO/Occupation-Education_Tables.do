@@ -79,10 +79,10 @@ by occ : gen total=_N
 
 gen proportion=count/total
 
-by occ: egen median_yrs= median(yrsed)
+*by occ: egen median_yrs= median(yrsed)
 
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
-
+table occ, stat(freq) stat(median yrsed)
 
 
 *college degree requirements for an occupation
@@ -93,21 +93,10 @@ sort occ degfield
 
 by occ degfield: gen count2=_N
 
-*Table of occupations, and the average years of education for that occupation
-table occ, stat(freq) stat(mean yrsed)
+
 
 *filter for largest two values by occ
-gen meanyrs = mean(yrsed), by(occ)
 
-egen medyrs = median(yrsed), by(occ)
-
-egen moded = mode(edu_cat), by(occ) missing maxmode
-
-egen tag = tag(occ), missing
-
-sort occ
-
-list occ meanyrs medyrs moded if tag, sepby(occ) noobs
 
 *collapse so that there is one row per occupational code
 
