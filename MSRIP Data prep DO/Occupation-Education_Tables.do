@@ -119,6 +119,7 @@ drop if missing(yrsed)
 
 drop if degfield==0
 
+drop if incwage == 999999
 					 ***********************************************
 ************************ STEP 2: Create relevant variables ************************
 					 ***********************************************
@@ -133,13 +134,9 @@ replace edu_att = "HS Diploma and some college" if educd<101
 replace edu_att = "HS Diploma" if educd<65
 replace edu_att = "No HS Diploma" if educd<62
 
+keep edu_cat edu_att occ yrsed degfield degfieldS incwage
 
-tab edu_att
-tab occ
-tab degfield
-
-keep edu_cat edu_att occ yrsed degfield degfieldS
-
+egen mean_wage=mean(incwage), by(occ)
 
 sort occ edu_cat 
 
