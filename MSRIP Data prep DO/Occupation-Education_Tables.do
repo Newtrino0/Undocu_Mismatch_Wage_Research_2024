@@ -127,7 +127,8 @@ sort occ degfield
 
 by occ: egen mode1_deg = mode(degfield) if degfield!=0
 by occ: egen mode2_deg = mode(degfield) if degfield!=mode1_deg & degfield!=0
-
+*Keeping workers that have matched degfield for occ
+keep if degfield != mode1_deg & degfield != mode2_deg
 *Count method*
 /*
 local v = 1
@@ -149,6 +150,8 @@ egen max_count2 = max(count2)
 list occ degfield count2 max_count2
 */
 
+
+/*
 *collapse so that there is one row per occupational code
 collapse (median)med_yrs=yrsed (mean)mode1_deg (mean)mode2_deg (mean)mean_wage=incwage (median)med_wage=incwage (mean)mode_att, by(occ)
 
