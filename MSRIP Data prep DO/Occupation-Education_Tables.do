@@ -157,6 +157,7 @@ collapse (median)med_yrs=yrsed (mean)mode1_deg (mean)mode2_deg (mean)mean_wage=i
 
 gen mode1_degS = string(mode1_deg)
 gen mode2_degS = string(mode2_deg)
+gen occS = string(occ)
 
 gen mode_attS = string(mode_att)
 
