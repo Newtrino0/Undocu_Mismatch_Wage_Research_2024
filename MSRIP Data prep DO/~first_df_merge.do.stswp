@@ -1,5 +1,3 @@
-
-
 use shih_prepped.dta, clear
 sort degfieldS
 save shih_prepped.dta, replace
@@ -9,11 +7,4 @@ sort degfieldS
 
 merge 1:m degfieldS using shih_prepped.dta
 
-
-
-
-
-
-
-
-
+drop _merge

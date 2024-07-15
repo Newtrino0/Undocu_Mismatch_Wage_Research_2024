@@ -28,6 +28,23 @@ use "usa_00011.dta", clear
 *cd $dofiles/
 describe
 
+********* Clean data ***********
+replace occ=. if occ==0
+drop if missing(occ)
+
+replace degfield =0 if degfield==.
+
+drop if incwage == 999999
+drop if empstat !=1
+********************************
+/* Filters applied in Clean data section, includes:
+
+1.) People with an occupation listed
+2.) People who earned a wage/salary
+3.) People who are employed
+
+*/
+
 
 ******************************
 *** EXTRACT NEEDED FAMILY INFO, THEN KEEP YOUNG ADULTS ONLY
@@ -294,10 +311,8 @@ tab ageimm htus, m
 
 
 *** Age groups for analysis
-
-gen occS = string(occ)
 gen degfieldS = string(degfield)
-
+gen occS = string(occ)
 
 replace degfieldS = "N/A" if degfieldS ==	"0"
 replace degfieldS = "Agriculture" if degfieldS ==	"11"
@@ -1072,6 +1087,4 @@ replace occS ="Bookbinders and bindery workers" if occS== "8230"
 replace occS ="Job printers" if occS== "8240"
 replace occS ="Printing machine operators" if occS== "8260"
 replace occS ="Production workers, all other" if occS== "8960"
-
-
 
