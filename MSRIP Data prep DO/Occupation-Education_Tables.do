@@ -125,10 +125,12 @@ egen mean_wage=mean(incwage), by(occ)
 *egen method*
 sort occ degfield
 
-by occ: egen mode1_deg = mode(degfield) if degfield!=0
-by occ: egen mode2_deg = mode(degfield) if degfield!=mode1_deg & degfield!=0
+replace degfield=9999 if degfield==0
+
+by occ: egen mode1_deg = mode(degfield) if degfield!=0, maxmode missing
+by occ: egen mode2_deg = mode(degfield) if degfield!=mode1_deg & degfield!=0, maxmode missing
 *Keeping workers that have matched degfield for occ
-keep if degfield != mode1_deg & degfield != mode2_deg
+
 *Count method*
 /*
 local v = 1
@@ -897,7 +899,7 @@ replace occS ="Printing machine operators" if occS== "8260"
 replace occS ="Production workers, all other" if occS== "8960"
 
 
-replace mode1_degS = "N/A" if mode1_degS ==	"0"
+replace mode1_degS = "N/A" if mode1_degS ==	"9999"
 replace mode1_degS = "Agriculture" if mode1_degS ==	"11"
 replace mode1_degS = "Environment and Natural Resources" if mode1_degS ==	"13"
 replace mode1_degS = "Architecture" if mode1_degS ==	"14"
@@ -937,7 +939,7 @@ replace mode1_degS = "Medical and Health Sciences and Services" if mode1_degS ==
 replace mode1_degS = "Business" if mode1_degS ==	"62"
 replace mode1_degS = "History" if mode1_degS ==	"64"
 
-replace mode2_degS = "N/A" if mode2_degS ==	"0"
+replace mode2_degS = "N/A" if mode2_degS ==	"9999"
 replace mode2_degS = "Agriculture" if mode2_degS ==	"11"
 replace mode2_degS = "Environment and Natural Resources" if mode2_degS ==	"13"
 replace mode2_degS = "Architecture" if mode2_degS ==	"14"

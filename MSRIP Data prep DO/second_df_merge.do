@@ -22,7 +22,9 @@ gen hmatched = 1 if degfieldS==mode1_degS | degfieldS==mode2_degS
 
 *Generates needed wage but only attaches to hmatched observations
 by occS: egen med_wage_hmatched_occ = median(incwage) if degfieldS == mode1_degS | degfieldS == mode2_degS
+*Next line of code extends the med_wage to other observations with the same occ
 egen med_wage_occ_hmatched = mean(med_wage_hmatched_occ), by (occS)
 
 drop med_wage_hmatched_occ
-*Missing values generated, if missing hmatched, also missing med_wage_hmatched_occ
+*Still missing med_wage_occ_hmatched due to missing mode1&mode2 degfields
+

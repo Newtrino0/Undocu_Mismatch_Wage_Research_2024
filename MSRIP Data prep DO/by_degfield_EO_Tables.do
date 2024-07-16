@@ -101,6 +101,8 @@ gen proportion=count/total
 
 by degfield: egen mode_cat = mode(edu_cat)
 
+replace degfield=9999 if degfield ==0
+
 keep occ yrsed degfield incwage
 ***************************************************************************************************
 
@@ -160,7 +162,7 @@ gen mode1_occS = string(mode1_occ)
 gen mode2_occS = string(mode2_occ)
 
 *****************************************Label after collapsing********************************************************************
-replace degfieldS = "N/A" if degfieldS ==	"0"
+replace degfieldS = "N/A" if degfieldS ==	"9999"
 replace degfieldS = "Agriculture" if degfieldS ==	"11"
 replace degfieldS = "Environment and Natural Resources" if degfieldS ==	"13"
 replace degfieldS = "Architecture" if degfieldS ==	"14"
