@@ -303,7 +303,7 @@ gen htus = 1 if bpld==21030 | bpld==20000 | bpld==30060 | bpld==21050 | bpld==30
 replace htus=. if yrimmig==0 
 tab ageimm htus, m  
 
-
+replace degfield=9999 if degfield==0
 *** Age groups for analysis
 gen degfieldS = string(degfield)
 gen occS = string(occ)
@@ -1042,7 +1042,7 @@ replace occS ="Job printers" if occS== "8240"
 replace occS ="Printing machine operators" if occS== "8260"
 replace occS ="Production workers, all other" if occS== "8960"
 
-replace degfieldS = "N/A" if degfieldS ==	"0"
+replace degfieldS = "N/A" if degfieldS ==	"9999"
 replace degfieldS = "Agriculture" if degfieldS ==	"11"
 replace degfieldS = "Environment and Natural Resources" if degfieldS ==	"13"
 replace degfieldS = "Architecture" if degfieldS ==	"14"

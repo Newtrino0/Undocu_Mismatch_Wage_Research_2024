@@ -18,10 +18,11 @@ drop if incwage==0
 
 sort occS incwage
 
-gen hmatched = 1 if degfieldS==mode1_degS | degfieldS==mode2_degS
+gen hmatched = 1 if (degfieldS==mode1_degS | degfieldS==mode2_degS) & (degfieldS!="N/A")
+gen vmatched = 1 if edu_attS==mode_attS
 
 *Generates needed wage but only attaches to hmatched observations
-by occS: egen med_wage_hmatched_occ = median(incwage) if degfieldS == mode1_degS | degfieldS == mode2_degS
+by occS: egen med_wage_hmatched_occ = median(incwage) if hmatched==1
 *Next line of code extends the med_wage to other observations with the same occ
 egen med_wage_occ_hmatched = mean(med_wage_hmatched_occ), by (occS)
 

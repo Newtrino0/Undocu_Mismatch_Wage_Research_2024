@@ -127,8 +127,8 @@ sort occ degfield
 
 replace degfield=9999 if degfield==0
 
-by occ: egen mode1_deg = mode(degfield) if degfield!=0, maxmode missing
-by occ: egen mode2_deg = mode(degfield) if degfield!=mode1_deg & degfield!=0, maxmode missing
+by occ: egen mode1_deg = mode(degfield) if degfield!=9999, maxmode missing
+by occ: egen mode2_deg = mode(degfield) if degfield!=mode1_deg & degfield!=9999, maxmode missing
 *Keeping workers that have matched degfield for occ
 
 *Count method*
