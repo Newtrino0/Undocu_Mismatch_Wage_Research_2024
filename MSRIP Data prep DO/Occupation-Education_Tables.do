@@ -3,12 +3,12 @@
 *XCITE-admin
 *mario
 
-global dofiles "C:\Users\mario\Documents\GitHub\MSRIP_Stata_Work\MSRIP Data prep DO"
+global dofiles "C:\Users\XCITE-admin\Documents\GitHub\MSRIP_Stata_Work\MSRIP Data prep DO"
 
-global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
+global rawdata "C:\Users\XCITE-admin\Documents\Local_XCITE_MSRIP\MSRIP_Data"
 
 *** SET CODE
-cap log closemario
+cap log close
 set more off, perm
 
 					 ***********************************************
