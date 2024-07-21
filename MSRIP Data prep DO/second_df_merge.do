@@ -22,27 +22,24 @@ gen hmatched =(degfield==mode1_deg | degfield==mode2_deg) & (degfield!=9999)
 **Vertically matched median wage and identifier (dummy variable)
 gen vmatched_att = edu_att==mode_att
 gen vmatched_yrs =yrsed==med_yrs_by_occ
-*Mismatch difference and identifier
-gen vmismatched_yrs= abs(yrsed-med_yrs_by_occ)
+*Mismatch difference and identifier, + means overmatched, -means undermatched
+gen vmismatched_yrs= yrsed-med_yrs_by_occ
 gen vmismtached_att = edu_att!=mode_att
 
-/*sort hmatched
-by hmatched: egen hcount=count(hmatched==1)
-by hmatched: gen htotal=_N
-gen hproportion= hcount/htotal if hcount==1
-*/
 
-by occ hmatched, sort: gen hcount=sum(hmatched)
+*Count of people per occupation
 egen occ_count=count(occ), by(occ)
-by occ, sort: gen hproportion = hcount/occ_count
 
-*Correctly counts number of occurences of degfield for each occ
-by occ degfield, sort: gen count2=_N
-*Creates column with max value of count2
-egen max_count2 = max(count2), by(occ)
-by occ degfield, sort: gen mode_deg = degfield if count2==max_count2
-*Correctly tabulates frequencies of degfield for occ
-list occ degfield count2 max_count2
+**Create count of people who are horizontally matched and proportion, as well as those with college degree
+egen hcount=sum(hmatched), by(occ)
+by occ, sort: gen hproportion = hcount/occ_count
+by occ, sort: gen hproportion_col = hproportion if col==1
+
+**Create count of vertically matched people and proportion
+egen vcount_att=sum(vmatched_att), by(occ)
+by occ, sort: gen vproportion_att = vcount_att/occ_count
+egen vcount_yrs=sum(vmatched_yrs), by(occ)
+by occ, sort: gen vproportion_yrs = vcount_yrs/occ_count
 
 *Generates needed wage but only attaches to hmatched observations
 sort occ
@@ -57,6 +54,10 @@ by occ: egen med_wage_vmatched = median(incwage) if vmatched_att==1
 
 egen vmatched_med_wage = mean(med_wage_vmatched), by (occ)
 drop med_wage_vmatched
+
+
+***Horizontal undermatch and overmatched binary variable creation***
+gen hundermatched= (hmatched==0)&(col==1)&(incwage<med_)
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
