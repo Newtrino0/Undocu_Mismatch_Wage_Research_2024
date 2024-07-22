@@ -33,7 +33,10 @@ egen occ_count=count(occ), by(occ)
 **Create count of people who are horizontally matched and proportion, as well as those with college degree
 egen hcount=sum(hmatched), by(occ)
 by occ, sort: gen hproportion = hcount/occ_count
+
+****FIX hproportion_col******
 by occ, sort: gen hproportion_col = hproportion if col==1
+************************************************************
 
 **Create count of vertically matched people and proportion
 egen vcount_att=sum(vmatched_att), by(occ)
@@ -43,11 +46,18 @@ by occ, sort: gen vproportion_yrs = vcount_yrs/occ_count
 
 *Generates needed wage but only attaches to hmatched observations
 sort occ
-by occ: egen med_wage_hmatched = median(incwage) if hmatched==1
+by occ: egen med_wage_hmatched_by_occ = median(incwage) if hmatched==1
 *Next line of code extends the med_wage to other observations with the same occ
-egen hmatched_med_wage = mean(med_wage_hmatched), by (occ)
-
+egen hmatched_med_wage_by_occ = mean(med_wage_hmatched_by_occ), by (occ)
 drop med_wage_hmatched
+
+**Same hmatched median wage but by degfield
+sort degfield
+by degfield: egen med_wage_hmatched_by_degfield = median(incwage) if hmatched==1
+*Next line of code extends the med_wage to other observations with the same occ
+egen hmatched_med_wage_by_degfield = mean(med_wage_hmatched_by_degfield), by (degfield)
+
+
 *Create med_wage for vmatched people within occupation (by attaintment)
 sort occ
 by occ: egen med_wage_vmatched = median(incwage) if vmatched_att==1
@@ -57,8 +67,11 @@ drop med_wage_vmatched
 
 
 ***Horizontal undermatch and overmatched binary variable creation***
-gen hundermatched= (hmatched==0)&(col==1)&(incwage<med_)
+gen hundermatched=1 if hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield
+replace hundermatched=0 if (hmatched==1)
 
+gen hovermatched=1 if (hmatched==0)&(col==1)&(med_wage_by_occ>hmatched_med_wage_by_degfield)
+replace hovermatched=0 if (hmatched==1)
 ****************************Labeling of occupations and degree fields********************************************
 /*
 gen degfieldS = string(degfield)
