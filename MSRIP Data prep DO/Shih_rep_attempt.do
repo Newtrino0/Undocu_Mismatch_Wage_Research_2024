@@ -59,6 +59,10 @@ gen anyss = incss>0
 	replace anyss=. if incss==99999
 gen anyssi = incsupp>0
 	replace anyssi=. if incsupp==99999
+gen healthins = (hcovany==2)
+replace foodstmp = foodstmp-1
+label var foodstmp "Food Stamp Recipient in HH"
+label var healthins "Health Insurance"
 
 *** Aggregate them to household level
 bysort serial sample year: egen hhvet = max(vet)
@@ -75,7 +79,7 @@ drop hhvet hhwelf hhss hhssi
 
 *** Keep only our sample of 10-30 olds
 sum age
-keep if age>=20 & age<=44
+keep if age>=20 & age<=43
 sum age
 
 ******************************
@@ -137,15 +141,6 @@ label var bpl_othspan "Born in Central/South America"
 label var bpl_euraus "Born in Europe/Australia"
 label var bpl_asia "Born in Asia"
 label var bpl_oth "Born in Africa/Other"
-	
-* Metro area
-gen inmetro = metro==2 | metro==3 | metro==4
-replace inmetro=. if metro==0
-drop metro
-rename inmetro metro
-label var metro "Live in Metro Area"
-
-
 
 
 * Country of birth and language
@@ -158,11 +153,6 @@ label var spanish "Spanish Primary Language"
 label var nonfluent "Poor English"
 
 
-*Insurance and poverty
-gen healthins = (hcovany==2)
-replace foodstmp = foodstmp-1
-label var foodstmp "Food Stamp Recipient in HH"
-label var healthins "Health Insurance"
 
 
 * Other Labels
