@@ -1,3 +1,4 @@
+
 *** Degree field tables/dateframes merged with sample***
 **1st merge: by degfield merge**
 use shih_prepped.dta, clear

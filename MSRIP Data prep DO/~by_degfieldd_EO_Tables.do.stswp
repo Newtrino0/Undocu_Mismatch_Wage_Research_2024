@@ -43,7 +43,7 @@ drop if bpl >=100
 ***********Educational attainment category variable, requirements for an occupation***************
 *create a categorical variable of the educational attainment categories
 
-keep occ yrsed degfield incwage
+keep occ yrsed degfieldd incwage
 ***************************************************************************************************
 
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
@@ -60,10 +60,10 @@ keep occ yrsed degfield incwage
 ************************ STEP 2: Create relevant variables (HORIZONTAL MISMATCH) ************************
 					 ***********************************************
 *egen method*
-sort degfield occ
+sort degfieldd occ
 
-by degfield: egen mode1_occ = mode(occ) if occ!=0, maxmode missing
-by degfield: egen mode2_occ = mode(occ) if occ!=mode1_occ & occ!=0, maxmode missing
+by degfieldd: egen mode1_occd = mode(occ) if occ!=0,maxmode missing
+by degfieldd: egen mode2_occd = mode(occ) if occ!=mode1_occd & occ!=0,maxmode missing
 *Keeping workers that have matched degfield for occ
 *keep if degfield != mode1_deg & degfield != mode2_deg
 *Count method*
@@ -90,7 +90,7 @@ list occ degfield count2 max_count2
 
 
 *collapse so that there is one row per occupational code
-collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfield=incwage, by(degfield)
+collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfieldd=incwage, by(degfieldd)
 
 drop med_yrs
 *merge this information back to the Shih sample by occ
