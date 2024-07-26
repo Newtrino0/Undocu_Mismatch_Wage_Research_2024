@@ -3,6 +3,8 @@ cd $rawdata
 
 use eo_tables_merged, clear
 
+
+drop if degfield==9999
 ********************************
 /* Filters applied in Clean data section, includes:
 
@@ -17,8 +19,8 @@ use eo_tables_merged, clear
 
 sort occ incwage
 **Horizontally matched median wage and identifier (dummy variable)
-gen hmatched =1 if (degfield==mode1_deg | degfield==mode2_deg) & degfield!=9999
-replace hmatched =0 if (degfield!=mode1_deg & degfield!=mode2_deg) & degfield!=9999
+gen hmatched =1 if (degfield==mode1_deg | degfield==mode2_deg)
+replace hmatched =0 if (degfield!=mode1_deg & degfield!=mode2_deg)
 **Vertically matched median wage and identifier (dummy variable)
 gen vmatched_att = edu_att==mode_att
 gen vmatched_yrs =yrsed==med_yrs_by_occ
