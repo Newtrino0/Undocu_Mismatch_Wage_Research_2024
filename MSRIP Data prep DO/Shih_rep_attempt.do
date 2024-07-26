@@ -24,7 +24,7 @@ cd $dofiles/ */
 *** READ DATA
 ******************************
 cd $rawdata
-use "usa_00015.dta", clear
+use "usa_00016.dta", clear
 *cd $dofiles/
 describe
 
@@ -32,10 +32,14 @@ describe
 replace occ=. if occ==0
 drop if missing(occ)
 
-replace degfield =0 if degfield==.
+replace degfield =9999 if degfield==. | degfield==0
 
-drop if incwage == 999999
+drop if incwage == 999999 | incwage==0
 drop if empstat !=1
+
+drop cbserial hhwt cluster strata gq perwt momloc poploc
+drop if degfield==9999
+
 ********************************
 /* Filters applied in Clean data section, includes:
 
@@ -276,8 +280,6 @@ gen htus = 1 if bpld==21030 | bpld==20000 | bpld==30060 | bpld==21050 | bpld==30
 	bpld==30050 | bpld==30030 | bpld==26030 | bpld==21040 | bpld==30065 | bpld==26010 | bpld==30025
 replace htus=. if yrimmig==0 
 tab ageimm htus, m  
-
-replace degfield=9999 if degfield==0
 *** Age groups for analysis
 
 

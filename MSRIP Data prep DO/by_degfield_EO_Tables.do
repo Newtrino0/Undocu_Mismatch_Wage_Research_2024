@@ -18,20 +18,13 @@ set more off, perm
 ******************************
 *** READ DATA
 ******************************
-*sample: people aged 20-44 who are US born workers
+*sample: people aged 20-42 who are US born workers
 cd $rawdata
-use "usa_00015.dta", clear
+use "shih_prepped.dta", clear
 describe
 
 ********* Clean data ***********
-replace occ=. if occ==0
-drop if missing(occ)
-
-replace degfield =0 if degfield==.
-
-drop if incwage == 999999
 drop if bpl >=100
-drop if empstat !=1
 ********************************
 /* Filters applied in Clean data section, includes:
 
@@ -46,44 +39,9 @@ drop if empstat !=1
 					 ***********************************************
 ************************ STEP 2: Create relevant variables (VERTICAL MISMATCH) ************************
 					 ***********************************************
-*** Years of Education
-gen yrsed = 0 if educd==2 | educd==11 | educd==12 			// 0 ed
-replace yrsed = 2 if educd==10 									// nursery to grade 4
-replace yrsed = 2.5 if educd==13 								// 1-4
-replace yrsed = 1 if educd==14 									// 1
-replace yrsed = 2 if educd==15 									// 2
-replace yrsed = 3 if educd==16 									// 3
-replace yrsed = 4 if educd==17 									// 4
-replace yrsed = 6.5 if educd==20 								// 5-8
-replace yrsed = 5.5 if educd==21 								// 5-6
-replace yrsed = 5 if educd==22 									// 5
-replace yrsed = 6 if educd==23 									// 6
-replace yrsed = 7.5 if educd==24 								// 7-8
-replace yrsed = 7 if educd==25 									// 7
-replace yrsed = 8 if educd==26 									// 8
-replace yrsed = 9 if educd==30 									// 9
-replace yrsed = 10 if educd==40 									// 10
-replace yrsed = 11 if educd==50 									// 11
-replace yrsed = 12 if educd==60 | educd==61 | educd==62 | educd==63 | educd==64
-replace yrsed = 12.5 if educd==65 								// less than a year of college
-replace yrsed = 13 if educd==70 | educd==71 					// 13
-replace yrsed = 14 if educd==80 | educd==81 | educd==82 | educd==83 // 14
-replace yrsed = 15 if educd==90 									// 15
-replace yrsed = 16 if educd==100 | educd==101 				// 16
-replace yrsed = 17 if educd==110 								// 17
-replace yrsed = 18 if educd==111 | educd==114 				// 18
-replace yrsed = 19 if educd==112 | educd==115 				// 19
-replace yrsed = 21 if educd==116 								// 21
-label var yrsed "Years of Education"
-
-*Remove empty fields for occupation denoted by a 0, and empty fields for yrsed denoted by 0 and 999
-replace yrsed=. if yrsed==1 | yrsed==999
-drop if missing(yrsed)
 					 
 ***********Educational attainment category variable, requirements for an occupation***************
 *create a categorical variable of the educational attainment categories
-
-replace degfield=9999 if degfield ==0
 
 keep occ yrsed degfield incwage
 ***************************************************************************************************

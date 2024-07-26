@@ -14,6 +14,7 @@ drop _merge
 **Dropping many variables for smoother code**
 drop cbserial hhwt cluster strata gq perwt momloc poploc bpld degfieldd
 drop if incwage==0
+drop if degfield==9999
 
 
 sort occ incwage
@@ -69,14 +70,20 @@ drop med_wage_vmatched
 
 ***Horizontal undermatch and overmatched binary variable creation***
 gen hundermatched=1 if hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield
-replace hundermatched=0 if (hmatched==1)
+replace hundermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_occ>hmatched_med_wage_by_degfield)
 
 gen hovermatched=1 if (hmatched==0)&(col==1)&(med_wage_by_occ>hmatched_med_wage_by_degfield)
-replace hovermatched=0 if (hmatched==1)
+replace hovermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield)
+
 
 
 ******Wage Penalties*************
 gen hmismatched_med_wage_diff =  med_wage_by_occ-hmatched_med_wage_by_degfield
+
+
+
+******STEM Categorization***********
+gen STEM_deg=degfield==
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
