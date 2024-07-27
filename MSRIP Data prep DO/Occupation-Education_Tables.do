@@ -65,10 +65,10 @@ keep occ yrsed degfield degfieldd incwage mode_cat mode_att
 					 ***********************************************
 *egen method*
 sort occ degfield
-by occ: egen mode1_deg = mode(degfield), maxmode missing
-by occ: egen mode2_deg = mode(degfield), maxmode missing
-by occ: egen mode1_degd = mode(degfieldd), maxmode missing
-by occ: egen mode2_degd = mode(degfieldd), maxmode missing
+by occ: egen mode1_deg = mode(degfield) if degfield!=9999, maxmode missing
+by occ: egen mode2_deg = mode(degfield) if degfield!=9999, maxmode missing
+by occ: egen mode1_degd = mode(degfieldd) if degfieldd!=9999, maxmode missing
+by occ: egen mode2_degd = mode(degfieldd) if degfieldd!=9999, maxmode missing
 *Keeping workers that have matched degfield for occ
 
 *Count method*
