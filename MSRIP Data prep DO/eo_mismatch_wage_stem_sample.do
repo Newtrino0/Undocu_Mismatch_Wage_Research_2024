@@ -11,7 +11,7 @@ drop if degfield==9999
 1.) People with an occupation listed
 2.) People who earned a wage/salary
 3.) People who are employed
-4.) People with a degfield listed
+4.) People with a degfield listed (college graduates)
 
 */
 
@@ -56,6 +56,11 @@ by degfield: egen med_wage_hmatched_by_degfield = median(incwage) if hmatched==1
 egen hmatched_med_wage_by_degfield = mean(med_wage_hmatched_by_degfield), by (degfield)
 drop med_wage_hmatched_by_degfield
 
+**For vmatched by degfield
+by degfield: egen med_wage_vmatched_by_degfield = median(incwage) if vmatched_att==1
+egen vmatched_med_wage_by_degfield = mean(med_wage_vmatched_by_degfield), by (degfield)
+drop med_wage_vmatched_by_degfield
+
 *Create med_wage for vmatched people within occupation (by attaintment)
 sort occ
 by occ: egen med_wage_vmatched = median(incwage) if vmatched_att==1
@@ -71,17 +76,14 @@ replace hundermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_o
 gen hovermatched=1 if (hmatched==0)&(col==1)&(med_wage_by_occ>hmatched_med_wage_by_degfield)
 replace hovermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield)
 
-
-
-******Wage Penalties*************
-gen hmismatched_med_wage_diff =  med_wage_by_occ-hmatched_med_wage_by_degfield
-
-
-
 ************STEM Categorization**************
 ***For degfield***
 gen stem_deg= degfieldd==1100 |	degfieldd==1103 |	degfieldd==1104 |	degfieldd==1105 |	degfieldd==1106 |	degfieldd==1199 |	degfieldd==1300 |	degfieldd==1301 |	degfieldd==1401 |	degfieldd==2001 |	degfieldd==2100 |	degfieldd==2101 |	degfieldd==2102 |	degfieldd==2105 |	degfieldd==2106 |	degfieldd==2107 |	degfieldd==2400 |	degfieldd==2401 |	degfieldd==2402 |	degfieldd==2403 |	degfieldd==2404 |	degfieldd==2405 |	degfieldd==2406 |	degfieldd==2407 |	degfieldd==2408 |	degfieldd==2409 |	degfieldd==2410 |	degfieldd==2411 |	degfieldd==2412 |	degfieldd==2413 |	degfieldd==2414 |	degfieldd==2415 |	degfieldd==2416 |	degfieldd==2417 |	degfieldd==2418 |	degfieldd==2419 |	degfieldd==2499 |	degfieldd==2500 |	degfieldd==2502 |	degfieldd==2503 |	degfieldd==2504 |	degfieldd==2599 |	degfieldd==3600 |	degfieldd==3601 |	degfieldd==3602 |	degfieldd==3603 |	degfieldd==3604 |	degfieldd==3605 |	degfieldd==3606 |	degfieldd==3607 |	degfieldd==3608 |	degfieldd==3609 |	degfieldd==3611 |	degfieldd==3699 |	degfieldd==3700 |	degfieldd==3701 |	degfieldd==3702 |	degfieldd==4002 |	degfieldd==4003 |	degfieldd==4005 |	degfieldd==4006 |	degfieldd==5000 |	degfieldd==5001 |	degfieldd==5002 |	degfieldd==5003 |	degfieldd==5004 |	degfieldd==5005 |	degfieldd==5006 |	degfieldd==5007 |	degfieldd==5008 |	degfieldd==5098 |	degfieldd==5102 |	degfieldd==5202 |	degfieldd==5701 |	degfieldd==5901 |	degfieldd==6100 |	degfieldd==6102 |	degfieldd==6103 |	degfieldd==6104 |	degfieldd==6105 |	degfieldd==6106 |	degfieldd==6107 |	degfieldd==6108 |	degfieldd==6109 |	degfieldd==6110 |	degfieldd==6199
 
+
+egen stem_count=sum(stem_deg), by(occ)
+by occ, sort: gen stem_proportion = stem_count/occ_count
+by occ, sort: gen stem_primary_deg_by_occ=(stem_proportion>0.5)
 ***For occ***
 
 
