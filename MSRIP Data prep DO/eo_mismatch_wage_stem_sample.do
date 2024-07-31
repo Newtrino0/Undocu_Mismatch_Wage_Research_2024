@@ -102,7 +102,9 @@ tab noncit stem_deg,row
 
 
 **********Regression Analysis for funzies*************
-regress stem_deg age elig
+gen foreign_born=1-usaborn
+regress vmatched_att elig hisp i.year age foreign_born stem_deg nonfluent bpl_mex bpl_othspan bpl_asia
+regress hundermatched elig hisp i.year age foreign_born stem_deg nonfluent bpl_mex bpl_othspan bpl_asia
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
