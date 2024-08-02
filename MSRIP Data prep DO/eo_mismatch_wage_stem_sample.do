@@ -16,10 +16,13 @@ drop if degfield==9999
 
 */
 
-gen bpl_usa=bpl<100
+gen bpl_usa=bpl<=120
 gen bpl_foreign=bpl>120
 
-gen foreign_deg_likely=ageimmig>25
+gen for_cit = noncit==0 & bpl_usa!=1
+
+gen foreign_deg_likely=ageimmig>25 if noncit==1
+
 
 replace elig=0 if elig==1 & hhlegal==1
 replace nonelig=1 if nonelig==0 & hhlegal==1
@@ -107,7 +110,25 @@ by occ, sort: gen stem_primary_deg_by_occ=(stem_proportion>0.5)
 
 
 
+************Category Variables for tables****
 
+gen noncit_elig = 1 if elig==1
+replace noncit_elig = 2 if age_inelig==1
+replace noncit_elig = 3 if arrival_inelig==1
+replace noncit_elig = 4 if bpl_usa==1
+replace noncit_elig = 5 if for_cit==1
+
+label define noncit_elig_label 1 "DACA-elig Noncit." 2 "Age_inelig Noncit." 3 "Arrival_inelig Noncit." 4 "US-born Cit." 5 "Foreign-born Cit."
+label values noncit_elig noncit_elig_label 
+
+
+gen noncit_deg = 1 if foreign_deg_likely==1
+replace noncit_deg = 2 if foreign_deg_likely==0
+replace noncit_deg = 4 if bpl_usa==1
+replace noncit_deg = 5 if for_cit==1
+
+label define noncit_deg_label 1 "Foreign-likely Educated Noncit." 2 "US-likely Educated Noncit." 4 "US-born Cit." 5 "Foreign-born Cit."
+label values noncit_deg noncit_deg_label 
 
 ******************Descriptive Statistics***************************
 
@@ -117,25 +138,28 @@ tab elig vmatched_att,row
 tab elig degfield, row
 tab noncit stem_deg,row
 
+table noncit_elig, stat(mean hmatched vmatched_att stem_deg) stat(median incwage)
+table noncit_deg, stat(mean hmatched vmatched_att stem_deg) stat(median incwage)
+sum year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg bpl_usa bpl_mex bpl_othspan bpl_asia for_cit noncit nonfluent incwage hmatched vmatched_att
 
 
 
 **********Regression Analysis*************
 gen ln_wage=ln(incwage)
 
-regress vmatched_att elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
+regress vmatched_att elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
 outreg2 using myresults.xls, replace ctitle(Ver. Matched Model)
 
-regress hmatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
+regress hmatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
 outreg2 using myresults.xls, replace ctitle(Hor. Matched Model)
 
-regress hundermatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+regress hundermatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
 outreg2 using myresults.xls, append ctitle (Hor. Undermatched Model)
 
-regress hovermatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+regress hovermatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
 outreg2 using myresults.xls, append ctitle (Hor. Overmatched Model)
 
-regress ln_wage elig age_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent bpl_foreign uhrswork fem
+regress ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent bpl_foreign uhrswork fem
 outreg2 using myresults.xls, append ctitle (Wage Model)
 
 
