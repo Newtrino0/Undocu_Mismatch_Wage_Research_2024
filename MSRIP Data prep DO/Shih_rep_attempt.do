@@ -24,7 +24,7 @@ cd $dofiles/ */
 *** READ DATA
 ******************************
 cd $rawdata
-use "usa_00016.dta", clear
+use "usa_00018.dta", clear
 *cd $dofiles/
 describe
 
@@ -232,7 +232,7 @@ drop educd grad*
 *** Foreign born
 gen ageimmig = yrimmig-birthyr
 tab ageimmig, m
-replace ageimmig=-1 if ageimmig<0
+replace ageimmig=. if ageimmig<0
 tab ageimmig, m
 label var ageimmig "Age at Immigration"
 label var yrimmig "Year of Immigration"

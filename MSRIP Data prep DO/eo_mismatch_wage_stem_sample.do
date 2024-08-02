@@ -1,3 +1,4 @@
+ssc install outreg2
 global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
 cd $rawdata
 
@@ -15,6 +16,24 @@ drop if degfield==9999
 
 */
 
+gen bpl_usa=bpl<100
+gen bpl_foreign=bpl>120
+
+gen foreign_deg_likely=ageimmig>25
+
+replace elig=0 if elig==1 & hhlegal==1
+replace nonelig=1 if nonelig==0 & hhlegal==1
+
+
+*Age of arrival before 10*
+gen immig_by_ten=ageimmig<10
+
+*****Create similar group variables of ineligility****
+gen age_inelig = elig==0 & noncit==1 & (ageimmig>16 & yrimmig<=2007 | (2012.5-(birthyr+(birthqtr*.25)))>=31) // i.e birthyr + birthqtr>1981.5
+replace age_inelig=. if noncit==0
+
+gen arrival_inelig = elig==0 & noncit==1 & (ageimmig<=16 & yrimmig>2007 | (2012.5-(birthyr+(birthqtr*.25)))<31) // i.e birthyr + birthqtr>1981.5
+replace arrival_inelig=. if noncit==0
 
 
 sort occ incwage
@@ -63,10 +82,10 @@ drop med_wage_vmatched_by_degfield
 
 *Create med_wage for vmatched people within occupation (by attaintment)
 sort occ
-by occ: egen med_wage_vmatched = median(incwage) if vmatched_att==1
+by occ: egen med_wage_vmatched_by_occ = median(incwage) if vmatched_att==1
 
-egen vmatched_med_wage = mean(med_wage_vmatched), by (occ)
-drop med_wage_vmatched
+egen vmatched_med_wage_by_occ = mean(med_wage_vmatched_by_occ), by (occ)
+drop med_wage_vmatched_by_occ
 
 
 ***Horizontal undermatch and overmatched binary variable creation***
@@ -90,7 +109,7 @@ by occ, sort: gen stem_primary_deg_by_occ=(stem_proportion>0.5)
 
 
 
-*********************************************
+******************Descriptive Statistics***************************
 
 tab elig stem_deg,row
 tab elig hmatched,row
@@ -101,10 +120,25 @@ tab noncit stem_deg,row
 
 
 
-**********Regression Analysis for funzies*************
-gen foreign_born=1-usaborn
-regress vmatched_att elig hisp i.year age foreign_born stem_deg nonfluent bpl_mex bpl_othspan bpl_asia
-regress hundermatched elig hisp i.year age foreign_born stem_deg nonfluent bpl_mex bpl_othspan bpl_asia
+**********Regression Analysis*************
+gen ln_wage=ln(incwage)
+
+regress vmatched_att elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
+outreg2 using myresults.xls, replace ctitle(Ver. Matched Model)
+
+regress hmatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
+outreg2 using myresults.xls, replace ctitle(Hor. Matched Model)
+
+regress hundermatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+outreg2 using myresults.xls, append ctitle (Hor. Undermatched Model)
+
+regress hovermatched elig age_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+outreg2 using myresults.xls, append ctitle (Hor. Overmatched Model)
+
+regress ln_wage elig age_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent bpl_foreign uhrswork fem
+outreg2 using myresults.xls, append ctitle (Wage Model)
+
+
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
