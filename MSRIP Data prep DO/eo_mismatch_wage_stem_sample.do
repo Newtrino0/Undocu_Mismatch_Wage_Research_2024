@@ -1,4 +1,6 @@
 ssc install outreg2
+ssc install tabout
+ssc install asdoc
 global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
 cd $rawdata
 
@@ -142,7 +144,15 @@ table noncit_elig, stat(mean hmatched vmatched_att stem_deg) stat(median incwage
 table noncit_deg, stat(mean hmatched vmatched_att stem_deg) stat(median incwage)
 sum year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg bpl_usa bpl_mex bpl_othspan bpl_asia for_cit noncit nonfluent incwage hmatched vmatched_att
 
+/*
+tabout noncit elig using table_output.htm, replace c(freq col cum) ///
+ f(0c 1) style(htm) font(bold)
+ 
+tabout noncit hmatched elig using "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\exceltable.xlsx", ///
+replace c(freq col) f(0c 1) font(bold) style(xlsx)
+*/
 
+table (var) (noncit_elig result), statistic(mean year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg for_cit noncit hmatched vmatched_att) statistic(median incwage ln_wage) nformat(%7.2f)
 
 **********Regression Analysis*************
 gen ln_wage=ln(incwage)
@@ -162,7 +172,12 @@ outreg2 using myresults.xls, append ctitle (Hor. Overmatched Model)
 regress ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent bpl_foreign uhrswork fem
 outreg2 using myresults.xls, append ctitle (Wage Model)
 
+xtset occ
+xtreg ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem, fe
+outreg2 using myresults.xls, append ctitle (FE Wage Model) 
 
+xtreg ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hmatched vmatched_att, fe
+outreg2 using myresults.xls, append ctitle (FE Mismatch Wage Model) 
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
