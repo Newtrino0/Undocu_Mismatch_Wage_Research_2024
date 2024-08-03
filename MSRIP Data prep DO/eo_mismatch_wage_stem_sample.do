@@ -29,6 +29,10 @@ gen foreign_deg_likely=ageimmig>25 if noncit==1
 replace elig=0 if elig==1 & hhlegal==1
 replace nonelig=1 if nonelig==0 & hhlegal==1
 
+gen ln_wage=ln(incwage)
+
+
+
 
 *Age of arrival before 10*
 gen immig_by_ten=ageimmig<10
@@ -132,6 +136,9 @@ replace noncit_deg = 5 if for_cit==1
 label define noncit_deg_label 1 "Foreign-likely Educated Noncit." 2 "US-likely Educated Noncit." 4 "US-born Cit." 5 "Foreign-born Cit."
 label values noncit_deg noncit_deg_label 
 
+egen n_noncit_elig= count(noncit_elig), by(noncit_elig)
+label var n_noncit_elig "Number of Observations (by Cit.& Elig.)"
+
 ******************Descriptive Statistics***************************
 
 tab elig stem_deg,row
@@ -152,10 +159,11 @@ tabout noncit hmatched elig using "C:\Users\mario\Documents\Local_mario_MSRIP\MS
 replace c(freq col) f(0c 1) font(bold) style(xlsx)
 */
 
-table (var) (noncit_elig result), statistic(mean year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg for_cit noncit hmatched vmatched_att) statistic(median incwage ln_wage) nformat(%7.2f)
+table (var) (noncit_elig result), statistic(mean year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg for_cit noncit hmatched vmatched_att incwage ln_wage n_noncit_elig) nformat(%10.2f) 
+
 
 **********Regression Analysis*************
-gen ln_wage=ln(incwage)
+
 
 regress vmatched_att elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
 outreg2 using myresults.xls, replace ctitle(Ver. Matched Model)
