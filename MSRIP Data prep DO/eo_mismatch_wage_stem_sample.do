@@ -1,6 +1,7 @@
 ssc install outreg2
 ssc install tabout
 ssc install asdoc
+ssc install estout
 global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
 cd $rawdata
 
@@ -23,7 +24,7 @@ gen bpl_foreign=bpl>120
 
 gen for_cit = noncit==0 & bpl_usa!=1
 
-gen foreign_deg_likely=ageimmig>25 if noncit==1
+gen foreign_deg_likely=ageimmig>25 & ageimmig!=.
 
 
 replace elig=0 if elig==1 & hhlegal==1
@@ -128,19 +129,22 @@ label define noncit_elig_label 1 "DACA-elig Noncit." 2 "Age_inelig Noncit." 3 "A
 label values noncit_elig noncit_elig_label 
 
 
-gen noncit_deg = 1 if foreign_deg_likely==1
-replace noncit_deg = 2 if foreign_deg_likely==0
-replace noncit_deg = 4 if bpl_usa==1
-replace noncit_deg = 5 if for_cit==1
+gen noncit_deg = 1 if foreign_deg_likely==1 & noncit==1
+replace noncit_deg = 2 if foreign_deg_likely==0 & noncit==1
+replace noncit_deg = 3 if foreign_deg_likely==1 & noncit==0
+replace noncit_deg = 4 if foreign_deg_likely==0 & noncit==0
 
-label define noncit_deg_label 1 "Foreign-likely Educated Noncit." 2 "US-likely Educated Noncit." 4 "US-born Cit." 5 "Foreign-born Cit."
+label define noncit_deg_label 1 "Foreign-likely Educated Noncit." 2 "US-likely Educated Noncit." 3 "Foreign-likely Educated Cit." 4 "US-likely Educated Cit."
 label values noncit_deg noncit_deg_label 
 
-egen n_noncit_elig= count(noncit_elig), by(noncit_elig)
+egen n_noncit_elig= sum(noncit_elig), by(noncit_elig)
 label var n_noncit_elig "Number of Observations (by Cit.& Elig.)"
 
-******************Descriptive Statistics***************************
+egen n_noncit_deg= sum(noncit_deg), by(noncit_deg)
+label var n_noncit_deg "Number of Observations (by Cit.& Deg.)"
 
+******************Descriptive Statistics***************************
+/*
 tab elig stem_deg,row
 tab elig hmatched,row
 tab elig vmatched_att,row
@@ -151,41 +155,117 @@ table noncit_elig, stat(mean hmatched vmatched_att stem_deg) stat(median incwage
 table noncit_deg, stat(mean hmatched vmatched_att stem_deg) stat(median incwage)
 sum year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg bpl_usa bpl_mex bpl_othspan bpl_asia for_cit noncit nonfluent incwage hmatched vmatched_att
 
-/*
+
 tabout noncit elig using table_output.htm, replace c(freq col cum) ///
  f(0c 1) style(htm) font(bold)
  
 tabout noncit hmatched elig using "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\exceltable.xlsx", ///
 replace c(freq col) f(0c 1) font(bold) style(xlsx)
+
+table (var) (noncit_elig result), statistic(mean year age foreign_deg_likely stem_deg for_cit noncit hmatched vmatched_att incwage ln_wage n_noncit_elig) nformat(%10.2f)
+
+table (var) (noncit_deg result), statistic(mean year age elig age_inelig arrival_inelig stem_deg for_cit noncit hmatched vmatched_att incwage ln_wage n_noncit_deg) nformat(%10.2f)  
 */
 
-table (var) (noncit_elig result), statistic(mean year age elig age_inelig arrival_inelig foreign_deg_likely stem_deg for_cit noncit hmatched vmatched_att incwage ln_wage n_noncit_elig) nformat(%10.2f) 
+dtable year age foreign_deg_likely stem_deg for_cit noncit nonfluent incwage hmatched vmatched_att, by(noncit_elig) export(noncit_elig_table.xlsx, replace)
+dtable year age elig age_inelig arrival_inelig for_cit noncit stem_deg nonfluent incwage hmatched vmatched_att, by(noncit_deg) export(noncit_elig_deg.xlsx, replace)
+
+********************************************
+**********Regression Analysis***************
+********************************************
+gen vmismatched=vmatched_att!=1
+gen hmismatched=hmatched!=1
+
+eststo clear
 
 
-**********Regression Analysis*************
+********Vertical and Horizontal Mismatch models (Li, Table 3)*********
+eststo, title("Ver. Mismatched Model"): quietly regress vmismatched i.year hisp age stem_deg  yrsed nonfluent bpl_mex bpl_othspan bpl_asia b4.noncit_elig foreign_deg_likely
+outreg2 using myresults.xls, replace ctitle(Ver. Mismatched Model)
 
-
-regress vmatched_att elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
-outreg2 using myresults.xls, replace ctitle(Ver. Matched Model)
-
-regress hmatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia, robust
+/*
+eststo, title("Hor. Matched Model"): quietly regress hmatched i.noncit_elig i.year hisp age stem_deg foreign_deg_likely yrsed nonfluent bpl_mex bpl_othspan bpl_asia, robust
 outreg2 using myresults.xls, replace ctitle(Hor. Matched Model)
 
-regress hundermatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+eststo, title("Hor. Mismatched Model"): quietly regress hmismatched i.noncit_elig i.year hisp age stem_deg foreign_deg_likely yrsed nonfluent bpl_mex bpl_othspan bpl_asia, robust
+outreg2 using myresults.xls, replace ctitle(Hor. Mismatched Model)
+*/
+
+eststo, title("Hor. Undermatched Model"): quietly regress hundermatched i.year hisp age stem_deg foreign_deg_likely yrsed nonfluent bpl_mex bpl_othspan bpl_asia b4.noncit_elig
 outreg2 using myresults.xls, append ctitle (Hor. Undermatched Model)
 
-regress hovermatched elig age_inelig arrival_inelig hisp i.year age stem_deg foreign_deg_likely yrsed nonfluent bpl_foreign bpl_mex bpl_othspan bpl_asia
+
+eststo, title("Hor. Overmatched Model"): quietly regress hovermatched b4.noncit_elig i.year hisp age stem_deg foreign_deg_likely yrsed nonfluent bpl_mex bpl_othspan bpl_asia
 outreg2 using myresults.xls, append ctitle (Hor. Overmatched Model)
 
-regress ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent bpl_foreign uhrswork fem
+
+esttab using Mismatch_Reg_Table_3.csv, label plain /// 
+title(Mismatch Models) ///
+nonumbers mtitles("Ver. Mismatched Model" "Hor. Undermatched Model" "Hor. Overmatched Modell") /// 
+addnote("Source:eo_tables_merged.dta")
+
+*************Wage Regression models *************
+eststo clear
+
+eststo, title("Wage Model"): quietly regress ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age stem_deg yrsed nonfluent uhrswork fem hundermatched hovermatched vmismatched
 outreg2 using myresults.xls, append ctitle (Wage Model)
 
 xtset occ
-xtreg ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem, fe
+eststo, title("FE Wage Model"): quietly xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem, fe
 outreg2 using myresults.xls, append ctitle (FE Wage Model) 
 
-xtreg ln_wage elig age_inelig arrival_inelig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hmatched vmatched_att, fe
+
+eststo, title("FE Mismatch Wage Model"): quietly xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hundermatched hovermatched vmismatched, fe
 outreg2 using myresults.xls, append ctitle (FE Mismatch Wage Model) 
+
+xtset degfield
+eststo, title("FE Deg Mismatch Wage Model"): quietly xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hundermatched hovermatched vmismatched, fe
+outreg2 using myresults.xls, append ctitle (FE Deg Mismatch Wage Model) 
+
+esttab, label /// 
+title(Log Wage Models) ///
+nonumbers mtitles("Wage Model" "FE Wage Model" "FE Mismatch Wage Model" "FE Deg Mismatch Wage Model") /// 
+addnote("Source: eo_tables_merged.dta")
+
+estout, cells("b(star label(Coef.)) se(label(Std. err.))")  /// 
+stats(r2 N, labels(R-squared "N. of cases")) /// 
+label legend varlabels(_cons Constant)
+
+
+*****(Li, Table 4)****
+eststo clear
+
+eststo, title("FE Base Wage Model"): quietly xtreg ln_wage b4.noncit_elig foreign_deg_likely immig_by_ten stem_deg hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem, fe
+eststo, title("FE V. Wage Model"): xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg hisp married i.year i.classwkrd i.pwstate2 age nonfluent uhrswork fem vmismatched##foreign_deg_likely, fe
+eststo, title("FE H. Wage Model"): quietly xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hundermatched##foreign_deg_likely hovermatched##foreign_deg_likely, fe
+eststo, title("FE Mismatch Wage Model"): quietly xtreg ln_wage b4.noncit_elig immig_by_ten stem_deg foreign_deg_likely hisp married i.year i.classwkrd i.pwstate2 age yrsed nonfluent uhrswork fem hundermatched##foreign_deg_likely hovermatched##foreign_deg_likely vmismatched##foreign_deg_likely, fe
+
+
+esttab using Li_Table_4.csv, label plain /// 
+title(Log Wage Models) ///
+nonumbers mtitles("FE Base Wage Model" "FE V. Wage Model" "FE H. Wage Model" "FE Mismatch Wage Model") /// 
+addnote("Source: eo_tables_merged.dta")
+
+estout using Li_Table_4_Reg.rtf, cells("b(star label(Coef.)) se(label(Std. err.))")  /// 
+stats(r2 N, labels(R-squared "N. of cases")) /// 
+label legend varlabels(_cons Constant)
+
+esttab est* using sum_stats_elig.rtf, replace label  main(mean) aux(sd) title("Wage Model Summary Statistics") unstack  mlabels("Total" "DF Grade" "Pre Covid" "Post Transition") nostar ///
+note("Note: Student-Course level means. Standard deviations in parentheses. ") ///
+addn("The transition semester (Spring 2020) is excluded in column 4.")
+
+*********************Post-regression Summary Statistics***********************************
+sort noncit_elig
+by noncit_elig: eststo: quietly estpost summarize incwage age, listwise
+esttab using reg_sum_stats.csv, cells("mean sd") label nodepvar /// 
+varlabels(`e(labels)') eqlabels(`e(eqlabels)')
+
+
+estpost tabstat incwage age year, by(noncit_elig) ///
+statistics(mean sd) columns(statistics) listwise
+
+esttab using noncit_sum_stats.csv, main(mean) aux(sd) nostar ///
+varlabels(`e(labels)') eqlabels(`e(eqlabels)')
 
 ****************************Labeling of occupations and degree fields********************************************
 /*
@@ -2525,3 +2605,4 @@ replace mode_attS = "HS Diploma" if mode_att == 2
 replace mode_attS = "No HS Diploma" if mode_att == 1
 
 drop occ degfield mode1_deg mode2_deg mode_att
+*/
