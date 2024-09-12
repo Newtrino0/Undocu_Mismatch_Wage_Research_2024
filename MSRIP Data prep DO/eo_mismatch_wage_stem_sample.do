@@ -274,7 +274,7 @@ esttab using Ver_Mismatch_Reg_Table.csv, label plain ///
 title(Vertical mismatch Models) cells("b(star label(Coef.)) se(label(Std. err.))") ///
 stats(r2_a r2_p N, labels("Adjusted R-squared" "Pseudo R-squared" "N. of cases")) ///
 nonumbers mtitles("Ver. Mismatch Model (by Status)" "Ver. Mismatch Model (by Status and Place Degree)" "Ver. Mismatch Model (by Status, Place of Degree, and STEM)" "Logit Ver. Mismatch Model") /// 
-addnote("Source:eo_tables_merged.dta") keep(hisp nonfluent 1.cit_general 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg) drop(main) compress replace
+addnote("Source:eo_tables_merged.dta") keep(hisp nonfluent 1.cit_general 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg) compress replace
 
 /*
 eststo, title("Hor. Matched Model"): quietly regress hmatched i.noncit_elig i.year hisp age stem_deg foreign_deg_likely yrsed nonfluent bpl_mex bpl_othspan bpl_asia, robust
@@ -313,7 +313,7 @@ xtset,clear
 esttab using Hor_Mismatch_Reg_Table.csv, label plain /// 
 title(Horizontal mismatch models)  cells("b(star label(Coef.)) se(label(Std. err.))") stats(r2 N, labels(R-squared "N. of cases")) ///
 nonumbers mtitles("Hor. Undermatch Model (by Status)" "Hor. Undermatch Model (by Status and Place Degree)" "Hor. Undermatch Model (by Status, Place of Degree, and STEM)" "Hor. Overmatch Model (by Status)" "Hor. Overmatch Model (by Status and Place Degree)" "Hor. Overmatch Model (by Status, Place of Degree, and STEM)" "FE Hor. Overmatch Model (by Status, Place of Degree, and STEM)") /// 
-addnote("Source:eo_tables_merged.dta") keep(hisp nonfluent 1.cit_general 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg) drop(main) compress replace
+addnote("Source:eo_tables_merged.dta") keep(hisp nonfluent 1.cit_general 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg) compress replace
 
 *******************************Wage Regression models *******************************
 eststo clear
@@ -408,7 +408,7 @@ xtset,clear
 esttab using Final_Mismatch_Table.tex, cells("b(star label(Coef.)) se(label(Std. err.))")  /// 
 stats(r2_p r2_a N, labels("Pseudo R-squared" "Adjusted R-squared" "N. of cases")) title(Regression statistics for Vertical Mismatch and Horizontal Undermatch and Overmatch models) /// 
 nonumbers mtitles("Logistic V. Mismatch Model" "Logistic H. Undermatch Model" "Logistic H. Overmatch Model" "FE by degfield H. Undermatch Model" "FE by degfield H. Overmatch Model") /// 
-label legend varlabels(_cons Constant) keep(2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg hisp nonfluent) addnotes("Note: DACA eligible/ineligible groups are created with Kuka et al. (2020) methods. Foreign Degree (likely) consists of individuals that were outside the U.S. during typical college age.FE by deg. models have 38 unique degree fields.") replace compress
+label legend varlabels(_cons Constant) keep(2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg hisp nonfluent) addnotes("Note: DACA eligible/ineligible groups are created with Kuka et al. (2020) methods. Foreign Degree (likely) consists of individuals that were outside the U.S. during typical college age.FE by deg. models have 38 unique degree fields. Other covariates not displayed include: year, race, age, age squared, gender, years of education, three binary variables for birthplace (Mexico, other Spanish-speaking countries, and Asia), class of worker, and metropolitan residence.") replace compress
 
 eststo clear
 
@@ -435,7 +435,7 @@ xtset,clear
 esttab using Final_Wage_Table.tex, cells("b(star label(Coef.)) se(label(Std. err.))")  /// 
 stats(r2_a N, labels("Adjusted R-squared" "N. of cases")) title(Regression statistics for Log-transformed Wage models) /// 
 nonumbers mtitles("Base Wage Model" "FE by occ. Wage Model" "FE by deg. Wage Model" "FE by deg. (Mismatch x for_deg) Wage Model") /// 
-label legend varlabels(_cons Constant)  keep(vmismatched hundermatched hovermatched 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg hisp nonfluent) addnotes("Note: DACA eligible/ineligible groups are created with Kuka et al. (2020) methods. Foreign Degree (likely) consists of individuals that were outside the U.S. during typical college age. FE by deg. models have 38 unique degree fields.") nobaselevels interaction(" $\times$ ")style(tex) replace compress
+label legend varlabels(_cons Constant)  keep(vmismatched hundermatched hovermatched 2.cit_general 3.cit_general for_cit immig_by_ten foreign_deg_likely stem_deg hisp nonfluent) addnotes("Note: DACA eligible/ineligible groups are created with Kuka et al. (2020) methods. Foreign Degree (likely) consists of individuals that were outside the U.S. during typical college age. FE by deg. models have 38 unique degree fields. Other covariates not displayed include: year, race, age, age squared, gender, years of education, three binary variables for birthplace (Mexico, other Spanish-speaking countries, and Asia), class of worker, and metropolitan residence, US state, usual hours worked per week, marital status, horizontal undermatch, horizontal overmatch, and vertical mismatch.") nobaselevels interaction(" $\times$ ")style(tex) replace compress
 
 
 *********************Figures***********************************************

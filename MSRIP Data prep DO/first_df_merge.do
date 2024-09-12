@@ -24,7 +24,7 @@ drop _merge
 **3rd merge: by occ merge**
 save eo_tables_merged, replace
 
-use eo_table_by_occ, clear
+use eo_table_by_occ_na, clear
 sort occ
 
 merge 1:m occ using eo_tables_merged
