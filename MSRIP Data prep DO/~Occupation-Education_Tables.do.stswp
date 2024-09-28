@@ -18,7 +18,7 @@ set more off, perm
 ******************************
 *** READ DATA
 ******************************
-*sample: people aged 20-42 who are US born workers
+*sample: people aged 20-44 who are US born workers
 cd $rawdata
 use "shih_prepped.dta", clear
 describe
@@ -37,13 +37,17 @@ drop if bpl >=100
 
 
 					 ***********************************************
-************************ STEP 2: Create relevant variables (VERTICAL MISMATCH) ************************
+************************ STEP 2: Create attainment by occupation ************************
 					 ***********************************************
-					 
-***********Educational attainment category variable, requirements for an occupation***************
-*create a categorical variable of the educational attainment categories
+gen edu_cat="HS or less" if yrsed<=12
+replace edu_cat="College" if yrsed>12
 
-keep occ yrsed degfield incwage adj_hourly
+sort occ edu_cat
+by occ: egen mode_cat = mode(edu_cat)
+sort occ edu_att
+by occ: egen mode_att = mode(edu_att)
+
+keep occ yrsed degfield degfieldd incwage mode_cat mode_att
 ***************************************************************************************************
 
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
@@ -60,12 +64,13 @@ keep occ yrsed degfield incwage adj_hourly
 ************************ STEP 2: Create relevant variables (HORIZONTAL MISMATCH) ************************
 					 ***********************************************
 *egen method*
-sort degfield occ
-
-by degfield: egen mode1_occ = mode(occ) if occ!=0, maxmode missing
-by degfield: egen mode2_occ = mode(occ) if occ!=mode1_occ & occ!=0, maxmode missing
+sort occ degfield
+by occ: egen mode1_deg = mode(degfield) if degfield!=9999, maxmode missing
+by occ: egen mode2_deg = mode(degfield) if degfield!=9999 & degfield!=mode1_deg, maxmode missing
+by occ: egen mode1_degd = mode(degfieldd) if degfieldd!=9999, maxmode missing
+by occ: egen mode2_degd = mode(degfieldd) if degfieldd!=9999 & degfieldd!=mode1_degd, maxmode missing
 *Keeping workers that have matched degfield for occ
-*keep if degfield != mode1_deg & degfield != mode2_deg
+
 *Count method*
 /*
 local v = 1
@@ -90,9 +95,7 @@ list occ degfield count2 max_count2
 
 
 *collapse so that there is one row per occupational code
-collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfield=incwage (median)med_hourly_degfield=adj_hourly, by(degfield)
-
-drop med_yrs
+collapse (median)med_yrs_by_occ=yrsed (mean)mode1_deg (mean)mode2_deg (mean)mode1_degd (mean)mode2_degd (median)med_wage_by_occ=incwage (mean)mode_att, by(occ)
 *merge this information back to the Shih sample by occ
 
-save eo_table_by_degfield.dta,replace
+save eo_table_by_occ_na.dta, replace

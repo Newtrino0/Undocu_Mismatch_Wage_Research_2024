@@ -43,7 +43,7 @@ drop if bpl >=100
 ***********Educational attainment category variable, requirements for an occupation***************
 *create a categorical variable of the educational attainment categories
 
-keep occ yrsed degfieldd incwage
+keep occ yrsed degfieldd incwage adj_hourly
 ***************************************************************************************************
 
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
@@ -90,7 +90,9 @@ list occ degfield count2 max_count2
 
 
 *collapse so that there is one row per occupational code
-collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfieldd=incwage, by(degfieldd)
+collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfieldd=incwage (median)med_hourly_degfieldd=adj_hourly, by(degfieldd)
 
 drop med_yrs
 *merge this information back to the Shih sample by occ
+
+save eo_table_by_degfieldd.dta,replace

@@ -43,24 +43,7 @@ gen immig_by_ten=ageimmig<10
 
 
 *Inflation adjusted incwage*
-gen cpi = 211.933 if year==2009
-replace cpi = 217.488 if year==2010
-replace cpi = 221.187	if year==2011
-replace cpi = 227.842	if year==2012
-replace cpi = 231.679	if year==2013
-replace cpi = 235.288	if year==2014
-replace cpi = 234.747	if year==2015
-replace cpi = 237.652	if year==2016
-replace cpi = 243.618	if year==2017
-replace cpi = 248.859	if year==2018
-replace cpi = 252.561	if year==2019
-replace cpi = 258.906	if year==2020
-replace cpi = 262.518	if year==2021
-replace cpi = 282.39	if year==2022
-replace cpi = 300.356	if year==2023
-replace cpi = 309.685	if year==2024
-gen adj_incwage = incwage * 309.685 / cpi
-format adj_incwage %7.0f
+
 
 
 *****Create similar group variables of ineligility****
@@ -79,7 +62,7 @@ replace both_inelig=. if noncit==0
 gen undocu_likely_noncit= noncit==1 & age_inelig==1 & arrival_inelig==1 & both_inelig==1 & hhlegal==0
 **********************************************************
 
-sort occ incwage
+sort occ adj_hourly
 **Horizontally matched median wage and identifier (dummy variable)
 gen hmatched =1 if (degfield==namode1_deg | degfield==namode2_deg)
 replace hmatched =0 if (degfield!=namode1_deg & degfield!=namode2_deg)
@@ -113,37 +96,37 @@ egen vmean_occ_yrs= mean(vmismatched_yrs), by(occ)
 egen vmean_deg_yrs= mean(vmismatched_yrs), by(degfield)
 *Generates needed wage but only attaches to hmatched observations
 sort occ
-by occ: egen med_wage_hmatched_by_occ = median(incwage) if hmatched==1
+by occ: egen med_wage_hmatched_by_occ = median(adj_hourly) if hmatched==1
 *Next line of code extends the med_wage to other observations with the same occ
 egen hmatched_med_wage_by_occ = mean(med_wage_hmatched_by_occ), by (occ)
 drop med_wage_hmatched
 
 **Same hmatched median wage but by degfield
 sort degfield
-by degfield: egen med_wage_hmatched_by_degfield = median(incwage) if hmatched==1
+by degfield: egen med_wage_hmatched_by_degfield = median(adj_hourly) if hmatched==1
 *Next line of code extends the med_wage to other observations with the same occ
 egen hmatched_med_wage_by_degfield = mean(med_wage_hmatched_by_degfield), by (degfield)
 drop med_wage_hmatched_by_degfield
 
 **For vmatched by degfield
-by degfield: egen med_wage_vmatched_by_degfield = median(incwage) if vmatched_att==1
+by degfield: egen med_wage_vmatched_by_degfield = median(adj_hourly) if vmatched_att==1
 egen vmatched_med_wage_by_degfield = mean(med_wage_vmatched_by_degfield), by (degfield)
 drop med_wage_vmatched_by_degfield
 
 *Create med_wage for vmatched people within occupation (by attaintment)
 sort occ
-by occ: egen med_wage_vmatched_by_occ = median(incwage) if vmatched_att==1
+by occ: egen med_wage_vmatched_by_occ = median(adj_hourly) if vmatched_att==1
 
 egen vmatched_med_wage_by_occ = mean(med_wage_vmatched_by_occ), by (occ)
 drop med_wage_vmatched_by_occ
 
 
 ***Horizontal undermatch and overmatched binary variable creation***
-gen hundermatched=1 if hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield
-replace hundermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_occ>hmatched_med_wage_by_degfield)
+gen hundermatched=1 if hmatched==0 & col==1 & med_hourly_occ<hmatched_med_wage_by_degfield
+replace hundermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_hourly_occ>hmatched_med_wage_by_degfield)
 
-gen hovermatched=1 if (hmatched==0)&(col==1)&(med_wage_by_occ>hmatched_med_wage_by_degfield)
-replace hovermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_wage_by_occ<hmatched_med_wage_by_degfield)
+gen hovermatched=1 if (hmatched==0)&(col==1)&(med_hourly_occ>hmatched_med_wage_by_degfield)
+replace hovermatched=0 if (hmatched==1) | (hmatched==0 & col==1 & med_hourly_occ<hmatched_med_wage_by_degfield)
 
 
 egen hundercount=sum(hundermatched), by(occ)
@@ -243,6 +226,7 @@ label var hundermatched "Horizontally Undermatched"
 label var hovermatched "Horizontally Overmatched"
 label var ln_wage "Log-transformed wage"
 label var incwage "Wage and Salary income"
+label var adj_hourly "Inflation-adjusted Hourly wage"
 
 /*
 tab elig stem_deg,row
@@ -267,11 +251,11 @@ table (var) (noncit_elig result), statistic(mean year age foreign_deg_likely ste
 table (var) (noncit_deg result), statistic(mean year age elig age_inelig arrival_inelig stem_deg for_cit noncit hmatched vmatched_att incwage ln_wage n_noncit_deg) nformat(%10.2f)  
 */
 
-dtable year age fem arrival_inelig_16_20 foreign_deg_likely stem_deg for_cit noncit nonfluent incwage ln_wage hmismatched hundermatched hovermatched vmismatched, by(noncit_elig) export(noncit_elig_table.xlsx, replace)
+dtable year age fem arrival_inelig_16_20 foreign_deg_likely stem_deg for_cit noncit nonfluent adj_hourly ln_adj hmismatched hundermatched hovermatched vmismatched, by(noncit_elig) export(noncit_elig_table.xlsx, replace)
 
-dtable year age fem elig age_inelig arrival_inelig arrival_inelig_16_20 for_cit noncit stem_deg nonfluent incwage ln_wage hmismatched hundermatched hovermatched vmismatched, by(noncit_deg) export(noncit_elig_deg.xlsx, replace)
+dtable year age fem elig age_inelig arrival_inelig arrival_inelig_16_20 for_cit noncit stem_deg nonfluent adj_hourly ln_adj hmismatched hundermatched hovermatched vmismatched, by(noncit_deg) export(noncit_elig_deg.xlsx, replace)
 
-dtable year age fem elig age_inelig arrival_inelig arrival_inelig_16_20 for_cit noncit stem_deg nonfluent incwage ln_wage hmismatched hundermatched hovermatched vmismatched, by(cit_general) export(cit_general.xlsx, replace)
+dtable year age fem elig age_inelig arrival_inelig arrival_inelig_16_20 for_cit noncit stem_deg nonfluent adj_hourly ln_adj hmismatched hundermatched hovermatched vmismatched, by(cit_general) export(cit_general.xlsx, replace)
 
 
 
@@ -320,9 +304,9 @@ use mismatch_sample_na.dta, clear
 eststo clear
 
 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg incwage ln_wage fem, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg incwage ln_wage fem if elig==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg incwage ln_wage fem if elig==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if elig==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if elig==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
 esttab est* using dTable_status.tex, replace label main(mean) aux(sd) title("U.S. born workers and DACA eligible immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Total" "U.S. born citizens" "DACA eligibility noncitizens") note("Note: Means and standard deviations compared against U.S. born workers")
 
 clear matrix
@@ -522,9 +506,9 @@ label legend varlabels(_cons Constant)  keep(vmismatched hundermatched hovermatc
 
 
 *******************Descriptive tables****************************
-dtable hmismatched hundermatched hovermatched vmismatched stem_deg nonfluent incwage ln_wage year age fem, by(usborn_elig) export(dtable_paper.xlsx, replace)
+dtable hmismatched hundermatched hovermatched vmismatched stem_deg nonfluent adj_hourly ln_wage year age fem, by(usborn_elig) export(dtable_paper.xlsx, replace)
 
-dtable hmismatched hundermatched hovermatched vmismatched stem_deg nonfluent incwage ln_wage year age fem, by(usborn_elig) export(dtable_paper.tex, replace)
+dtable hmismatched hundermatched hovermatched vmismatched stem_deg nonfluent adj_hourly ln_wage year age fem, by(usborn_elig) export(dtable_paper.tex, replace)
 
 *********************Figures***********************************************
 graph hbar (sum) vmismatched hundermatched hovermatched matched, blabel(bar, size(vsmall) color(gs8) format(%7.0f)) ytitle(`"# of mismatched graduates"') ytitle(, size(medium) color(white)) ylabel(, labcolor(white) format(%9.0f) tlcolor(white)) by(, title(`"Frequency of vertical and horizonal under/overmatch by legal status"', size(medlarge) color(white) alignment(middle)) note(`"Definitions for DACA eligible groups derived from Kuka et al (2020)."', size(vsmall) color(white) position(5))) by(, legend(on position(6) span)) legend(order(1 "Vertical mismatch" 2 "Horizontal undermatch" 3 "Horizontal overmatch" 4 "Matched (vertically & horizontally)") size(vsmall) fcolor(%0)) scheme(meta) name(Mismatch_Status, replace) xsize(20) ysize(10) scale(1) by(, graphregion(fcolor(dknavy) lwidth(none))) by(cit_general, total style(rescale) iscale(*1)) subtitle(, size(medium) color(white) nobox) graphregion(fcolor(dknavy) lcolor(%0) lwidth(none))

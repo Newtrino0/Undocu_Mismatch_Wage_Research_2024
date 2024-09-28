@@ -47,7 +47,7 @@ by occ: egen mode_cat = mode(edu_cat)
 sort occ edu_att
 by occ: egen mode_att = mode(edu_att)
 
-keep occ yrsed degfield degfieldd incwage mode_cat mode_att
+keep occ yrsed degfield degfieldd incwage mode_cat mode_att adj_hourly
 ***************************************************************************************************
 
 *collapse the data by occ code, keep (or construct when you collapse) the median yrs of education for the occ, the most frequent degfield
@@ -73,5 +73,7 @@ by occ: egen namode2_degd = mode(degfieldd) if degfieldd!=namode1_degd, maxmode 
 
 
 *collapse so that there is one row per occupational code
-collapse (median)med_yrs_by_occ=yrsed (mean)namode1_deg (mean)namode2_deg (mean)namode1_degd (mean)namode2_degd (median)med_wage_by_occ=incwage (mean)mode_att, by(occ)
+collapse (median)med_yrs_by_occ=yrsed (mean)namode1_deg (mean)namode2_deg (mean)namode1_degd (mean)namode2_degd (median)med_wage_by_occ=incwage (median)med_hourly_occ=adj_hourly (mean)mode_att, by(occ)
 *merge this information back to the Shih sample by occ
+
+save eo_table_by_occ_na.dta,replace
