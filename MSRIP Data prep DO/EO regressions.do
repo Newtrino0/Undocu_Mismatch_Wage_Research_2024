@@ -29,7 +29,7 @@ label values hmatch hmatch_label
 replace post=0 if year==2012
 replace immig_by_ten=1 if bpl_foreign==0
 
-global covars c.age##c.age hisp asian black other male bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
+global covars c.age##c.age hisp asian black other male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
 
 clear matrix
 set more off
