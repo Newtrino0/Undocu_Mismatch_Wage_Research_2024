@@ -8,20 +8,15 @@ global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
 cap log close
 set more off, perm
 
-/*log using $dofiles/clean_data.log, replace
-cd $dofiles/ */
-
-
 					 ***********************************************
 ************************ STEP 1: PREPARE MAIN CENSUS DATA ************************
 					 ***********************************************
 
-******************************
-*** READ DATA
-******************************
+********************************
+*** Read data from local file***
+********************************
 cd $rawdata
 use "usa_00021.dta", clear
-*cd $dofiles/
 describe
 
 ********* Clean data ***********
@@ -79,11 +74,6 @@ egen hhlegal = rowtotal(hhvet hhwelf hhss hhssi)
 tab hhlegal, m
 replace hhlegal=1 if hhlegal>1 
 drop hhvet hhwelf hhss hhssi 
-
-*** Keep only our sample of 10-30 olds
-sum age
-keep if age>=20 & age<=43
-sum age
 
 ******************************
 *** CLEAN/CREATE CONTROL VARS
@@ -221,10 +211,6 @@ replace edu_attS = "HS Diploma and some college" if educd<101
 replace edu_attS = "HS Diploma" if educd<65
 replace edu_attS = "No HS Diploma" if educd<62
 
-
-drop educd grad*
-
-
 ******************************
 *** ELIGIBILITY & POST VARS
 ******************************
@@ -252,19 +238,7 @@ label values noncit noncitizlabel
 la var elig "Eligible"
 la var nonelig "Ineligible"
 
-
-gen reside_immig = year-yrimmig if yrimmig!=0
-gen H1B_likely = (reside_immig<=6) & ( occ==101  | 	 occ==110  | 	 occ==230  | 	 occ==300  | 	 occ==800  | 	 occ==1005  | 	 occ==1006  | 	 occ==1010  | 	 occ==1021  | 	 occ==1022  | 	 occ==1050  | 	 occ==1065  | 	 occ==1105  | 	 occ==1106  | 	 occ==1108  | 	 occ==1305  | 	 occ==1306  | 	 occ==1310  | 	 occ==1320  | 	 occ==1330  | 	 occ==1340  | 	 occ==1350  | 	 occ==1360  | 	 occ==1400  | 	 occ==1410  | 	 occ==1420  | 	 occ==1430  | 	 occ==1440  | 	 occ==1450  | 	 occ==1460  | 	 occ==1500  | 	 occ==1510  | 	 occ==1520  | 	 occ==1530  | 	 occ==1541  | 	 occ==1551  | 	 occ==1555  | 	 occ==1560  | 	 occ==2205  | 	 occ==4930  | 	 occ==5000  | 	 occ==5100  | 	 occ==5120  | 	 occ==5340  | 	 occ==5710  | 	 occ==5720  | 	 occ==5730  | 	 occ==5740  | 	 occ==5900  | 	 occ==5940  | 	 occ==7010  | 	 occ==7905  | 	 occ==8610  | 	 occ==9030  | 	 occ==9210  | 	 occ==9330  | 	 occ==100  | 	 occ==1020  | 	 occ==1060  | 	 occ==1107  | 	 occ==1300  | 	 occ==1550  | 	 occ==2200  | 	 occ==2900  | 	 occ==5700  | 	 occ==5800  | 	 occ==6320  | 	 occ==7900  | 	 occ==9200  | 	 occ==1000  | 	 occ==1040  | 	 occ==1100  | 	 occ==5930) & (col==1)
-
-replace elig=0 if H1B_likely==1
-
-* How many eligibles by year?
-tab birthyr, sum(elig)
-
-* How many eligibles that we think are legal?
-tab hhlegal elig, m
-
-*** Post variables
+****** POST 2012 variables*******
 gen post = year>=2012
 gen elig_post = elig*post
 la var elig_post "Eligible*Post"
@@ -272,9 +246,14 @@ la var elig_post "Eligible*Post"
 gen elig_post_male = elig_post*male
 la var elig_post_male "Eligible*Post*Male"
 
+* How many eligibles by year?
+tab birthyr, sum(elig)
+
+* How many eligibles that we think are legal?
+tab hhlegal elig, m
 
 ******************************
-*** SAMPLE INDICATORS
+*** Undocu/DACA/Immigrant Variables
 ******************************
 
 *** High takeup (30% or higher) according to MIP: El Salvador, Mexico, Uruguay, Honduras, Bolivia, Brazil, Peru, Ecuador, Jamaica, Guatemala, Venezuela, Dominican Republic, Colombia
@@ -285,10 +264,25 @@ gen htus = 1 if bpld==21030 | bpld==20000 | bpld==30060 | bpld==21050 | bpld==30
 	bpld==30050 | bpld==30030 | bpld==26030 | bpld==21040 | bpld==30065 | bpld==26010 | bpld==30025
 replace htus=. if yrimmig==0 
 tab ageimm htus, m  
-*** Age groups for analysis
 
+***********************************************END OF KUKA et. al. EXACT REPLICATION CODE**************************
 
-****Inflation adjustment and hourly wage*****
+****************************************************************************
+************ BORJAS H-1B NONIMMIGRANT FILTER MODIFICATION*******************
+****************************************************************************
+gen reside_immig = year-yrimmig if yrimmig!=0
+gen H1B_likely = (reside_immig<=6) & ( occ==101  | 	 occ==110  | 	 occ==230  | 	 occ==300  | 	 occ==800  | 	 occ==1005  | 	 occ==1006  | 	 occ==1010  | 	 occ==1021  | 	 occ==1022  | 	 occ==1050  | 	 occ==1065  | 	 occ==1105  | 	 occ==1106  | 	 occ==1108  | 	 occ==1305  | 	 occ==1306  | 	 occ==1310  | 	 occ==1320  | 	 occ==1330  | 	 occ==1340  | 	 occ==1350  | 	 occ==1360  | 	 occ==1400  | 	 occ==1410  | 	 occ==1420  | 	 occ==1430  | 	 occ==1440  | 	 occ==1450  | 	 occ==1460  | 	 occ==1500  | 	 occ==1510  | 	 occ==1520  | 	 occ==1530  | 	 occ==1541  | 	 occ==1551  | 	 occ==1555  | 	 occ==1560  | 	 occ==2205  | 	 occ==4930  | 	 occ==5000  | 	 occ==5100  | 	 occ==5120  | 	 occ==5340  | 	 occ==5710  | 	 occ==5720  | 	 occ==5730  | 	 occ==5740  | 	 occ==5900  | 	 occ==5940  | 	 occ==7010  | 	 occ==7905  | 	 occ==8610  | 	 occ==9030  | 	 occ==9210  | 	 occ==9330  | 	 occ==100  | 	 occ==1020  | 	 occ==1060  | 	 occ==1107  | 	 occ==1300  | 	 occ==1550  | 	 occ==2200  | 	 occ==2900  | 	 occ==5700  | 	 occ==5800  | 	 occ==6320  | 	 occ==7900  | 	 occ==9200  | 	 occ==1000  | 	 occ==1040  | 	 occ==1100  | 	 occ==5930) & (col==1)
+
+replace elig=0 if H1B_likely==1
+*****************************************************************************
+**Foreign Citizens, born abroad and then naturalized**
+gen for_cit = noncit==0 & bpl_usa!=1
+**Applying Kuka/Warren/Passel legal status filter**
+replace elig=0 if elig==1 & hhlegal==1
+**Important modification for regression analysis**
+replace metro=. if metro==0
+
+**Inflation adjustment of wage since 2009, using CPI of January of each year**
 gen cpi = 211.933 if year==2009
 replace cpi = 217.488 if year==2010
 replace cpi = 221.187	if year==2011
@@ -307,7 +301,12 @@ replace cpi = 300.356	if year==2023
 replace cpi = 309.685	if year==2024
 gen adj_incwage = incwage * 309.685 / cpi
 format adj_incwage %7.0f
+**Inflation-adjusted hourly wage of worker**
+gen adj_hourly = adj_incwage / (uhrswork * wkswork_midpoint)
+**Exluding outliers as per CPI sources on extremely low and high wages**
+drop if adj_hourly<0.84 | adj_hourly>216.0
 
+**Midpoint method for wkswork2 (intervalled weeks worked last year)**
 gen wkswork_midpoint = 6 if wkswork2==1 & wkswork1==.
 replace wkswork_midpoint = 20 if wkswork2==2 & wkswork1==.
 replace wkswork_midpoint = 33 if wkswork2==3 & wkswork1==.
@@ -316,10 +315,41 @@ replace wkswork_midpoint = 48.5 if wkswork2==5 & wkswork1==.
 replace wkswork_midpoint = 51 if wkswork2==6 & wkswork1==.
 replace wkswork_midpoint = wkswork1 if wkswork1!=.
 
-gen adj_hourly = adj_incwage / (uhrswork * wkswork_midpoint)
+
+
+***************************************************************************
+************ IMPORTANT VARIABLES FOR REGRESSION ANALYSIS*******************
+***************************************************************************
+**Indicator for immigrating before the age of 10**
+gen immig_by_ten=ageimmig<10
+**Age squared**
+gen age_squared=age^2
+**Indicator for those born in the U.S.**
+gen bpl_usa=bpl<=120
+**Indicator for those born outside the U.S.**
+gen bpl_foreign=bpl>120
+**Log transformation of hourly wage of worker, following previous literature**
 gen ln_adj = ln(adj_hourly)
 
-drop if adj_hourly<0.84 | adj_hourly>216.0
+
+
+
+*****Additional categorical variables for detail and descriptive statistics if needed****
+**Age-ineligible noncitizens meeting all other criteria**
+gen age_inelig = elig==0 & noncit==1 & yrimmig<=2007 & (ageimmig>16 | (2012.5-(birthyr+(birthqtr*.25)))>=31)
+replace age_inelig=. if noncit==0
+**Arrival-ineligible noncitizens meeting all other criteria**
+gen arrival_inelig = elig==0 & noncit==1 & yrimmig>2007 & (ageimmig<=16  & (2012.5-(birthyr+(birthqtr*.25)))<31)
+replace arrival_inelig=. if noncit==0
+**Young, arrival-ineligible noncitizens meeting all other criteria**
+gen arrival_inelig_16_20 =elig==0 & noncit==1 & yrimmig>2007 & (ageimmig<=16  & (2012.5-(birthyr+(birthqtr*.25)))<=20 & (2012.5-(birthyr+(birthqtr*.25)))>=16)
+replace arrival_inelig_16_20=. if noncit==0
+**Both age-ineligible and arrival-ineligible noncitizens meeting all other criteria**
+gen both_inelig = elig==0 & noncit==1 & yrimmig>2007 & (ageimmig>16  | (2012.5-(birthyr+(birthqtr*.25)))>=31)
+replace both_inelig=. if noncit==0
+
+gen undocu_likely_noncit= noncit==1 & age_inelig==1 & arrival_inelig==1 & both_inelig==1 & hhlegal==0
+**********************************************************
 
 
 
@@ -611,4 +641,6 @@ gen metropolitan = metro == 2 | metro == 3 | metro == 4
 gen gov_worker = classwkrd == 24 | classwkrd == 25 | classwkrd == 26 | classwkrd == 27 | classwkrd == 28
 
 
-save "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\shih_prepped.dta", replace
+drop educd grad*
+
+save "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\_EO_Step_1.dta", replace
