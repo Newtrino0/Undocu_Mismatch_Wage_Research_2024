@@ -330,7 +330,10 @@ gen bpl_usa=bpl<=120
 gen bpl_foreign=bpl>120
 **Log transformation of hourly wage of worker, following previous literature**
 gen ln_adj = ln(adj_hourly)
-
+**Binary indicator for residing in metropolitan area**
+gen metropolitan = metro == 2 | metro == 3 | metro == 4
+**Binary indicator for whether a worker is in a government position**
+gen gov_worker = classwkrd == 24 | classwkrd == 25 | classwkrd == 26 | classwkrd == 27 | classwkrd == 28
 
 
 
@@ -637,10 +640,9 @@ replace occ_category = 12 if occ >= 9000 & occ<= 9920
 label define occ_category_label 1 "Management, Business, and Financial Occupations" 2 "Computer, Engineering, and Science Occupations" 3 "Education, Legal, Community Service, Arts, and Media Occupations" 4 "Healthcare Practitioners and Technical Occupations" 5 "Service Occupations" 6 "Sales and Related Occupations" 7 "Office and Administrative Support Occupations" 8 "Farming, Fishing, and Forestry Occupations" 9 "Construction and Extraction Occupations" 10 "Installation, Maintenance, and Repair Occupations" 11 "Production Occupations" 12 "Transportation and Material Moving Occupations"
 label values occ_category occ_category_label 
 
-gen metropolitan = metro == 2 | metro == 3 | metro == 4
-gen gov_worker = classwkrd == 24 | classwkrd == 25 | classwkrd == 26 | classwkrd == 27 | classwkrd == 28
+
 
 
 drop educd grad*
 
-save "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\_EO_Step_1.dta", replace
+save "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data\EO_Step_1.dta", replace
