@@ -1,11 +1,11 @@
 global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Data Preparation-Cleaning DO files"
-global rawdata "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Data"
+global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 
 *** SET CODE ***
 cap log close
 set more off, perm
 
-cd $rawdata
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "EO_Step_1.dta", clear
 
 /* Filters applied in Clean data section, includes:
@@ -61,16 +61,16 @@ by degfield: egen mode2_occ = mode(occ) if occ!=mode1_occ & occ!=0, maxmode miss
 collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfield=incwage (median)med_hourly_degfield=adj_hourly, by(degfield)
 drop med_yrs
 
-save "EO_Table_by_degfield".dta, replace
+save "EO_Table_by_degfield.dta", replace
 *************************************************************************************************************
 
 
-********* Observe only U.S. born sample (excluding those not in main territory)***********
-use "EO_Step_1.dta".dta, clear
+*********Merging data frames with our sample*******************************************
+use "EO_Step_1.dta", clear
 sort degfield
 save "EO_Step_1.dta", replace
 
-use "EO_Table_by_degfield".dta, clear
+use "EO_Table_by_degfield.dta", clear
 sort degfield
 
 merge 1:m degfield using "EO_Step_1.dta"
@@ -79,7 +79,7 @@ drop _merge
 save "EO_Step_2.dta", replace
 
 **2nd merge: by degfieldd**
-use "EO_Table_by_occ", clear
+use "EO_Table_by_occ.dta", clear
 sort occ
 
 merge 1:m occ using "EO_Step_2.dta"

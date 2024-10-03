@@ -15,7 +15,8 @@ set more off, perm
 ********************************
 *** Read data from local file***
 ********************************
-cd $rawdata
+*cd $rawdata
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "usa_00021.dta", clear
 describe
 
@@ -120,13 +121,6 @@ gen bpl_othspan = (bpl>=210 & bpl<=300) 			// Central and South America
 gen bpl_euraus = ((bpl>=410 & bpl<=419) | (bpl>=700 & bpl<=710) ) | (bpl>450 & bpl<=499) 	// UK and Ireland; Australia, NZ, and Pac Islands; Europe
 gen bpl_asia = (bpl>=500 & bpl<=600) 				// Asia
 gen bpl_oth = (bpl>=800 & bpl<=999) | bpl==600 	// Africa or other
-
-/*gen bpl_sum = bpl_mex+ bpl_oth+ bpl_eur + bpl_as + bpl_othsp
-sum bpl_sum, d
-tab bpld if bpl_sum==2
-tab bpld if bpl_sum==0
-drop bpl_sum
-*/
 
 label var usaborn "Born in US Territory"
 label var bpl_mex "Born in Mexico"
@@ -275,8 +269,7 @@ gen H1B_likely = (reside_immig<=6) & ( occ==101  | 	 occ==110  | 	 occ==230  | 	
 
 replace elig=0 if H1B_likely==1
 *****************************************************************************
-**Foreign Citizens, born abroad and then naturalized**
-gen for_cit = noncit==0 & bpl_usa!=1
+
 **Applying Kuka/Warren/Passel legal status filter**
 replace elig=0 if elig==1 & hhlegal==1
 **Important modification for regression analysis**
@@ -304,10 +297,6 @@ replace cpi = 300.356	if year==2023
 replace cpi = 309.685	if year==2024
 gen adj_incwage = incwage * 309.685 / cpi
 format adj_incwage %7.0f
-**Inflation-adjusted hourly wage of worker**
-gen adj_hourly = adj_incwage / (uhrswork * wkswork_midpoint)
-**Exluding outliers as per CPI sources on extremely low and high wages**
-drop if adj_hourly<0.84 | adj_hourly>216.0
 
 **Midpoint method for wkswork2 (intervalled weeks worked last year)**
 gen wkswork_midpoint = 6 if wkswork2==1 & wkswork1==.
@@ -318,7 +307,10 @@ replace wkswork_midpoint = 48.5 if wkswork2==5 & wkswork1==.
 replace wkswork_midpoint = 51 if wkswork2==6 & wkswork1==.
 replace wkswork_midpoint = wkswork1 if wkswork1!=.
 
-
+**Inflation-adjusted hourly wage of worker**
+gen adj_hourly = adj_incwage / (uhrswork * wkswork_midpoint)
+**Exluding outliers as per CPI sources on extremely low and high wages**
+drop if adj_hourly<0.84 | adj_hourly>216.0
 
 ***************************************************************************
 ************ IMPORTANT VARIABLES FOR REGRESSION ANALYSIS*******************
@@ -358,7 +350,8 @@ gen undocu_likely_noncit= noncit==1 & age_inelig==1 & arrival_inelig==1 & both_i
 **********************************************************
 
 
-
+**Foreign Citizens, born abroad and then naturalized**
+gen for_cit = noncit==0 & bpl_usa!=1
 ***** Occ variable labels and categorization (Beyond 5 categories)*****
 
 
@@ -650,4 +643,4 @@ gen stem_deg= degfieldd==1100 |	degfieldd==1103 |	degfieldd==1104 |	degfieldd==1
 
 drop educd grad*
 
-save "EO_Step_1.dta", replace
+save "EO_First_Step.dta", replace
