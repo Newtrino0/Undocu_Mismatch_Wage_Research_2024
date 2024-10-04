@@ -15,8 +15,8 @@ DACA; Income inequality
 
 
 <h3>DACA Eligibility Imputation Strategy:</h3>
-A worker is considered DACA-eligible if  they are 
-- "not a citizen and 
+A worker is considered DACA-eligible if they are " 
+- not a citizen and 
 - they meet DACA’s age and year of arrival requirements" (Kuka, Elira, Shenhav, Na’ama, and Shih, Kevin (2020). Do Human Capital Decisions Respond to
 the Returns to Education? Evidence from DACA.). 
 
