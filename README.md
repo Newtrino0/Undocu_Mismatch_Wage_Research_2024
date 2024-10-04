@@ -16,8 +16,8 @@ DACA; Income inequality
 
 <h3>DACA Eligibility Imputation Strategy:</h3>
 A worker is considered DACA-eligible if  they are 
-- "(i) not a citizen and 
-- (ii) meets DACA’s age and year of arrival requirements" (Kuka, Elira, Shenhav, Na’ama, and Shih, Kevin (2020). Do Human Capital Decisions Respond to
+- "not a citizen and 
+- they meet DACA’s age and year of arrival requirements" (Kuka, Elira, Shenhav, Na’ama, and Shih, Kevin (2020). Do Human Capital Decisions Respond to
 the Returns to Education? Evidence from DACA.). 
 
 Kuka, Shenhav, and Shih rightfully emphasize that this method cannot distinguish undocumented, DACA recipients from lawful permanent residents and other immigrant/nonimmigrants. Departing from the methods of Kuka et. al., we decide to implement the variables in the replication code to exclude noncitizens with any of the legal status indicators set as true. Legal status indicators are
