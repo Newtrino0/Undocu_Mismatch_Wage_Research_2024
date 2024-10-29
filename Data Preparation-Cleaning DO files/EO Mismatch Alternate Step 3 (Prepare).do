@@ -9,10 +9,9 @@ global figures "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Figures"
 
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 
-use "EO_Step_2.dta", clear
+use "EO_Second_Step.dta", clear
 
-
-drop if degfield==9999
+drop if hs==0
 ********************************
 /* Filters applied in Clean data section, includes:
 
@@ -188,4 +187,4 @@ label var adj_hourly "Inflation-adjusted Hourly wage"
 
 
 
-save "EO_Final_Sample", replace
+save "EO_Final_Alternate_Sample", replace
