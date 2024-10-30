@@ -115,8 +115,7 @@ addn("foreign born, immigration by age 10, STEM degree indicators," ///
 	" years of schooling, state and year fixed effects." ///
 	"Robust standard errors.") 
 	
-set scheme s1mono
-coefplot ., baselevels omitted xline(5) keep(*.time#c.mvalue) xlab(1/10) vert  ytitle(Coefficient)
+
 	
 *wage regressions with treatment effect by year
 
@@ -252,5 +251,38 @@ foreach gr in all elig hisp {
 	
 	cd $figures
 	restore
+}
 */
-}						 
+
+**Method #2**
+gen eventyear = year
+label define eventyr 2009 "2009" 2010 "2010" 2011 "2011" 2012 "2012" 2013 "2013" ///
+	 2014 "2014" 2015 "2015" 2016 "2016" 2017 "2017" 2018 "2018" 2019 "2019" 2020 "2020" 2021 "2021" 2022 "2022"
+label values eventyear eventyr
+
+forvalues y=2009(1)2022 {
+	gen elig_year`y' = elig*(eventyear==`y')
+}
+
+clear matrix
+set more off
+eststo clear
+
+xtset statefip
+
+xtreg vmismatched hundermatched hovermatched elig_year* elig $covars metropolitan i.occ_category , r fe
+set scheme s1mono
+coefplot, keep(elig_year*)  xline(0)
+
+clear matrix
+set more off
+eststo clear
+
+xtreg hundermatched vmismatched elig_year* elig $covars metropolitan i.occ_category , r fe
+set scheme s1mono
+coefplot, keep(elig_year*)  xline(0)
+
+xtreg ln_adj vmismatched hundermatched hovermatched elig_year* elig  $covars metropolitan  i.year  i.occ_category, r fe
+set scheme s1mono
+coefplot, keep(elig_year*)  xline(0)
+						 
