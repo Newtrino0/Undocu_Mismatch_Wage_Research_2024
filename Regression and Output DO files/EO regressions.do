@@ -117,11 +117,91 @@ addn("foreign born, immigration by age 10, STEM degree indicators," ///
 	
 
 	
+****************************************************************************************	
+****************Wage models with different mismatch indicators**************************
+******************************************************************************************
+clear matrix
+set more off
+eststo clear
+	
+xtreg ln_adj vmismatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (V. Mismatch on Wage Model)	
+
+xtreg ln_adj hundermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (H. Undermatch on Wage Model)
+
+xtreg ln_adj hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (H. Overmatch on Wage Model)
+
+esttab using mismatch_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of mismatch and DACA eligibility on Wages") ///
+mlabel("Log Wage"   ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include gender, race/ethnicity,  ") ///
+addn("foreign born, immigration by age 10, STEM degree indicators," ///
+	" years of schooling, state and year fixed effects." ///
+	"Robust standard errors.") 	
+****************************************************************************************	
+****************Wage models with demographic columns/samples**************************
+******************************************************************************************
+***Foreign born column***
+clear matrix
+set more off
+eststo clear
+
+keep if bpl_foreign==1
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (Foreign-born Wage Model)	
+
+use "Pre Regression sample",clear
+keep if bpl==200
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (Mexico-born Wage Model)
+
+use "Pre Regression sample", clear
+keep if hisp==1
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (Hispanic Wage Model)
+
+
+esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by demographic, on Wages") ///
+mlabel("Log Wage"   ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include gender, race/ethnicity,  ") ///
+addn("foreign born, immigration by age 10, STEM degree indicators," ///
+	" years of schooling, state and year fixed effects." ///
+	"Robust standard errors.") 	
+
+use "Pre Regression sample",clear
+******************************************************************************************	
 *wage regressions with treatment effect by year
 
 xtreg ln_adj vmismatched hundermatched hovermatched elig##ib2011.year $covars metropolitan i.occ_category, r fe
 estadd ysumm
 eststo
+
+
+
+
+
+
+
+
 
 
 					 ***********************************************
