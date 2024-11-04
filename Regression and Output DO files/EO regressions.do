@@ -1,4 +1,4 @@
-clear matrix
+9clear matrix
 clear
 set more off
 ssc install coefplot, replace
@@ -157,27 +157,27 @@ set more off
 eststo clear
 
 keep if bpl_foreign==1
-xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post twentytwo_by_2012 $covars metropolitan  i.year  i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (Foreign-born Wage Model)	
 
 use "Pre Regression sample",clear
 keep if bpl==200
-xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post twentytwo_by_2012 $covars metropolitan  i.year  i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (Mexico-born Wage Model)
 
 use "Pre Regression sample", clear
 keep if hisp==1
-xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+xtreg ln_adj vmismatched hundermatched hovermatched elig elig_post twentytwo_by_2012 $covars metropolitan  i.year  i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (Hispanic Wage Model)
 
 
-esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post twentytwo_by_2012) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA eligibility, by demographic, on Wages") ///
 mlabel("Foreign-born only" "Mexico-born only" "Hispanic only") ///
