@@ -26,6 +26,14 @@ clear matrix
 
 xtset statefip
 
+gen eventyear = year
+label define eventyr 2009 "2009" 2010 "2010" 2011 "2011" 2012 "2012" 2013 "2013" ///
+	 2014 "2014" 2015 "2015" 2016 "2016" 2017 "2017" 2018 "2018" 2019 "2019"
+label values eventyear eventyr
+
+forvalues y=2009(1)2019 {
+	gen elig_year`y' = elig*(eventyear==`y')
+}
 
 gen hmatch = 1 if hundermatched==1
 replace hmatch=2 if hundermatched==0 & hovermatched==0
@@ -85,14 +93,14 @@ set more off
 eststo clear
 
 keep if yrsed>12
-xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan  i.year  i.occ_category, r fe
+xtreg ln_adj b2.vmatch elig_year* $covars metropolitan  i.year  i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (HS equivalent and higher Wage Model)	
 
 use "Pre Regression alternate sample",clear
 keep if yrsed==12
-xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan  i.year  i.occ_category, r fe
+xtreg ln_adj b2.vmatch elig_year* $covars metropolitan i.year i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
@@ -100,7 +108,7 @@ outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 
 
 
-esttab using education_wage_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig elig_post 2010.year 2011.year 2012.year 2013.year 2014.year 2015.year 2016.year 2017.year 2018.year 2019.year 2020.year 2021.year 2022.year) ///
+esttab using education_wage_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig_year2009 elig_year2010 elig_year2011 elig_year2012 elig_year2013 elig_year2014 elig_year2015 elig_year2016 elig_year2017 elig_year2018 elig_year2019) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA eligibility, by educational attainment, on Log Wages") ///
 mlabel("HS equivalent and higher only" "HS equivalent only" ) ///
