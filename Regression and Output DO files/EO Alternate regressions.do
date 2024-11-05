@@ -87,16 +87,25 @@ addn("foreign born, immigration by age 10, STEM degree indicators," ///
 ****************************************************************************************	
 ****************Wage models with HS/College comparison columns**************************
 ******************************************************************************************
-***Foreign born column***
+
+****elig_year tables****
 clear matrix
 set more off
 eststo clear
 
-keep if yrsed>12
+use "Pre Regression alternate sample",clear
+keep if yrsed>=12
 xtreg ln_adj b2.vmatch elig_year* $covars metropolitan  i.year  i.occ_category, r fe
 estadd ysumm
 eststo
 outreg2 using wage_regressions.xls, append ctitle (HS equivalent and higher Wage Model)	
+
+use "Pre Regression alternate sample",clear
+keep if yrsed>=16
+xtreg ln_adj b2.vmatch elig_year* $covars metropolitan i.year i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (College and higher Wage Model)
 
 use "Pre Regression alternate sample",clear
 keep if yrsed==12
@@ -111,14 +120,53 @@ outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 esttab using education_wage_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig_year2009 elig_year2010 elig_year2011 elig_year2012 elig_year2013 elig_year2014 elig_year2015 elig_year2016 elig_year2017 elig_year2018 elig_year2019) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA eligibility, by educational attainment, on Log Wages") ///
-mlabel("HS equivalent and higher only" "HS equivalent only" ) ///
+mlabel("HS equivalent and higher only" "College graduate and higher only" "HS equivalent only" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include gender, race/ethnicity,  ") ///
 addn("foreign born, immigration by age 10, STEM degree indicators," ///
 	" years of schooling, state and year fixed effects." ///
 	"Robust standard errors.") 	
 
+	
+****elig and elig_post tables****	
 use "Pre Regression alternate sample",clear
+
+clear matrix
+set more off
+eststo clear
+
+keep if yrsed>=12
+xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan  i.year  i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (HS equivalent and higher Wage Model)	
+
+use "Pre Regression alternate sample",clear
+keep if yrsed>=16
+xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan i.year i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (College and higher Wage Model)
+
+use "Pre Regression alternate sample",clear
+keep if yrsed==12
+xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan i.year i.occ_category, r fe
+estadd ysumm
+eststo
+outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
+
+
+
+
+esttab using education_eligpost_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig elig_post) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by educational attainment, on Log Wages") ///
+mlabel("HS equivalent and higher only" "College graduate and higher only" "HS equivalent only" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include gender, race/ethnicity,  ") ///
+addn("foreign born, immigration by age 10, STEM degree indicators," ///
+	" years of schooling, state and year fixed effects." ///
+	"Robust standard errors.")
 	
 *wage regressions with treatment effect by year
 
