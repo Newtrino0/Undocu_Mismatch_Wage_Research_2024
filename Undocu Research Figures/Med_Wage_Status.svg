@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This is a Stata 18.0 generated SVG file (http://www.stata.com) -->
+
+<svg version="1.1" width="20.000in" height="14.000in" viewBox="0 0 14400 10080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<desc>Stata Graph - Med_Wage_Status</desc>
+	<rect x="0" y="0" width="14400" height="10080" style="fill:#EAF2F3;stroke:none"/>
+	<rect x="0.00" y="0.00" width="14400.00" height="10080.00" style="fill:#1E2D53"/>
+	<rect x="10.08" y="10.08" width="14379.84" height="10059.84" style="fill:none;stroke:#EAF2F3;stroke-opacity:0.00;stroke-width:20.16"/>
+	<rect x="1872.90" y="1320.30" width="5905.80" height="3097.35" style="fill:#FFFFFF"/>
+	<rect x="1881.47" y="1328.87" width="5888.66" height="3080.21" style="fill:none;stroke:#FFFFFF;stroke-width:17.14"/>
+	<line x1="1872.90" y1="4417.65" x2="7778.70" y2="4417.65" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="3858.30" x2="7778.70" y2="3858.30" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="3298.95" x2="7778.70" y2="3298.95" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="2739.15" x2="7778.70" y2="2739.15" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="2179.80" x2="7778.70" y2="2179.80" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="1620.45" x2="7778.70" y2="1620.45" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<rect x="8020.35" y="1320.30" width="5905.80" height="3097.35" style="fill:#FFFFFF"/>
+	<rect x="8028.92" y="1328.87" width="5888.66" height="3080.21" style="fill:none;stroke:#FFFFFF;stroke-width:17.14"/>
+	<line x1="8020.35" y1="4417.65" x2="13926.15" y2="4417.65" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="3858.30" x2="13926.15" y2="3858.30" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="3298.95" x2="13926.15" y2="3298.95" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="2739.15" x2="13926.15" y2="2739.15" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="2179.80" x2="13926.15" y2="2179.80" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="1620.45" x2="13926.15" y2="1620.45" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<rect x="1872.90" y="5297.85" width="5905.80" height="3097.35" style="fill:#FFFFFF"/>
+	<rect x="1881.47" y="5306.42" width="5888.66" height="3080.21" style="fill:none;stroke:#FFFFFF;stroke-width:17.14"/>
+	<line x1="1872.90" y1="8395.20" x2="7778.70" y2="8395.20" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="7835.85" x2="7778.70" y2="7835.85" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="7276.50" x2="7778.70" y2="7276.50" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="6716.70" x2="7778.70" y2="6716.70" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="6157.35" x2="7778.70" y2="6157.35" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="1872.90" y1="5598.00" x2="7778.70" y2="5598.00" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<rect x="8020.35" y="5297.85" width="5905.80" height="3097.35" style="fill:#FFFFFF"/>
+	<rect x="8028.92" y="5306.42" width="5888.66" height="3080.21" style="fill:none;stroke:#FFFFFF;stroke-width:17.14"/>
+	<line x1="8020.35" y1="8395.20" x2="13926.15" y2="8395.20" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="7835.85" x2="13926.15" y2="7835.85" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="7276.50" x2="13926.15" y2="7276.50" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="6716.70" x2="13926.15" y2="6716.70" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="6157.35" x2="13926.15" y2="6157.35" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<line x1="8020.35" y1="5598.00" x2="13926.15" y2="5598.00" style="stroke:#EAF2F3;stroke-width:17.14"/>
+	<rect x="2396.70" y="2266.65" width="1119.15" height="2151.00" style="fill:#FFD200"/>
+	<rect x="2405.27" y="2275.22" width="1102.01" height="2133.86" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="4266.00" y="1656.90" width="1119.15" height="2760.75" style="fill:#FFD200"/>
+	<rect x="4274.57" y="1665.47" width="1102.01" height="2743.61" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="6135.30" y="2576.70" width="1119.60" height="1840.95" style="fill:#FFD200"/>
+	<rect x="6143.87" y="2585.27" width="1102.46" height="1823.81" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<text x="2956.05" y="2108.99" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">76892</text>
+	<text x="4825.80" y="1499.24" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">98699</text>
+	<text x="6695.10" y="2419.04" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">65810</text>
+	<rect x="8544.15" y="2437.65" width="1119.60" height="1980.00" style="fill:#FFD200"/>
+	<rect x="8552.72" y="2446.22" width="1102.46" height="1962.86" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="10413.45" y="2116.80" width="1119.60" height="2300.85" style="fill:#FFD200"/>
+	<rect x="10422.02" y="2125.37" width="1102.46" height="2283.71" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="12283.20" y="2806.20" width="1119.15" height="1611.45" style="fill:#FFD200"/>
+	<rect x="12291.77" y="2814.77" width="1102.01" height="1594.31" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<text x="9103.95" y="2279.99" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">70780</text>
+	<text x="10973.25" y="1959.14" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">82249</text>
+	<text x="12842.55" y="2648.54" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">57614</text>
+	<rect x="2396.70" y="7015.05" width="1119.15" height="1380.15" style="fill:#FFD200"/>
+	<rect x="2405.27" y="7023.62" width="1102.01" height="1363.01" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="4266.00" y="7430.85" width="1119.15" height="964.35" style="fill:#FFD200"/>
+	<rect x="4274.57" y="7439.42" width="1102.01" height="947.21" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="6135.30" y="7412.40" width="1119.60" height="982.80" style="fill:#FFD200"/>
+	<rect x="6143.87" y="7420.97" width="1102.46" height="965.66" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<text x="2956.05" y="6856.94" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">49350</text>
+	<text x="4825.80" y="7273.19" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">34484</text>
+	<text x="6695.10" y="7254.74" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">35138</text>
+	<rect x="8544.15" y="7288.20" width="1119.60" height="1107.00" style="fill:#FFD200"/>
+	<rect x="8552.72" y="7296.77" width="1102.46" height="1089.86" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="10413.45" y="7520.40" width="1119.60" height="874.80" style="fill:#FFD200"/>
+	<rect x="10422.02" y="7528.97" width="1102.46" height="857.66" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<rect x="12283.20" y="7570.35" width="1119.15" height="824.85" style="fill:#FFD200"/>
+	<rect x="12291.77" y="7578.92" width="1102.01" height="807.71" style="fill:none;stroke:#1A476F;stroke-width:17.14"/>
+	<text x="9103.95" y="7130.54" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">39577</text>
+	<text x="10973.25" y="7362.74" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">31274</text>
+	<text x="12842.55" y="7412.69" style="font-family:'Helvetica';font-size:118.80px;fill:#000000" text-anchor="middle">29492</text>
+	<line x1="1872.90" y1="4417.65" x2="1872.90" y2="1320.30" style="stroke:#000000;stroke-width:17.14"/>
+	<line x1="1872.90" y1="4417.65" x2="1753.65" y2="4417.65" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="4501.08" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">0</text>
+	<line x1="1872.90" y1="3858.30" x2="1753.65" y2="3858.30" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="3941.73" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">20,000</text>
+	<line x1="1872.90" y1="3298.95" x2="1753.65" y2="3298.95" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="3382.38" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">40,000</text>
+	<line x1="1872.90" y1="2739.15" x2="1753.65" y2="2739.15" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="2822.58" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">60,000</text>
+	<line x1="1872.90" y1="2179.80" x2="1753.65" y2="2179.80" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="2263.23" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">80,000</text>
+	<line x1="1872.90" y1="1620.45" x2="1753.65" y2="1620.45" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="1703.88" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">100000</text>
+	<line x1="1872.90" y1="8395.20" x2="1872.90" y2="5297.85" style="stroke:#000000;stroke-width:17.14"/>
+	<line x1="1872.90" y1="8395.20" x2="1753.65" y2="8395.20" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="8478.63" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">0</text>
+	<line x1="1872.90" y1="7835.85" x2="1753.65" y2="7835.85" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="7919.28" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">20,000</text>
+	<line x1="1872.90" y1="7276.50" x2="1753.65" y2="7276.50" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="7359.93" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">40,000</text>
+	<line x1="1872.90" y1="6716.70" x2="1753.65" y2="6716.70" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="6800.13" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">60,000</text>
+	<line x1="1872.90" y1="6157.35" x2="1753.65" y2="6157.35" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="6240.78" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">80,000</text>
+	<line x1="1872.90" y1="5598.00" x2="1753.65" y2="5598.00" style="stroke:#FFFFFF;stroke-width:17.14"/>
+	<text x="1694.25" y="5681.43" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="end">100000</text>
+	<line x1="1872.90" y1="4417.65" x2="7778.70" y2="4417.65" style="stroke:#000000;stroke-width:17.14"/>
+	<text x="2956.05" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">U.S. Citizens</text>
+	<text x="4825.80" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-ineligible Noncitizens</text>
+	<text x="6695.10" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-eligible Noncitizens</text>
+	<line x1="8020.35" y1="4417.65" x2="13926.15" y2="4417.65" style="stroke:#000000;stroke-width:17.14"/>
+	<text x="9103.95" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">U.S. Citizens</text>
+	<text x="10973.25" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-ineligible Noncitizens</text>
+	<text x="12842.55" y="4619.84" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-eligible Noncitizens</text>
+	<line x1="1872.90" y1="8395.20" x2="7778.70" y2="8395.20" style="stroke:#000000;stroke-width:17.14"/>
+	<text x="2956.05" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">U.S. Citizens</text>
+	<text x="4825.80" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-ineligible Noncitizens</text>
+	<text x="6695.10" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-eligible Noncitizens</text>
+	<line x1="8020.35" y1="8395.20" x2="13926.15" y2="8395.20" style="stroke:#000000;stroke-width:17.14"/>
+	<text x="9103.95" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">U.S. Citizens</text>
+	<text x="10973.25" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-ineligible Noncitizens</text>
+	<text x="12842.55" y="8597.39" style="font-family:'Helvetica';font-size:118.80px;fill:#FFFFff" text-anchor="middle">DACA-eligible Noncitizens</text>
+	<text x="4825.80" y="1197.36" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="middle">Not Vertically Mismatched, Not Horizontally Mismatched</text>
+	<text x="10973.25" y="1197.36" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="middle">Not Vertically Mismatched, Horizontally Mismatched</text>
+	<text x="4825.80" y="5174.91" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="middle">Vertically Mismatched, Not Horizontally Mismatched</text>
+	<text x="10973.25" y="5174.91" style="font-family:'Helvetica';font-size:238.05px;fill:#FFFFff" text-anchor="middle">Vertically Mismatched, Horizontally Mismatched</text>
+	<rect x="4335.30" y="8934.75" width="5988.15" height="410.40" style="fill:#FFFFFF"/>
+	<rect x="4345.38" y="8944.83" width="5967.99" height="390.24" style="fill:none;stroke:#EAF2F3;stroke-opacity:0.00;stroke-width:20.16"/>
+	<rect x="4466.25" y="9035.10" width="604.80" height="210.15" style="fill:#FFD200"/>
+	<rect x="4476.33" y="9045.18" width="584.64" height="189.99" style="fill:none;stroke:#1A476F;stroke-width:20.16"/>
+	<text x="5281.20" y="9262.60" style="font-family:'Helvetica';font-size:350.10px;fill:#000000">Median Wage (50th Percentile)</text>
+	<text x="548.51" y="4836.15" style="font-family:'Helvetica';font-size:279.90px;fill:#FFFFff" transform="rotate(-90 548.51,4836.15)" text-anchor="middle">Dollars ($)</text>
+	<text x="13986.90" y="9624.69" style="font-family:'Helvetica';font-size:139.95px;fill:#FFFFff" text-anchor="end">Definitions for DACA eligible groups derived from Kuka et al (2020). Wage is adjusted for inflation using the CPI of January of every year</text>
+	<text x="7329.60" y="740.63" style="font-family:'Helvetica';font-size:385.20px;fill:#FFFFff" text-anchor="middle">Median wage of working college graduates grouped by legal status and mismatch</text>
+</svg>

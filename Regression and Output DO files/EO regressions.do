@@ -5,13 +5,10 @@ ssc install coefplot, replace
 
 global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Data Preparation-Cleaning DO files"
-global figures "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Figures"
+global figures "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-
-
 use "EO_Final_Sample", clear
-
-*reg ln_adj vmismatched hundermatched hovermatched elig elig_post  $covars metropolitan   i.occ_category i.statefip##i.year, r cl(statefip)*
 
 ********************************************************************************************************
 *******************************************Descriptive Table********************************************
@@ -22,15 +19,13 @@ eststo clear
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem , statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem  if elig==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if elig==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
-esttab est* using dTable_status.tex, replace label main(mean) aux(sd) title("U.S. born workers and DACA eligible immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Total" "U.S. born citizens" "DACA eligibility noncitizens") note("Note: Means and standard deviations compared against U.S. born workers")
+esttab est* using dTable_status.tex, replace label main(mean) aux(sd) title("U.S. born workers and DACA eligible immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Total" "U.S. born citizens" "DACA eligibility noncitizens") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
 
 clear matrix
 
 ****************************************************************************************************************
 
-xtset statefip
-
-
+***elig_year variable creation***
 gen eventyear = year
 label define eventyr 2009 "2009" 2010 "2010" 2011 "2011" 2012 "2012" 2013 "2013" ///
 	 2014 "2014" 2015 "2015" 2016 "2016" 2017 "2017" 2018 "2018" 2019 "2019"
@@ -41,6 +36,7 @@ forvalues y=2009(1)2019 {
 }
 drop elig_year2011
 
+***Mismatch and other regression covariate modifications/labeling***
 gen hmatch = 1 if hundermatched==1
 replace hmatch=2 if hundermatched==0 & hovermatched==0
 replace hmatch=3 if  hovermatched==1
@@ -49,36 +45,34 @@ gen elig_stem=elig*stem_deg
 gen post_stem=post*stem_deg
 gen elig_post_stem=elig*post*stem_deg
 
-
 label define hmatch_label 1 "Hundermatched" 2 "Hmatched" 3 "Hovermatched" 
 label values hmatch hmatch_label 
-
 
 replace post=0 if year==2012
 replace immig_by_ten=1 if bpl_foreign==0
 
-save "Pre Regression sample", replace
-
-global covars i.age hisp asian black other male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
-
 clear matrix
 set more off
-*mismatch regressions
 
-
-reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+xtset statefip
+global covars i.age hisp asian black other male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
+save "Pre Regression sample", replace
+****************************************************************************************	
+********************************Mismatch regressions************************************
+****************************************************************************************
+***Vertical mismatch model***
+use "Pre Regression sample",clear
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
-
-
-reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+***Horizontal mismatch model***
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
-
-reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+***Horizontal undermatch model***
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
-
 
 /*
 logit vmismatched hundermatched hovermatched elig hisp asian black other male bpl_foreign nonfluent yrsed stem_deg i.metro  i.year i.statefip , r 
@@ -98,24 +92,20 @@ eststo
 esttab using mismatch_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
 order(vmismatched hundermatched hovermatched elig elig_post) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of DACA Eligibility on Occupational Mismatch") ///
+title("Regressions of DACA Eligibility on Education-Occupation Mismatch") ///
 mlabel("Vrt. mismatch" "Horiz. mismatch"  "Horiz. undermatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include gender, race/ethnicity,  ") ///
-addn("foreign born, immigration by age 10, STEM degree indicators," ///
-	" years of schooling, state and year fixed effects." ///
-	"Robust standard errors.") 
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")	
 
-clear matrix
-set more off
-*wage regressions
-
-	
-
-	
 ****************************************************************************************	
 ****************Wage models with different mismatch indicators**************************
-******************************************************************************************
+****************************************************************************************
 /*
 clear matrix
 set more off
@@ -154,18 +144,16 @@ addn("foreign born, immigration by age 10, STEM degree indicators," ///
 	"Robust standard errors.") 	
 	
 */
-****************************************************************************************	
+**************************************************************************************	
 ****************Wage models with demographic columns/samples**************************
-******************************************************************************************
-
+**************************************************************************************
 clear matrix
 set more off
 eststo clear
 
-
 ***COMPLETE WAGE MODEL***
 use "Pre Regression sample",clear
-reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -177,46 +165,42 @@ eststo
 * New Jersey 14,430    | Washington 14,310
 use "Pre Regression sample",clear
 keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
-reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Foreign born column***
 use "Pre Regression sample",clear
 keep if bpl_foreign==1 & twentytwo_by_2012==1
-reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Mexico born column***
 use "Pre Regression sample",clear
 keep if bpl==200 & twentytwo_by_2012==1
-reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
-estadd ysumm
+reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm 
 eststo
 
 **Hispanic column***
 use "Pre Regression sample", clear
 keep if hisp==1 & twentytwo_by_2012==1
-reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 
-
 esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of DACA eligibility, by demographic, on Wages") ///
+title("Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Wages") ///
 mlabel("Complete model" "Top 10 states with DACA recipients" "Foreign-born only" "Mexico-born only" "Hispanic only" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include gender, race/ethnicity,  ") ///
-addn("foreign born, immigration by age 10, STEM degree indicators," ///
-	" years of schooling, state and year fixed effects." ///
-	"Robust standard errors.") 	
-
-use "Pre Regression sample",clear
-
-
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state.")  	
 
 					 ***********************************************
 ************************ 			elig_year coefficient plots and table	 ************************
@@ -224,27 +208,28 @@ use "Pre Regression sample",clear
 clear matrix
 set more off
 eststo clear
+use "Pre Regression sample",clear
 
 ***COMPLETE WAGE MODEL***
-reg ln_adj vmismatched hundermatched hovermatched elig elig_year* $covars metropolitan i.occ_category i.statefip##i.year, r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched elig elig_year* $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 set scheme s1mono
 coefplot, keep(elig_year*) xline(0) ytitle(Eligible x Year) xtitle(Complete Model coefficients plot) 
 ***Vertical mismatch-elig_year model***
-reg vmismatched hundermatched hovermatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+reg vmismatched hundermatched hovermatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 set scheme s1mono
 coefplot, keep(elig_year*)  xline(0) ytitle(Eligible x Year) xtitle(V. mismatch Model coefficients plot) 
 ***Horizontal mismatch-elig_year model***
-reg hmismatched vmismatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+reg hmismatched vmismatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 set scheme s1mono
 coefplot, keep(elig_year*)  xline(0) ytitle(Eligible x Year) xtitle(H. mismatch Model coefficients plot) 
 ***Horizontal undermatch-elig_year model***
-reg hundermatched vmismatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category , r cl(statefip)
+reg hundermatched vmismatched elig elig_year* $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 set scheme s1mono
@@ -257,26 +242,16 @@ stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f 
 title("Regressions of DACA Eligibility x Year on Mismatch and Wage") ///
 mlabel("Log wage" "Vrt. mismatch" "Horiz. mismatch"  "Horiz. undermatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include gender, race/ethnicity,  ") ///
-addn("foreign born, immigration by age 10, STEM degree indicators," ///
-	" years of schooling, state and year fixed effects." ///
-	"Robust standard errors.") 
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")  	 
 
 clear matrix
 set more off
-
-					 
-					 
-******************************************************************************************	
-*wage regressions with treatment effect by year
-
-xtreg ln_adj vmismatched hundermatched hovermatched elig##ib2011.year $covars metropolitan i.occ_category, r fe
-estadd ysumm
-eststo
-
-
-
-
 					 ***********************************************
 ************************ 			ROBUSTNESS CHECK #2: Event Study	 ************************
 					 ***********************************************
