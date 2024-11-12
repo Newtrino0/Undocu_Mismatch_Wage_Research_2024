@@ -29,7 +29,7 @@ replace degfieldd =9999 if degfieldd==. | degfieldd==0
 
 drop if incwage == 999999 | incwage==0
 drop if empstat !=1
-drop if school==2
+keep if school==1
 
 drop if classwkr==1
 

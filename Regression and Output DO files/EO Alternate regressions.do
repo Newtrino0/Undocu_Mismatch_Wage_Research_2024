@@ -57,7 +57,7 @@ label values vmatch vmatch_label
 replace post=0 if year==2012
 replace immig_by_ten=1 if bpl_foreign==0
 
-global covars c.age##c.age hisp asian black other male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
+global covars i.age hisp asian black other male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg 
 
 clear matrix
 set more off
@@ -66,10 +66,9 @@ save "Pre Regression alternate sample", replace
 
 *wage regressions
 
-xtreg ln_adj elig elig_post  $covars metropolitan  i.year  i.occ_category, r fe
+reg ln_adj elig elig_post $covars metropolitan i.statefip##i.year  i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using hs_wage_regressions.xls, append ctitle (Wage Model)
 
 
 
@@ -95,24 +94,21 @@ eststo clear
 
 use "Pre Regression alternate sample",clear
 keep if yrsed>=12
-xtreg ln_adj b2.vmatch elig_year* $covars metropolitan  i.year  i.occ_category, r fe
+reg ln_adj b2.vmatch elig_year* $covars metropolitan i.statefip##i.year  i.occ_category, r cl(statefip)
 estadd ysumm
-eststo
-outreg2 using wage_regressions.xls, append ctitle (HS equivalent and higher Wage Model)	
+eststo	
 
 use "Pre Regression alternate sample",clear
 keep if yrsed>=16
-xtreg ln_adj b2.vmatch elig_year* $covars metropolitan i.year i.occ_category, r fe
+reg ln_adj b2.vmatch elig_year* $covars metropolitan i.statefip##i.year i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using wage_regressions.xls, append ctitle (College and higher Wage Model)
 
 use "Pre Regression alternate sample",clear
 keep if yrsed==12
-xtreg ln_adj b2.vmatch elig_year* $covars metropolitan i.year i.occ_category, r fe
+reg ln_adj b2.vmatch elig_year* $covars metropolitan i.statefip##i.year i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 
 
 
@@ -120,7 +116,7 @@ outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 esttab using education_wage_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig_year2009 elig_year2010 elig_year2011 elig_year2012 elig_year2013 elig_year2014 elig_year2015 elig_year2016 elig_year2017 elig_year2018 elig_year2019) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA eligibility, by educational attainment, on Log Wages") ///
-mlabel("HS equivalent and higher only" "College graduate and higher only" "HS equivalent only" ) ///
+mlabel("HS and up only" "College and up only" "HS only" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include gender, race/ethnicity,  ") ///
 addn("foreign born, immigration by age 10, STEM degree indicators," ///
@@ -136,24 +132,22 @@ set more off
 eststo clear
 
 keep if yrsed>=12
-xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan  i.year  i.occ_category, r fe
+reg ln_adj b2.vmatch elig elig_post $covars metropolitan i.statefip##i.year  i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using wage_regressions.xls, append ctitle (HS equivalent and higher Wage Model)	
 
 use "Pre Regression alternate sample",clear
 keep if yrsed>=16
-xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan i.year i.occ_category, r fe
+reg ln_adj b2.vmatch elig elig_post $covars metropolitan i.statefip##i.year i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using wage_regressions.xls, append ctitle (College and higher Wage Model)
+
 
 use "Pre Regression alternate sample",clear
 keep if yrsed==12
-xtreg ln_adj b2.vmatch elig elig_post $covars metropolitan i.year i.occ_category, r fe
+reg ln_adj b2.vmatch elig elig_post $covars metropolitan i.statefip##i.year i.occ_category, r cl(statefip)
 estadd ysumm
 eststo
-outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 
 
 
@@ -161,7 +155,7 @@ outreg2 using wage_regressions.xls, append ctitle (HS equivalent Wage Model)
 esttab using education_eligpost_regressions.tex, replace label booktabs keep(1.vmatch 2.vmatch 3.vmatch elig elig_post) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA eligibility, by educational attainment, on Log Wages") ///
-mlabel("HS equivalent and higher only" "College graduate and higher only" "HS equivalent only" ) ///
+mlabel("HS and up only" "College and up only" "HS only"  ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include gender, race/ethnicity,  ") ///
 addn("foreign born, immigration by age 10, STEM degree indicators," ///
