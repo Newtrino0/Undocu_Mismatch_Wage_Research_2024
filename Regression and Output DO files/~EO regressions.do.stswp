@@ -55,9 +55,7 @@ clear matrix
 set more off
 
 xtset statefip
-global covars gov_worker immig_by_ten ///
- nonfluent yrsed stem_deg i.age##i.year fem i.white##i.year i.hisp##i.year i.black##i.year /// 
- i.asian##i.year bpl_usa bpl_foreign i.statefip##i.year i.yrimmig i.ageimmig##i.noncit i.age##i.noncit 
+global covars i.age hisp male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg i.race##i.year
 save "Pre Regression sample", replace
 
 
