@@ -55,14 +55,12 @@ clear matrix
 set more off
 
 xtset statefip
-global covars gov_worker immig_by_ten ///
- nonfluent yrsed stem_deg i.age##i.year fem i.white##i.year i.hisp##i.year i.black##i.year /// 
- i.asian##i.year bpl_usa bpl_foreign i.statefip##i.year i.yrimmig i.ageimmig##i.noncit i.age##i.noncit 
+global covars i.age hisp male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg i.race##i.year
 save "Pre Regression sample", replace
 
 
 ****************************************************************************************	
-********************************Mismatch regressions************************************
+********************************High-level Mismatch regressions************************************
 ****************************************************************************************
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
@@ -109,6 +107,186 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occu
 	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
 	"explaining the lack of statistical significance of covariates.")	
 
+****************************************************************************************	
+********************************Individual Mismatch regressions************************************
+****************************************************************************************
+clear matrix
+set more off
+eststo clear
+***Vertical mismatch model***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "Pre Regression sample",clear
+**Complete V. mismatch model**
+keep if twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Top 10 states V. mismatch model***
+***Greatest number of DACA recipients column***
+* California 165,090   | Texas 95,970
+* Illinois 30,740      | New York 23,780
+* Florida 22,750       | Arizona 21,990
+* North Carolina 21,980| Georgia 19,040
+* New Jersey 14,430    | Washington 14,310
+use "Pre Regression sample",clear
+keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Foreign V. mismatch model***
+use "Pre Regression sample",clear
+keep if bpl_foreign==1 & twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Mexican V. mismatch model***
+use "Pre Regression sample",clear
+keep if bpl==200 & twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Hispanic V. mismatch model***
+use "Pre Regression sample",clear
+keep if hisp==1 & twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+esttab using vmismatch_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+order(vmismatched hundermatched hovermatched elig elig_post) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Vmismatch") ///
+mlabel("Complete Vmismatch" "Top 10 states Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")		
+	
+	
+	
+***Horizontal mismatch table***	
+clear matrix
+set more off
+eststo clear
+***Vertical mismatch model***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "Pre Regression sample",clear
+**Complete H. mismatch model**
+keep if twentytwo_by_2012==1
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Top 10 states H. mismatch model***
+***Greatest number of DACA recipients column***
+* California 165,090   | Texas 95,970
+* Illinois 30,740      | New York 23,780
+* Florida 22,750       | Arizona 21,990
+* North Carolina 21,980| Georgia 19,040
+* New Jersey 14,430    | Washington 14,310
+use "Pre Regression sample",clear
+keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Foreign H. mismatch model***
+use "Pre Regression sample",clear
+keep if bpl_foreign==1 & twentytwo_by_2012==1
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Mexican H. mismatch model***
+use "Pre Regression sample",clear
+keep if bpl==200 & twentytwo_by_2012==1
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Hispanic H. mismatch model***
+use "Pre Regression sample",clear
+keep if hisp==1 & twentytwo_by_2012==1
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+esttab using hmismatch_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+order(vmismatched hundermatched hovermatched elig elig_post) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Hmismatch") ///
+mlabel("Complete Hmismatch" "Top 10 states Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")	
+	
+	
+	
+	
+***Horizontal undermatch table***	
+clear matrix
+set more off
+eststo clear
+***Horizontal undermatch model***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "Pre Regression sample",clear
+**Complete H. undermatch model**
+keep if twentytwo_by_2012==1
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Top 10 states H. undermatch model***
+***Greatest number of DACA recipients column***
+* California 165,090   | Texas 95,970
+* Illinois 30,740      | New York 23,780
+* Florida 22,750       | Arizona 21,990
+* North Carolina 21,980| Georgia 19,040
+* New Jersey 14,430    | Washington 14,310
+use "Pre Regression sample",clear
+keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Foreign H. undermatch model***
+use "Pre Regression sample",clear
+keep if bpl_foreign==1 & twentytwo_by_2012==1
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Mexican H. undermatch model***
+use "Pre Regression sample",clear
+keep if bpl==200 & twentytwo_by_2012==1
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Hispanic H. undermatch model***
+use "Pre Regression sample",clear
+keep if hisp==1 & twentytwo_by_2012==1
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+esttab using hundermatch_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
+order(vmismatched hundermatched hovermatched elig elig_post) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Hmismatch") ///
+mlabel("Complete Hundermatch" "Top 10 states Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")	
 ****************************************************************************************	
 ****************Wage models with different mismatch indicators**************************
 ****************************************************************************************
@@ -208,6 +386,65 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occu
 	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
 	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
 	"Robust standard errors are all clustered by state.")  	
+	
+**************************************************************************************	
+****************Wage models with demographic columns/samples, without mismatch indicators**************************
+**************************************************************************************
+clear matrix
+set more off
+eststo clear
+
+***"COMPLETE" WAGE MODEL***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "Pre Regression sample",clear
+reg ln_adj elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+***Greatest number of DACA recipients column***
+* California 165,090   | Texas 95,970
+* Illinois 30,740      | New York 23,780
+* Florida 22,750       | Arizona 21,990
+* North Carolina 21,980| Georgia 19,040
+* New Jersey 14,430    | Washington 14,310
+use "Pre Regression sample",clear
+keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+reg ln_adj elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo	
+
+***Foreign born column***
+use "Pre Regression sample",clear
+keep if bpl_foreign==1 & twentytwo_by_2012==1
+reg ln_adj elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo	
+
+***Mexico born column***
+use "Pre Regression sample",clear
+keep if bpl==200 & twentytwo_by_2012==1
+reg ln_adj elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm 
+eststo
+
+**Hispanic column***
+use "Pre Regression sample", clear
+keep if hisp==1 & twentytwo_by_2012==1
+reg ln_adj elig elig_post $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+esttab using demographic_wage_womismatch_regressions.tex, replace label booktabs keep (elig elig_post) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Wages without mismatch indicators") ///
+mlabel("Complete model" "Top 10 states with DACA recipients" "Foreign-born only" "Mexico-born only" "Hispanic only" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state.")  		
 
 					 ***********************************************
 ************************ 			elig_year coefficient plots and table	 ************************

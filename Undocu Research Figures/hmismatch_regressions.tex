@@ -1,0 +1,37 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Hmismatch}
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
+                    &Complete Hmismatch         &Top 10 states Hmismatch         &Foreign Hmismatch         &Mexican Hmismatch         &Hispanic Hmismatch         \\
+\midrule
+Vertically Mismatched&      0.1370\sym{***}&      0.1266\sym{***}&      0.1426\sym{***}&      0.1163\sym{***}&      0.1140\sym{***}\\
+                    &    [0.0040]         &    [0.0045]         &    [0.0049]         &    [0.0150]         &    [0.0061]         \\
+\addlinespace
+Horizontally Undermatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+Horizontally Overmatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+Eligible            &     -0.0101         &     -0.0114         &     -0.0043         &     -0.0329         &     -0.0262         \\
+                    &    [0.0208]         &    [0.0237]         &    [0.0192]         &    [0.0383]         &    [0.0308]         \\
+\addlinespace
+Eligible*Post       &      0.0172         &      0.0291         &      0.0262         &      0.0688         &      0.0494         \\
+                    &    [0.0197]         &    [0.0223]         &    [0.0179]         &    [0.0475]         &    [0.0330]         \\
+\midrule
+Mean of Dep. Var.   &        0.56         &        0.58         &        0.56         &        0.60         &        0.59         \\
+R-squared           &        0.07         &        0.06         &        0.10         &        0.16         &        0.08         \\
+N                   &   1,873,336         &     969,839         &     309,377         &      17,928         &     150,648         \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}
