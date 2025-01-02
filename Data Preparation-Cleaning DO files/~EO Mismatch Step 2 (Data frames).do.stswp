@@ -97,7 +97,7 @@ replace statefip = 6 if state == "California"
 replace statefip = 8 if state == "Colorado"
 replace statefip = 9 if state == "Connecticut"
 replace statefip = 10 if state == "Delaware"
-replace statefip = 11 if state == "District of Columbia"
+replace statefip = 11 if state == "DC"
 replace statefip = 12 if state == "Florida"
 replace statefip = 13 if state == "Georgia"
 replace statefip = 15 if state == "Hawaii"
@@ -155,7 +155,7 @@ replace statefip = 99 if state == "State not identified"
 save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\IPC Final Full Data 2024 Update.dta", replace
 sort state
 
-merge 1:m statefip using "EO_Step_2.dta"
+merge 1:m statefip year using "EO_Step_2.dta"
 drop _merge
 
 save "EO_Step_2.dta", replace
