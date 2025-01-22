@@ -1,0 +1,55 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of DACA eligibility on Vmismatch (Labor IPC)}
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
+                    &Complete Vmismatch         &Top 10 states Vmismatch         &Foreign Vmismatch         &Mexican Vmismatch         &Hispanic V.mismatch         \\
+\midrule
+Vertically Mismatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+Horizontally Undermatched&      0.0831\sym{***}&      0.0784\sym{***}&      0.0718\sym{***}&      0.0642\sym{***}&      0.0709\sym{***}\\
+                    &    [0.0022]         &    [0.0025]         &    [0.0018]         &    [0.0061]         &    [0.0028]         \\
+\addlinespace
+Horizontally Overmatched&     -0.0519\sym{***}&     -0.0522\sym{***}&     -0.0436\sym{***}&     -0.0772\sym{***}&     -0.0646\sym{***}\\
+                    &    [0.0020]         &    [0.0034]         &    [0.0030]         &    [0.0050]         &    [0.0040]         \\
+\addlinespace
+Eligible            &      0.0075         &      0.0087         &      0.0087         &      0.0340\sym{**} &      0.0146         \\
+                    &    [0.0077]         &    [0.0081]         &    [0.0074]         &    [0.0149]         &    [0.0129]         \\
+\addlinespace
+Eligible*Post       &     -0.0079         &     -0.0136\sym{*}  &     -0.0071         &     -0.0236         &     -0.0093         \\
+                    &    [0.0082]         &    [0.0062]         &    [0.0085]         &    [0.0181]         &    [0.0152]         \\
+\addlinespace
+drivers\_license=0   &      0.0040\sym{***}&     -0.0063\sym{***}&     -0.1528\sym{***}&      0.0043         &      0.1387\sym{***}\\
+                    &    [0.0013]         &    [0.0006]         &    [0.0039]         &    [0.0128]         &    [0.0053]         \\
+\addlinespace
+drivers\_license=2   &     -0.0067\sym{***}&      0.0000         &     -0.2854\sym{***}&      0.1364\sym{***}&      0.2757\sym{***}\\
+                    &    [0.0012]         &         [.]         &    [0.0112]         &    [0.0239]         &    [0.0090]         \\
+\addlinespace
+professional\_licensure=0&      0.0020         &                     &     -0.1939\sym{***}&     -0.0014         &      0.0809\sym{***}\\
+                    &    [0.0015]         &                     &    [0.0048]         &    [0.0173]         &    [0.0050]         \\
+\addlinespace
+professional\_licensure=2&      0.0068\sym{***}&      0.0020\sym{***}&      0.2481\sym{***}&     -0.1917\sym{***}&     -0.0979\sym{***}\\
+                    &    [0.0007]         &    [0.0005]         &    [0.0063]         &    [0.0201]         &    [0.0074]         \\
+\addlinespace
+e\_verify=0          &     -0.0047\sym{***}&      0.0071\sym{***}&      0.2822\sym{***}&      0.0073         &     -0.1003\sym{***}\\
+                    &    [0.0006]         &    [0.0007]         &    [0.0101]         &    [0.0100]         &    [0.0069]         \\
+\addlinespace
+e\_verify=2          &     -0.0098\sym{***}&     -0.0056\sym{***}&      0.0019\sym{**} &      0.0649\sym{***}&     -0.0066\sym{***}\\
+                    &    [0.0009]         &    [0.0006]         &    [0.0008]         &    [0.0079]         &    [0.0011]         \\
+\midrule
+Mean of Dep. Var.   &        0.24         &        0.24         &        0.25         &        0.43         &        0.32         \\
+R-squared           &        0.65         &        0.64         &        0.69         &        0.75         &        0.69         \\
+N                   &   1,872,941         &     969,651         &     309,345         &      17,925         &     150,620         \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

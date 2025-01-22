@@ -1,0 +1,119 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of DACA eligibility, by demographic consisting of those 22 years old by 2012, on Wages (individual IPC)}
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
+                    &Complete model         &Top 10 states with DACA recipients         &Foreign-born only         &Mexico-born only         &Hispanic only         \\
+\midrule
+Vertically Mismatched&     -0.2799\sym{***}&     -0.2921\sym{***}&     -0.3455\sym{***}&     -0.2889\sym{***}&     -0.2770\sym{***}\\
+                    &    [0.0048]         &    [0.0072]         &    [0.0082]         &    [0.0221]         &    [0.0150]         \\
+\addlinespace
+Horizontally Undermatched&     -0.1127\sym{***}&     -0.1074\sym{***}&     -0.0578\sym{***}&     -0.0529\sym{***}&     -0.0919\sym{***}\\
+                    &    [0.0026]         &    [0.0027]         &    [0.0045]         &    [0.0071]         &    [0.0027]         \\
+\addlinespace
+Horizontally Overmatched&     -0.0319\sym{***}&     -0.0284\sym{***}&      0.0086         &     -0.0022         &     -0.0239\sym{***}\\
+                    &    [0.0028]         &    [0.0027]         &    [0.0051]         &    [0.0109]         &    [0.0048]         \\
+\addlinespace
+Eligible            &      0.0566\sym{**} &      0.0645\sym{**} &      0.0562\sym{**} &      0.0404         &      0.0574\sym{**} \\
+                    &    [0.0253]         &    [0.0279]         &    [0.0240]         &    [0.0441]         &    [0.0232]         \\
+\addlinespace
+Eligible*Post       &     -0.0915\sym{***}&     -0.1047\sym{***}&     -0.0926\sym{***}&     -0.0980\sym{**} &     -0.0830\sym{***}\\
+                    &    [0.0220]         &    [0.0210]         &    [0.0233]         &    [0.0483]         &    [0.0275]         \\
+\addlinespace
+pub\_insurance\_immigrant\_kids=0&     -0.0997\sym{***}&      0.0023         &      0.1123\sym{***}&      0.7163\sym{***}&     -0.4477\sym{***}\\
+                    &    [0.0026]         &    [0.0020]         &    [0.0173]         &    [0.0845]         &    [0.0248]         \\
+\addlinespace
+pub\_insurance\_immigrant\_kids=2&      0.0729\sym{***}&      0.0214\sym{***}&     -0.1957\sym{***}&     -1.0147\sym{***}&     -0.3166\sym{***}\\
+                    &    [0.0029]         &    [0.0024]         &    [0.0103]         &    [0.0565]         &    [0.0197]         \\
+\addlinespace
+prenatal\_care\_pregnant\_immigrants=0&      0.0891\sym{***}&      0.0254\sym{***}&      0.0045         &      0.1000         &      0.3190\sym{***}\\
+                    &    [0.0029]         &    [0.0028]         &    [0.0166]         &    [0.0615]         &    [0.0206]         \\
+\addlinespace
+prenatal\_care\_pregnant\_immigrants=2&      0.2131\sym{***}&      0.0370\sym{***}&      0.2650\sym{***}&     -0.9744\sym{***}&     -0.2023\sym{***}\\
+                    &    [0.0020]         &    [0.0038]         &    [0.0253]         &    [0.1205]         &    [0.0138]         \\
+\addlinespace
+pub\_insurance\_pregnant\_immigrants=0&     -0.0328\sym{***}&      0.0347\sym{***}&     -0.0496\sym{***}&     -0.1065\sym{***}&      0.2499\sym{***}\\
+                    &    [0.0015]         &    [0.0021]         &    [0.0067]         &    [0.0384]         &    [0.0078]         \\
+\addlinespace
+pub\_insurance\_pregnant\_immigrants=2&     -0.0418\sym{***}&                     &      0.2657\sym{***}&      3.3697\sym{***}&      0.9325\sym{***}\\
+                    &    [0.0050]         &                     &    [0.0357]         &    [0.1227]         &    [0.0417]         \\
+\addlinespace
+pub\_insurance\_immigrant\_older\_adults=0&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+pub\_insurance\_immigrant\_older\_adults=2&      0.0000         &                     &      0.0000         &      0.0000         &      0.0000         \\
+                    &         [.]         &                     &         [.]         &         [.]         &         [.]         \\
+\addlinespace
+food\_assistance\_for\_lpr\_adults=0&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+food\_assistance\_for\_lpr\_adults=2&      0.0745\sym{***}&      0.1456\sym{***}&     -0.2144\sym{***}&     -0.1949\sym{***}&      0.3455\sym{***}\\
+                    &    [0.0032]         &    [0.0059]         &    [0.0109]         &    [0.0365]         &    [0.0249]         \\
+\addlinespace
+tuition\_equity=0    &      0.0017         &      0.0758\sym{***}&     -0.2946\sym{***}&     -0.3473\sym{***}&      0.5160\sym{***}\\
+                    &    [0.0026]         &    [0.0019]         &    [0.0118]         &    [0.0974]         &    [0.0192]         \\
+\addlinespace
+tuition\_equity=2    &     -0.0759\sym{***}&      0.0000         &     -0.1373\sym{***}&      0.6646\sym{***}&      0.4974\sym{***}\\
+                    &    [0.0030]         &         [.]         &    [0.0128]         &    [0.1125]         &    [0.0189]         \\
+\addlinespace
+financial\_aid=0     &      0.0643\sym{***}&     -0.0371\sym{***}&     -0.2266\sym{***}&     -0.4282\sym{***}&     -0.0775\sym{***}\\
+                    &    [0.0023]         &    [0.0011]         &    [0.0096]         &    [0.0460]         &    [0.0212]         \\
+\addlinespace
+financial\_aid=2     &      0.0967\sym{***}&      0.0207\sym{***}&      0.0563\sym{***}&     -0.5124\sym{***}&     -0.1684\sym{***}\\
+                    &    [0.0022]         &    [0.0017]         &    [0.0049]         &    [0.0321]         &    [0.0063]         \\
+\addlinespace
+blocks\_enrollment=0 &      0.0829\sym{***}&      0.0228\sym{***}&     -0.2307\sym{***}&     -0.7142\sym{***}&      0.7033\sym{***}\\
+                    &    [0.0027]         &    [0.0029]         &    [0.0166]         &    [0.0927]         &    [0.0411]         \\
+\addlinespace
+blocks\_enrollment=2 &                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+professional\_licensure=0&     -0.1501\sym{***}&                     &     -0.1010\sym{***}&      0.9991\sym{***}&      0.4116\sym{***}\\
+                    &    [0.0070]         &                     &    [0.0235]         &    [0.0885]         &    [0.0522]         \\
+\addlinespace
+professional\_licensure=2&      0.1353\sym{***}&     -0.0770\sym{***}&      0.0755\sym{***}&     -2.0229\sym{***}&      0.4761\sym{***}\\
+                    &    [0.0062]         &    [0.0020]         &    [0.0254]         &    [0.1056]         &    [0.0301]         \\
+\addlinespace
+drivers\_license=0   &      0.1601\sym{***}&      0.0566\sym{***}&      0.1150\sym{***}&     -0.7966\sym{***}&      0.6056\sym{***}\\
+                    &    [0.0057]         &    [0.0013]         &    [0.0173]         &    [0.0890]         &    [0.0357]         \\
+\addlinespace
+drivers\_license=2   &      0.0808\sym{***}&      0.0000         &      0.2116\sym{***}&      1.0408\sym{***}&      0.1061\sym{***}\\
+                    &    [0.0032]         &         [.]         &    [0.0173]         &    [0.1926]         &    [0.0360]         \\
+\addlinespace
+omnibus=0           &     -0.0411\sym{***}&     -0.0627\sym{***}&      0.3469\sym{***}&      0.3092\sym{**} &     -1.0081\sym{***}\\
+                    &    [0.0051]         &    [0.0022]         &    [0.0181]         &    [0.1215]         &    [0.0322]         \\
+\addlinespace
+omnibus=2           &                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+cooperation\_federal\_immigration=0&      0.1266\sym{***}&     -0.0086\sym{***}&      0.2314\sym{***}&     -0.6110\sym{***}&      0.0296         \\
+                    &    [0.0042]         &    [0.0008]         &    [0.0094]         &    [0.0584]         &    [0.0215]         \\
+\addlinespace
+cooperation\_federal\_immigration=2&      0.0509\sym{***}&      0.0382\sym{***}&      0.0777\sym{***}&     -0.3078\sym{***}&     -0.0166\sym{*}  \\
+                    &    [0.0021]         &    [0.0013]         &    [0.0076]         &    [0.0323]         &    [0.0097]         \\
+\addlinespace
+e\_verify=0          &     -0.0657\sym{***}&     -0.0076\sym{***}&     -0.0486\sym{***}&     -0.0437\sym{**} &     -0.4898\sym{***}\\
+                    &    [0.0063]         &    [0.0014]         &    [0.0180]         &    [0.0191]         &    [0.0145]         \\
+\addlinespace
+e\_verify=2          &     -0.1632\sym{***}&      0.0544\sym{***}&     -0.1815\sym{***}&      0.7510\sym{***}&      0.1990\sym{***}\\
+                    &    [0.0035]         &    [0.0038]         &    [0.0226]         &    [0.0649]         &    [0.0228]         \\
+\addlinespace
+secure\_communities\_participated=0&      0.0306\sym{***}&      0.0064\sym{***}&     -0.1101\sym{***}&     -0.2863\sym{***}&      0.0609\sym{**} \\
+                    &    [0.0026]         &    [0.0013]         &    [0.0111]         &    [0.0221]         &    [0.0260]         \\
+\addlinespace
+secure\_communities\_participated=2&     -0.0115\sym{*}  &                     &     -0.1588\sym{***}&      1.0920\sym{***}&      1.2330\sym{***}\\
+                    &    [0.0058]         &                     &    [0.0208]         &    [0.1646]         &    [0.0335]         \\
+\midrule
+Mean of Dep. Var.   &        3.51         &        3.56         &        3.59         &        3.25         &        3.38         \\
+R-squared           &        0.30         &        0.29         &        0.33         &        0.33         &        0.28         \\
+N                   &   1,872,941         &     969,651         &     309,345         &      17,925         &     150,620         \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
+\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

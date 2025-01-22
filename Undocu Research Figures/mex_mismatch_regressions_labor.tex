@@ -1,0 +1,55 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of DACA Eligibility on Education-Occupation Mismatch (Mexican only, with IPC labor indicators)}
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
+                    &Vrt. mismatch         &Horiz. mismatch         &Horiz. undermatch         &Horiz. overmatch         \\
+\midrule
+Vertically Mismatched&                     &      0.1163\sym{***}&      0.2208\sym{***}&     -0.1046\sym{***}\\
+                    &                     &    [0.0150]         &    [0.0181]         &    [0.0051]         \\
+\addlinespace
+Horizontally Undermatched&      0.0642\sym{***}&                     &                     &                     \\
+                    &    [0.0061]         &                     &                     &                     \\
+\addlinespace
+Horizontally Overmatched&     -0.0772\sym{***}&                     &                     &                     \\
+                    &    [0.0050]         &                     &                     &                     \\
+\addlinespace
+Eligible            &      0.0340\sym{**} &     -0.0329         &     -0.0244         &     -0.0083         \\
+                    &    [0.0149]         &    [0.0383]         &    [0.0374]         &    [0.0134]         \\
+\addlinespace
+Eligible*Post       &     -0.0236         &      0.0688         &      0.0579         &      0.0110         \\
+                    &    [0.0181]         &    [0.0475]         &    [0.0411]         &    [0.0171]         \\
+\addlinespace
+drivers\_license=0   &      0.0043         &      0.1667\sym{***}&      0.1369\sym{***}&      0.0298\sym{**} \\
+                    &    [0.0128]         &    [0.0312]         &    [0.0407]         &    [0.0147]         \\
+\addlinespace
+drivers\_license=2   &      0.1364\sym{***}&      0.1005         &     -0.2926\sym{***}&      0.3937\sym{***}\\
+                    &    [0.0239]         &    [0.0670]         &    [0.0771]         &    [0.0251]         \\
+\addlinespace
+professional\_licensure=0&     -0.0014         &      0.3136\sym{***}&      0.3041\sym{***}&      0.0097         \\
+                    &    [0.0173]         &    [0.0407]         &    [0.0488]         &    [0.0177]         \\
+\addlinespace
+professional\_licensure=2&     -0.1917\sym{***}&      0.2812\sym{***}&      0.6623\sym{***}&     -0.3813\sym{***}\\
+                    &    [0.0201]         &    [0.0511]         &    [0.0465]         &    [0.0216]         \\
+\addlinespace
+e\_verify=0          &      0.0073         &     -0.3202\sym{***}&     -0.3512\sym{***}&      0.0311\sym{**} \\
+                    &    [0.0100]         &    [0.0222]         &    [0.0263]         &    [0.0139]         \\
+\addlinespace
+e\_verify=2          &      0.0649\sym{***}&     -0.1498\sym{***}&     -0.2770\sym{***}&      0.1270\sym{***}\\
+                    &    [0.0079]         &    [0.0120]         &    [0.0110]         &    [0.0120]         \\
+\midrule
+Mean of Dep. Var.   &        0.43         &        0.60         &        0.52         &        0.08         \\
+R-squared           &        0.75         &        0.16         &        0.27         &        0.15         \\
+N                   &      17,925         &      17,928         &      17,925         &      17,925         \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{5}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{5}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{5}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{5}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{5}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

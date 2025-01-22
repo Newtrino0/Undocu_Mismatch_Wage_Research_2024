@@ -51,34 +51,42 @@ label values hmatch hmatch_label
 replace post=0 if year==2012
 replace immig_by_ten=1 if bpl_foreign==0
 
+gen annual_total_dummy = 0 if annual_total<0
+replace annual_total_dummy = 1 if annual_total==0
+replace annual_total_dummy = 2 if annual_total>0
+
+label define annual_total_label 0 "Exclusive" 1 "Neutral" 2 "Inclusive" 
+label values annual_total_dummy annual_total_label 
+
 clear matrix
 set more off
 
 xtset statefip
 global covars i.age hisp male gov_worker bpl_foreign immig_by_ten nonfluent yrsed stem_deg i.race##i.year
+global individual_icp b1.pub_insurance_immigrant_kids 	b1.prenatal_care_pregnant_immigrant 	b1.pub_insurance_pregnant_immigrant 	b1.pub_insurance_immigrant_older_ad 	b1.food_assistance_for_lpr_adults 	b1.tuition_equity 	b1.financial_aid 	b1.blocks_enrollment 	b1.professional_licensure 	b1.drivers_license	b1.omnibus 	b1.cooperation_federal_immigration 	b1.e_verify b1.secure_communities_participated
 save "Pre Regression sample", replace
 
 
 ****************************************************************************************	
-********************************High-level Mismatch regressions************************************
+********************************High-level Mismatch regressions with total IPC indicator************************************
 ****************************************************************************************
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "Pre Regression sample",clear
 keep if twentytwo_by_2012==1
-reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal mismatch model***
-reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal undermatch model***
-reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal overmatch model***
-reg hovermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hovermatched vmismatched elig elig_post $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -98,8 +106,62 @@ estadd ysumm
 eststo
 */
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
-esttab using mismatch_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post ) ///
-order(vmismatched hundermatched hovermatched elig elig_post) ///
+esttab using mismatch_regressions_total.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post 0.annual_total_dummy 2.annual_total_dummy) ///
+order(vmismatched hundermatched hovermatched elig elig_post 0.annual_total_dummy 2.annual_total_dummy) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of DACA Eligibility on Education-Occupation Mismatch (with IPC total indicator)") ///
+mlabel("Vrt. mismatch" "Horiz. mismatch"  "Horiz. undermatch" "Horiz. overmatch") ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.")	
+	
+	
+****************************************************************************************	
+********************************High-level Mismatch regressions with individual IPC indicators************************************
+****************************************************************************************
+***Vertical mismatch model***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "Pre Regression sample",clear
+keep if twentytwo_by_2012==1
+reg vmismatched hundermatched hovermatched elig elig_post $covars $individual_icp metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Horizontal mismatch model***
+reg hmismatched vmismatched elig elig_post $covars $individual_icp metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Horizontal undermatch model***
+reg hundermatched vmismatched elig elig_post $covars $individual_icp metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Horizontal overmatch model***
+reg hovermatched vmismatched elig elig_post $covars $individual_icp metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+/*
+logit vmismatched hundermatched hovermatched elig hisp asian black other male bpl_foreign nonfluent yrsed stem_deg i.metro  i.year i.statefip , r 
+margins, dydx(hundermatched hovermatched elig) post
+estadd ysumm
+eststo
+
+mlogit hmatch vmismatched  elig hisp asian black other male bpl_foreign nonfluent yrsed stem_deg i.metro  i.year i.statefip , r baseoutcome(2)
+margins, dydx(vmismatched elig) predict(outcome(1)) post
+estadd ysumm
+eststo
+
+margins, dydx(vmismatched elig) predict(outcome(3)) post
+estadd ysumm
+eststo
+*/
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures"
+esttab using mismatch_regressions_individual.tex, replace label booktabs keep(vmismatched hundermatched hovermatched elig elig_post b0.pub_insurance_immigrant_kids b2.pub_insurance_immigrant_kids b0.prenatal_care_pregnant_immigrant b2.prenatal_care_pregnant_immigrant b0.pub_insurance_pregnant_immigrant b2.pub_insurance_pregnant_immigrant b0.pub_insurance_immigrant_older_ad b2.pub_insurance_immigrant_older_ad b0.food_assistance_for_lpr_adults b2.food_assistance_for_lpr_adults b0.tuition_equity b2.tuition_equity b0.financial_aid b2.financial_aid b0.blocks_enrollment b2.blocks_enrollment b0.professional_licensure b2.professional_licensure b0.drivers_license b2.drivers_license b0.omnibus b2.omnibus b0.cooperation_federal_immigration b2.cooperation_federal_immigration b0.e_verify b2.e_verify ) ///
+order(vmismatched hundermatched hovermatched elig elig_post b0.pub_insurance_immigrant_kids b2.pub_insurance_immigrant_kids b0.prenatal_care_pregnant_immigrant b2.prenatal_care_pregnant_immigrant b0.pub_insurance_pregnant_immigrant b2.pub_insurance_pregnant_immigrant b0.pub_insurance_immigrant_older_ad b2.pub_insurance_immigrant_older_ad b0.food_assistance_for_lpr_adults b2.food_assistance_for_lpr_adults b0.tuition_equity b2.tuition_equity b0.financial_aid b2.financial_aid b0.blocks_enrollment b2.blocks_enrollment b0.professional_licensure b2.professional_licensure b0.drivers_license b2.drivers_license b0.omnibus b2.omnibus b0.cooperation_federal_immigration b2.cooperation_federal_immigration b0.e_verify b2.e_verify) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of DACA Eligibility on Education-Occupation Mismatch") ///
 mlabel("Vrt. mismatch" "Horiz. mismatch"  "Horiz. undermatch" "Horiz. overmatch") ///
@@ -110,7 +172,7 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occu
 	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
 	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
 	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
-	"explaining the lack of statistical significance of covariates.")	
+	"explaining the lack of statistical significance of covariates.")		
 
 ****************************************************************************************	
 ********************************Individual Mismatch regressions************************************
