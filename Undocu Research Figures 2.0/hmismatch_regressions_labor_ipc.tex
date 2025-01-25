@@ -1,0 +1,52 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Hmismatch (Labor IPC)}
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
+                    &Complete Hmismatch         &Top 10 states Hmismatch         &Foreign Hmismatch         &Mexican Hmismatch         &Hispanic Hmismatch         \\
+\midrule
+Vertically Mismatched&      0.1167\sym{***}&      0.1062\sym{***}&      0.1122\sym{***}&      0.0989\sym{***}&      0.0971\sym{***}\\
+                    &    [0.0035]         &    [0.0033]         &    [0.0051]         &    [0.0224]         &    [0.0063]         \\
+\addlinespace
+Horizontally Undermatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+Horizontally Overmatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+undocu              &      0.0421\sym{***}&      0.0437\sym{***}&      0.0359\sym{***}&      0.0346\sym{**} &      0.0313\sym{***}\\
+                    &    [0.0039]         &    [0.0039]         &    [0.0034]         &    [0.0156]         &    [0.0081]         \\
+\addlinespace
+drivers\_license=0   &      0.0629\sym{***}&      0.0351\sym{***}&      0.0415\sym{***}&     -0.2147\sym{***}&      0.0431\sym{***}\\
+                    &    [0.0021]         &    [0.0012]         &    [0.0056]         &    [0.0227]         &    [0.0048]         \\
+\addlinespace
+drivers\_license=2   &      0.0336\sym{***}&      0.0000         &     -0.0556\sym{***}&     -0.0337         &      0.1361\sym{***}\\
+                    &    [0.0029]         &         [.]         &    [0.0066]         &    [0.0259]         &    [0.0094]         \\
+\addlinespace
+professional\_licensure=0&     -0.1200\sym{***}&                     &     -0.1436\sym{***}&     -0.6293\sym{***}&     -0.3272\sym{***}\\
+                    &    [0.0035]         &                     &    [0.0099]         &    [0.0354]         &    [0.0194]         \\
+\addlinespace
+professional\_licensure=2&      0.0067\sym{***}&     -0.0153\sym{***}&     -0.0119\sym{***}&      0.1640\sym{***}&      0.0982\sym{***}\\
+                    &    [0.0012]         &    [0.0010]         &    [0.0039]         &    [0.0193]         &    [0.0030]         \\
+\addlinespace
+e\_verify=0          &     -0.0001         &     -0.0050\sym{***}&     -0.0315\sym{***}&      0.1822\sym{***}&      0.1226\sym{***}\\
+                    &    [0.0010]         &    [0.0010]         &    [0.0032]         &    [0.0265]         &    [0.0081]         \\
+\addlinespace
+e\_verify=2          &      0.0334\sym{***}&      0.1018\sym{***}&     -0.0063         &     -0.5811\sym{***}&     -0.1900\sym{***}\\
+                    &    [0.0075]         &    [0.0051]         &    [0.0116]         &    [0.0367]         &    [0.0148]         \\
+\midrule
+Mean of Dep. Var.   &        0.57         &        0.58         &        0.57         &        0.61         &        0.59         \\
+R-squared           &        0.06         &        0.06         &        0.10         &        0.15         &        0.07         \\
+N                   &   1,210,014         &     629,868         &     204,477         &      11,696         &     101,627         \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

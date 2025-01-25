@@ -1,0 +1,46 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Vmismatch (IPC)}
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
+                    &Complete Vmismatch         &Top 10 states Vmismatch         &Foreign Vmismatch         &Mexican Vmismatch         &Hispanic V.mismatch         \\
+\midrule
+Vertically Mismatched&                     &                     &                     &                     &                     \\
+                    &                     &                     &                     &                     &                     \\
+\addlinespace
+Horizontally Undermatched&      0.0697\sym{***}&      0.0652\sym{***}&      0.0544\sym{***}&      0.0554\sym{***}&      0.0617\sym{***}\\
+                    &    [0.0018]         &    [0.0015]         &    [0.0020]         &    [0.0080]         &    [0.0020]         \\
+\addlinespace
+Horizontally Overmatched&     -0.0532\sym{***}&     -0.0528\sym{***}&     -0.0490\sym{***}&     -0.0778\sym{***}&     -0.0647\sym{***}\\
+                    &    [0.0021]         &    [0.0034]         &    [0.0032]         &    [0.0092]         &    [0.0049]         \\
+\addlinespace
+undocu              &      0.0170\sym{**} &      0.0147\sym{*}  &      0.0151\sym{**} &      0.0602\sym{***}&      0.0446\sym{***}\\
+                    &    [0.0065]         &    [0.0074]         &    [0.0071]         &    [0.0041]         &    [0.0106]         \\
+\addlinespace
+inclusive           &      0.0065\sym{***}&      0.0111\sym{***}&     -0.0861\sym{***}&     -0.0789\sym{***}&     -0.0449\sym{***}\\
+                    &    [0.0005]         &    [0.0007]         &    [0.0040]         &    [0.0243]         &    [0.0117]         \\
+\addlinespace
+exclusive           &      0.0366\sym{***}&      0.0173\sym{***}&      0.0383\sym{***}&      0.0690\sym{***}&     -0.1063\sym{***}\\
+                    &    [0.0014]         &    [0.0009]         &    [0.0058]         &    [0.0128]         &    [0.0104]         \\
+\addlinespace
+undocu\_inclusive    &     -0.0036         &     -0.0018         &     -0.0038         &     -0.0366\sym{***}&     -0.0223\sym{***}\\
+                    &    [0.0056]         &    [0.0070]         &    [0.0064]         &    [0.0091]         &    [0.0077]         \\
+\addlinespace
+undocu\_exclusive    &      0.0005         &      0.0071         &     -0.0011         &     -0.0456\sym{***}&     -0.0190\sym{*}  \\
+                    &    [0.0062]         &    [0.0070]         &    [0.0069]         &    [0.0074]         &    [0.0098]         \\
+\midrule
+Mean of Dep. Var.   &        0.22         &        0.21         &        0.22         &        0.39         &        0.29         \\
+R-squared           &        0.63         &        0.63         &        0.69         &        0.74         &        0.66         \\
+N                   &   1,208,912         &     629,291         &     204,362         &      11,688         &     101,535         \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

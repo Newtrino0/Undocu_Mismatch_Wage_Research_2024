@@ -1,0 +1,46 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Education-Occupation Mismatch (with IPC total indicator)}
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
+                    &Vrt. mismatch         &Horiz. mismatch         &Horiz. undermatch         &Horiz. overmatch         \\
+\midrule
+Vertically Mismatched&                     &      0.1166\sym{***}&      0.2509\sym{***}&     -0.1347\sym{***}\\
+                    &                     &    [0.0035]         &    [0.0038]         &    [0.0013]         \\
+\addlinespace
+Horizontally Undermatched&      0.0697\sym{***}&                     &                     &                     \\
+                    &    [0.0018]         &                     &                     &                     \\
+\addlinespace
+Horizontally Overmatched&     -0.0532\sym{***}&                     &                     &                     \\
+                    &    [0.0021]         &                     &                     &                     \\
+\addlinespace
+undocu              &      0.0170\sym{**} &      0.0308\sym{**} &      0.0350\sym{***}&     -0.0043         \\
+                    &    [0.0065]         &    [0.0152]         &    [0.0125]         &    [0.0051]         \\
+\addlinespace
+inclusive           &      0.0065\sym{***}&     -0.0467\sym{***}&      0.0150\sym{***}&     -0.0617\sym{***}\\
+                    &    [0.0005]         &    [0.0025]         &    [0.0018]         &    [0.0009]         \\
+\addlinespace
+exclusive           &      0.0366\sym{***}&     -0.0002         &      0.0349\sym{***}&     -0.0343\sym{***}\\
+                    &    [0.0014]         &    [0.0025]         &    [0.0019]         &    [0.0012]         \\
+\addlinespace
+undocu\_inclusive    &     -0.0036         &     -0.0107         &     -0.0112         &      0.0007         \\
+                    &    [0.0056]         &    [0.0198]         &    [0.0165]         &    [0.0047]         \\
+\addlinespace
+undocu\_exclusive    &      0.0005         &      0.0360\sym{***}&      0.0227\sym{**} &      0.0134\sym{***}\\
+                    &    [0.0062]         &    [0.0101]         &    [0.0096]         &    [0.0048]         \\
+\midrule
+Mean of Dep. Var.   &        0.22         &        0.57         &        0.42         &        0.15         \\
+R-squared           &        0.63         &        0.06         &        0.19         &        0.13         \\
+N                   &   1,208,912         &   1,210,014         &   1,208,912         &   1,208,912         \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{5}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{5}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{5}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{5}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{5}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}
