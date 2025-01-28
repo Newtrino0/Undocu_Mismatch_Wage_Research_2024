@@ -1,52 +1,52 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \caption{Regressions of Undocumented Status on Hmismatch (Labor IPC)}
-\begin{tabular}{l*{5}{c}}
+\begin{tabular}{l*{4}{c}}
 \toprule
-                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
-                    &Complete Hmismatch         &Top 10 states Hmismatch         &Foreign Hmismatch         &Mexican Hmismatch         &Hispanic Hmismatch         \\
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
+                    &Complete Hmismatch         &Foreign Hmismatch         &Mexican Hmismatch         &Hispanic Hmismatch         \\
 \midrule
-Vertically Mismatched&      0.1167\sym{***}&      0.1062\sym{***}&      0.1122\sym{***}&      0.0989\sym{***}&      0.0971\sym{***}\\
-                    &    [0.0035]         &    [0.0033]         &    [0.0051]         &    [0.0224]         &    [0.0063]         \\
+Vertically Mismatched&      0.1246\sym{***}&      0.1372\sym{***}&      0.0926\sym{***}&      0.1140\sym{***}\\
+                    &    [0.0037]         &    [0.0079]         &    [0.0215]         &    [0.0050]         \\
 \addlinespace
-Horizontally Undermatched&                     &                     &                     &                     &                     \\
-                    &                     &                     &                     &                     &                     \\
+Horizontally Undermatched&                     &                     &                     &                     \\
+                    &                     &                     &                     &                     \\
 \addlinespace
-Horizontally Overmatched&                     &                     &                     &                     &                     \\
-                    &                     &                     &                     &                     &                     \\
+Horizontally Overmatched&                     &                     &                     &                     \\
+                    &                     &                     &                     &                     \\
 \addlinespace
-undocu              &      0.0421\sym{***}&      0.0437\sym{***}&      0.0359\sym{***}&      0.0346\sym{**} &      0.0313\sym{***}\\
-                    &    [0.0039]         &    [0.0039]         &    [0.0034]         &    [0.0156]         &    [0.0081]         \\
+undocu              &      0.0130         &      0.0136         &      0.0033         &      0.0204         \\
+                    &    [0.0119]         &    [0.0107]         &    [0.0197]         &    [0.0158]         \\
 \addlinespace
-drivers\_license=0   &      0.0629\sym{***}&      0.0351\sym{***}&      0.0415\sym{***}&     -0.2147\sym{***}&      0.0431\sym{***}\\
-                    &    [0.0021]         &    [0.0012]         &    [0.0056]         &    [0.0227]         &    [0.0048]         \\
+drivers\_license=0   &      0.0800\sym{***}&      0.1281\sym{***}&     -0.1094\sym{***}&      0.0902\sym{***}\\
+                    &    [0.0018]         &    [0.0050]         &    [0.0311]         &    [0.0042]         \\
 \addlinespace
-drivers\_license=2   &      0.0336\sym{***}&      0.0000         &     -0.0556\sym{***}&     -0.0337         &      0.1361\sym{***}\\
-                    &    [0.0029]         &         [.]         &    [0.0066]         &    [0.0259]         &    [0.0094]         \\
+drivers\_license=2   &      0.0453\sym{***}&     -0.1381\sym{***}&      0.2924\sym{***}&      0.2135\sym{***}\\
+                    &    [0.0031]         &    [0.0071]         &    [0.0446]         &    [0.0090]         \\
 \addlinespace
-professional\_licensure=0&     -0.1200\sym{***}&                     &     -0.1436\sym{***}&     -0.6293\sym{***}&     -0.3272\sym{***}\\
-                    &    [0.0035]         &                     &    [0.0099]         &    [0.0354]         &    [0.0194]         \\
+professional\_licensure=0&     -0.1080\sym{***}&     -0.3772\sym{***}&     -0.5586\sym{***}&     -0.3831\sym{***}\\
+                    &    [0.0038]         &    [0.0152]         &    [0.0872]         &    [0.0148]         \\
 \addlinespace
-professional\_licensure=2&      0.0067\sym{***}&     -0.0153\sym{***}&     -0.0119\sym{***}&      0.1640\sym{***}&      0.0982\sym{***}\\
-                    &    [0.0012]         &    [0.0010]         &    [0.0039]         &    [0.0193]         &    [0.0030]         \\
+professional\_licensure=2&      0.0026\sym{***}&      0.0174\sym{***}&      0.5365\sym{***}&      0.1579\sym{***}\\
+                    &    [0.0009]         &    [0.0051]         &    [0.0168]         &    [0.0040]         \\
 \addlinespace
-e\_verify=0          &     -0.0001         &     -0.0050\sym{***}&     -0.0315\sym{***}&      0.1822\sym{***}&      0.1226\sym{***}\\
-                    &    [0.0010]         &    [0.0010]         &    [0.0032]         &    [0.0265]         &    [0.0081]         \\
+e\_verify=0          &     -0.0109\sym{***}&     -0.1937\sym{***}&      0.4544\sym{***}&      0.1777\sym{***}\\
+                    &    [0.0012]         &    [0.0057]         &    [0.0353]         &    [0.0076]         \\
 \addlinespace
-e\_verify=2          &      0.0334\sym{***}&      0.1018\sym{***}&     -0.0063         &     -0.5811\sym{***}&     -0.1900\sym{***}\\
-                    &    [0.0075]         &    [0.0051]         &    [0.0116]         &    [0.0367]         &    [0.0148]         \\
+e\_verify=2          &      0.0572\sym{***}&     -0.1434\sym{***}&     -0.8650\sym{***}&     -0.1980\sym{***}\\
+                    &    [0.0071]         &    [0.0175]         &    [0.1119]         &    [0.0125]         \\
 \midrule
-Mean of Dep. Var.   &        0.57         &        0.58         &        0.57         &        0.61         &        0.59         \\
-R-squared           &        0.06         &        0.06         &        0.10         &        0.15         &        0.07         \\
-N                   &   1,210,014         &     629,868         &     204,477         &      11,696         &     101,627         \\
+Mean of Dep. Var.   &        0.57         &        0.56         &        0.61         &        0.60         \\
+R-squared           &        0.07         &        0.08         &        0.14         &        0.07         \\
+N                   &   1,258,012         &      89,424         &       7,420         &     100,143         \\
 \bottomrule
-\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
-\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
-\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
-\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
-\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
-\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
-\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
-\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\multicolumn{5}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{5}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{5}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{5}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{5}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{5}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
 \end{tabular}
 \end{table}

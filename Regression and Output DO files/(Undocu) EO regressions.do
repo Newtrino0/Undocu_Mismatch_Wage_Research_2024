@@ -10,20 +10,7 @@ global figures "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_20
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu)EO_Final_Sample", clear
 
-********************************************************************************************************
-*******************************************Descriptive Table********************************************
-********************************************************************************************************
-eststo clear
 
-
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg if undocu==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
-esttab est* using dTable_status.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Total" "U.S. born citizens" "Undocumented noncitizens") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
-
-clear matrix
-
-****************************************************************************************************************
 
 ***elig_year variable creation***
 gen eventyear = year
@@ -73,6 +60,7 @@ replace inclusive = 0 if annual_total<=0
 gen undocu_inclusive = undocu*inclusive
 gen undocu_exclusive = undocu*exclusive
 
+gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
 
 
 clear matrix
@@ -83,6 +71,20 @@ global covars i.age hisp male gov_worker bpl_foreign immig_by_ten nonfluent yrse
 global individual_ipc b1.pub_insurance_immigrant_kids 	b1.prenatal_care_pregnant_immigrant 	b1.pub_insurance_pregnant_immigrant 	b1.pub_insurance_immigrant_older_ad 	b1.food_assistance_for_lpr_adults 	b1.tuition_equity 	b1.financial_aid 	b1.blocks_enrollment 	b1.professional_licensure 	b1.drivers_license	b1.omnibus 	b1.cooperation_federal_immigration 	b1.e_verify b1.secure_communities_participated
 save "(Undocu) Pre Regression sample", replace
 
+********************************************************************************************************
+*******************************************Descriptive Table********************************************
+********************************************************************************************************
+eststo clear
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
+keep if eighteen_by_arrival==1
+
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg if undocu==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
+esttab est* using dTable_status.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Total" "U.S. born citizens" "Undocumented noncitizens") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
+
+
+****************************************************************************************************************
 
 ****************************************************************************************	
 ********************************High-level Mismatch regressions with total IPC indicator************************************
@@ -93,7 +95,7 @@ eststo clear
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-keep if twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -137,37 +139,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-keep if twentytwo_by_2012==1
-reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states V. mismatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -177,7 +167,7 @@ esttab using vmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatc
 order(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Vmismatch (IPC)") ///
-mlabel("Complete Vmismatch" "Top 10 states Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
+mlabel("Complete Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -197,37 +187,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-keep if twentytwo_by_2012==1
-reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states H. mismatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -237,7 +215,7 @@ esttab using hmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatc
 order(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hmismatch (IPC)") ///
-mlabel("Complete Hmismatch" "Top 10 states Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
+mlabel("Complete Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -258,47 +236,35 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-keep if twentytwo_by_2012==1
-reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states H. undermatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
 esttab using hundermatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
-order(vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hundermatch (IPC)") ///
-mlabel("Complete Hundermatch" "Top 10 states Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
+mlabel("Complete Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -320,37 +286,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-keep if twentytwo_by_2012==1
-reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states V. mismatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -360,7 +314,7 @@ esttab using vmismatch_regressions_labor_ipc.tex, replace label booktabs keep(vm
 order(vmismatched hundermatched hovermatched undocu 0.drivers_license 2.drivers_license 0.professional_licensure 2.professional_licensure  0.e_verify 2.e_verify) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Vmismatch (Labor IPC)") ///
-mlabel("Complete Vmismatch" "Top 10 states Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
+mlabel("Complete Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -380,37 +334,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-keep if twentytwo_by_2012==1
-reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states H. mismatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -420,7 +362,7 @@ esttab using hmismatch_regressions_labor_ipc.tex, replace label booktabs keep(vm
 order(vmismatched hundermatched hovermatched undocu 0.drivers_license 2.drivers_license 0.professional_licensure 2.professional_licensure  0.e_verify 2.e_verify) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hmismatch (Labor IPC)") ///
-mlabel("Complete Hmismatch" "Top 10 states Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
+mlabel("Complete Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -441,37 +383,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-keep if twentytwo_by_2012==1
-reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
-estadd ysumm
-eststo
-***Top 10 states H. undermatch model***
-***Greatest number of DACA recipients column***
-* California 165,090   | Texas 95,970
-* Illinois 30,740      | New York 23,780
-* Florida 22,750       | Arizona 21,990
-* North Carolina 21,980| Georgia 19,040
-* New Jersey 14,430    | Washington 14,310
-use "(Undocu) Pre Regression sample",clear
-keep if (statefip==06 | statefip==48 | statefip==17 | statefip==36 | statefip==12 | statefip==04 | statefip==37 | statefip==13 | statefip==34 | statefip==53) & twentytwo_by_2012==1
+keep if eighteen_by_arrival==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & twentytwo_by_2012==1
+keep if bpl_foreign==1 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & twentytwo_by_2012==1
+keep if bpl==200 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & twentytwo_by_2012==1
+keep if hisp==1 & eighteen_by_arrival==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -481,7 +411,7 @@ esttab using hundermatch_regressions_labor_ipc.tex, replace label booktabs keep(
 order(vmismatched hundermatched hovermatched undocu 0.drivers_license 2.drivers_license 0.professional_licensure 2.professional_licensure  0.e_verify 2.e_verify) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hundermatch (Labor IPC)") ///
-mlabel("Complete Hundermatch" "Top 10 states Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
+mlabel("Complete Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -493,7 +423,7 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occu
 	
 					 ***********************************************
 ************************ 			elig_year and table (IPC total)	 ************************
-					 ***********************************************
+/*					 ***********************************************
 clear matrix
 set more off
 eststo clear
@@ -532,3 +462,104 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occu
 	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
 	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
 	"explaining the lack of statistical significance of covariates.")  	 
+*/
+
+**********************************************************************************	
+****************Wage models with demographic columns/samples**************************
+**************************************************************************************
+clear matrix
+set more off
+eststo clear
+
+*** THE COMPLETE WAGE MODEL***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "(Undocu) Pre Regression sample",clear
+keep if eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Foreign born column***
+use "(Undocu) Pre Regression sample",clear
+keep if bpl_foreign==1 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo	
+
+***Mexico born column***
+use "(Undocu) Pre Regression sample",clear
+keep if bpl==200 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm 
+eststo
+
+**Hispanic column***
+use "(Undocu) Pre Regression sample", clear
+keep if hisp==1 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
+esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of Undocumented Status, by demographic, on Wages") ///
+mlabel("Complete model" "Foreign-born only" "Mexico-born only" "Hispanic only" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.") 
+	
+**********************************************************************************	
+****************Wage models with demographic columns/samples (Labor IPC)**************************
+**************************************************************************************
+clear matrix
+set more off
+eststo clear
+
+*** THE COMPLETE WAGE MODEL***
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+use "(Undocu) Pre Regression sample",clear
+keep if eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+***Foreign born column***
+use "(Undocu) Pre Regression sample",clear
+keep if bpl_foreign==1 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo	
+
+***Mexico born column***
+use "(Undocu) Pre Regression sample",clear
+keep if bpl==200 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm 
+eststo
+
+**Hispanic column***
+use "(Undocu) Pre Regression sample", clear
+keep if hisp==1 & eighteen_by_arrival==1
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
+esttab using demographic_wage_regressions_labor.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu 0.drivers_license 2.drivers_license 0.professional_licensure 2.professional_licensure  0.e_verify 2.e_verify) ///
+order(vmismatched hundermatched hovermatched undocu 0.drivers_license 2.drivers_license 0.professional_licensure 2.professional_licensure  0.e_verify 2.e_verify) ///
+stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
+title("Regressions of Undocumented Status, by demographic, on Wages (Labor IPC)") ///
+mlabel("Complete model" "Foreign-born only" "Mexico-born only" "Hispanic only" ) ///
+r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
+note("Additional controls include:") ///
+addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
+	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+	"STEM degree indicators, years of schooling, state and year interaction fixed effects." ///
+	"Robust standard errors are all clustered by state. Li and Lu found that nativity and" ///
+	"foreign credentials explained much of a worker's likelihood to be mismatched, potentially" ///
+	"explaining the lack of statistical significance of covariates.") 	

@@ -13,10 +13,10 @@ use "(Undocu)EO_Final_Sample", clear
 
 *Before tables creation*
 
-
+gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
 ***Top 10 occ by # of DACA eligible, then sorted by mismatch***
 sort occ
-keep if undocu==1
+keep if undocu==1 & eighteen_by_arrival==1
 
 collapse (median)hmismatch_rate_occ=hmproportion (median)hunderproportion (median)hoverproportion (median)vmean_occ_yrs (median)vmismatched_att (median)undocu_occ_count, by(occ)
 gsort -undocu_occ_count
@@ -27,8 +27,9 @@ save ten_occ_undocu_table.dta, replace
 
 ***Top 10 deg, then sorted by mismatch
 use "(Undocu)EO_Final_Sample", clear
+gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
 sort degfield
-keep if undocu==1
+keep if undocu==1 & eighteen_by_arrival==1
 
 collapse (median)hmismatch_rate_deg=hmproportion_deg (median)hunderproportion_deg (median)hoverproportion_deg (median)vmean_deg_yrs (mean)vmismatched_att (median)undocu_deg_count, by(degfield)
 gsort -undocu_deg_count

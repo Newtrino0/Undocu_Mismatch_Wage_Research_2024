@@ -1,46 +1,46 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \caption{Regressions of Undocumented Status on Hundermatch (IPC)}
-\begin{tabular}{l*{5}{c}}
+\begin{tabular}{l*{4}{c}}
 \toprule
-                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         \\
-                    &Complete Hundermatch         &Top 10 states Hundermatch         &Foreign Hundermatch         &Mexican Hundermatch         &Hispanic Hundermatch         \\
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
+                    &Complete Hundermatch         &Foreign Hundermatch         &Mexican Hundermatch         &Hispanic Hundermatch         \\
 \midrule
-Vertically Mismatched&      0.2509\sym{***}&      0.2399\sym{***}&      0.2236\sym{***}&      0.1924\sym{***}&      0.2088\sym{***}\\
-                    &    [0.0038]         &    [0.0039]         &    [0.0046]         &    [0.0219]         &    [0.0059]         \\
+Vertically Mismatched&      0.2575\sym{***}&      0.2452\sym{***}&      0.1876\sym{***}&      0.2260\sym{***}\\
+                    &    [0.0035]         &    [0.0082]         &    [0.0214]         &    [0.0058]         \\
 \addlinespace
-Horizontally Undermatched&                     &                     &                     &                     &                     \\
-                    &                     &                     &                     &                     &                     \\
+Horizontally Undermatched&                     &                     &                     &                     \\
+                    &                     &                     &                     &                     \\
 \addlinespace
-Horizontally Overmatched&                     &                     &                     &                     &                     \\
-                    &                     &                     &                     &                     &                     \\
+Horizontally Overmatched&                     &                     &                     &                     \\
+                    &                     &                     &                     &                     \\
 \addlinespace
-undocu              &      0.0350\sym{***}&      0.0443\sym{**} &      0.0232\sym{***}&      0.0255\sym{**} &     -0.0127         \\
-                    &    [0.0125]         &    [0.0156]         &    [0.0030]         &    [0.0122]         &    [0.0097]         \\
+undocu              &     -0.0225         &     -0.0244         &     -0.0175         &     -0.0508\sym{**} \\
+                    &    [0.0254]         &    [0.0147]         &    [0.0270]         &    [0.0212]         \\
 \addlinespace
-inclusive           &      0.0150\sym{***}&     -0.0175\sym{***}&      0.2185\sym{***}&     -0.2014\sym{***}&      0.4350\sym{***}\\
-                    &    [0.0018]         &    [0.0014]         &    [0.0063]         &    [0.0444]         &    [0.0304]         \\
+inclusive           &      0.0420\sym{***}&      0.1548\sym{***}&     -0.7337\sym{***}&     -0.2204\sym{***}\\
+                    &    [0.0013]         &    [0.0152]         &    [0.0500]         &    [0.0126]         \\
 \addlinespace
-exclusive           &      0.0349\sym{***}&      0.0031\sym{*}  &      0.5006\sym{***}&      0.1704\sym{***}&      0.5271\sym{***}\\
-                    &    [0.0019]         &    [0.0016]         &    [0.0069]         &    [0.0250]         &    [0.0302]         \\
+exclusive           &      0.0582\sym{***}&      0.7447\sym{***}&     -0.3422\sym{***}&      0.1614\sym{***}\\
+                    &    [0.0019]         &    [0.0164]         &    [0.0417]         &    [0.0137]         \\
 \addlinespace
-undocu\_inclusive    &     -0.0112         &     -0.0149         &      0.0056         &     -0.0116         &      0.0207         \\
-                    &    [0.0165]         &    [0.0185]         &    [0.0038]         &    [0.0127]         &    [0.0148]         \\
+undocu\_inclusive    &      0.0526\sym{*}  &      0.0594\sym{***}&      0.0289         &      0.0802\sym{***}\\
+                    &    [0.0288]         &    [0.0165]         &    [0.0361]         &    [0.0256]         \\
 \addlinespace
-undocu\_exclusive    &      0.0227\sym{**} &      0.0148         &      0.0165\sym{**} &      0.0208         &      0.0548\sym{***}\\
-                    &    [0.0096]         &    [0.0128]         &    [0.0062]         &    [0.0217]         &    [0.0106]         \\
+undocu\_exclusive    &      0.0393         &      0.0384\sym{**} &      0.0250         &      0.0748\sym{***}\\
+                    &    [0.0260]         &    [0.0189]         &    [0.0411]         &    [0.0241]         \\
 \midrule
-Mean of Dep. Var.   &        0.42         &        0.43         &        0.45         &        0.53         &        0.48         \\
-R-squared           &        0.19         &        0.19         &        0.23         &        0.26         &        0.19         \\
-N                   &   1,208,912         &     629,291         &     204,362         &      11,688         &     101,535         \\
+Mean of Dep. Var.   &        0.43         &        0.44         &        0.52         &        0.48         \\
+R-squared           &        0.19         &        0.21         &        0.25         &        0.19         \\
+N                   &   1,256,856         &      89,349         &       7,413         &     100,035         \\
 \bottomrule
-\multicolumn{6}{l}{\footnotesize Additional controls include:}\\
-\multicolumn{6}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
-\multicolumn{6}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
-\multicolumn{6}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
-\multicolumn{6}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
-\multicolumn{6}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
-\multicolumn{6}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
-\multicolumn{6}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\multicolumn{5}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{5}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{5}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{5}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{5}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{5}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
 \end{tabular}
 \end{table}
