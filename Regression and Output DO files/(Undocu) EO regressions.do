@@ -60,7 +60,6 @@ replace inclusive = 0 if annual_total<=0
 gen undocu_inclusive = undocu*inclusive
 gen undocu_exclusive = undocu*exclusive
 
-gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
 
 
 clear matrix
@@ -76,7 +75,6 @@ save "(Undocu) Pre Regression sample", replace
 ********************************************************************************************************
 eststo clear
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-keep if eighteen_by_arrival==1
 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg , statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem annual_total pos neg if undocu==0 & bpl_usa==1, statistics(mean sd) columns(statistics) 
@@ -95,7 +93,6 @@ eststo clear
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -139,25 +136,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -187,25 +183,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-keep if eighteen_by_arrival==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg hmismatched vmismatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -236,25 +231,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-keep if eighteen_by_arrival==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg hundermatched vmismatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -286,25 +280,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-keep if eighteen_by_arrival==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -334,25 +327,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-keep if eighteen_by_arrival==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -383,25 +375,24 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-keep if eighteen_by_arrival==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -474,27 +465,26 @@ eststo clear
 *** THE COMPLETE WAGE MODEL***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-keep if eighteen_by_arrival==1
 reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign born column***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Mexico born column***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg ln_adj vmismatched hundermatched hovermatched undocu inclusive	exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
 eststo
 
 **Hispanic column***
 use "(Undocu) Pre Regression sample", clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive undocu_inclusive undocu_exclusive $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
@@ -524,27 +514,26 @@ eststo clear
 *** THE COMPLETE WAGE MODEL***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-keep if eighteen_by_arrival==1
 reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign born column***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl_foreign==1 & eighteen_by_arrival==1
+keep if bpl_foreign==1
 reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Mexico born column***
 use "(Undocu) Pre Regression sample",clear
-keep if bpl==200 & eighteen_by_arrival==1
+keep if bpl==200
 reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
 eststo
 
 **Hispanic column***
 use "(Undocu) Pre Regression sample", clear
-keep if hisp==1 & eighteen_by_arrival==1
+keep if hisp==1
 reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo

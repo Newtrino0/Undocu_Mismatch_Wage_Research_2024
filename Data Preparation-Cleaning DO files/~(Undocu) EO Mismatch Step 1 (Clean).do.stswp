@@ -21,6 +21,7 @@ use "usa_00021.dta", clear
 describe
 
 ********* Clean data ***********
+
 replace occ=. if occ==0
 drop if missing(occ)
 
@@ -35,6 +36,7 @@ drop if classwkr==1
 
 drop if year==2005 | year==2006 | year==2007 | year==2008 | year==2009 | year==2010 | year==2011 | year==2012 | year==2020 | year==2021 | year==2022
 
+
 drop cbserial momloc poploc
 ********************************
 /* Filters applied in Clean data section, includes:
@@ -43,7 +45,7 @@ drop cbserial momloc poploc
 2.) People who earned a wage/salary
 3.) People who are employed, and not self-employed
 4.) People who are not currently attending school
-
+5.) People who are 18 at the time they resided in the U.S.
 */
 
 
@@ -219,6 +221,8 @@ tab ageimmig, m
 label var ageimmig "Age at Immigration"
 label var yrimmig "Year of Immigration"
 
+gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
+drop if eighteen_by_arrival==0
 *** Citizen/non citizen
 gen noncit=citizen==3
 replace noncit=. if citizen==.
