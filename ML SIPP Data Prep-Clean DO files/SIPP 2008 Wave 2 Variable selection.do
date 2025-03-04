@@ -24,16 +24,19 @@ drop _merge
 *save ""
 ********* Clean data ***********
 
-keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov tbyear ebmnth tage esex ems espeak tlang1 ehowwell rcutyp57 rcutyp58 rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06
+keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06
 
 *epppnum: Person number. This field differentiates persons within the sample unit. Person number is unique within the sample unit. 
 *eenlevel: Education level
 *eeducate: Highest Degree received or grade completed. What is the highest level of school ... has completed or the highest degree ... has received?
 *evocat:  Attended vocational, technical, trade, or business school. Has ... ever attended a vocational, technical, trade, or business school beyond high school? 
 *rhpov: Poverty threshold for this household in this month. Poverty threshold for this household in this month. Official poverty rates (from the CPS) use families not households as the unit of analysis.
+*thearn: Total household earned income Reaggregated total household earned income for relevant month of the reference period after topcoding
 *tbyear: Year of birth
+*rhcalyr: Calendar year for this reference month
 *ebmnth:  Month of birth
 *tage: Age as of last birthday. Edited and imputed age as of last birthday. Topcoding combines persons into last two single year of age groups. User should combine last two age groups for microdata analysis.
+*tbrstate: State or country of birth BRSTATE/BCNTRY Where was ... born?
 *esex: Sex of this person
 *epayhr1: Paid by the hour. Does ... have a set annual salary, was ...paid by the hour or was ... paid some other way?
 *eslryb1: Salary draw from business. Did ... draw a regular salary from this business? (That is, take a regular paycheck, as opposed to just treating the profits as ...'s income.)
@@ -50,6 +53,7 @@ keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov tbyear ebmn
 *eenrlm: Enrollment status in this month. Was ... enrolled in school in this month?
 *easst06: Grant, Scholarship, or Tuition remission from school. Did ... receive a grant, scholarship, or tuition remission from the school attended?
 *ems: Marital status
+*epnspous: Person number of spouse
 *espeak: Speak language other than English. Does ... speak a language other than English at home?
 *tlang1: What language is spoken at home. What is this language? (Speaks language other than English at home)
 *ehowwell: Ability to speak English. How well does ... speak English? (Speaks language other than English at home)
@@ -71,4 +75,4 @@ keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov tbyear ebmn
 ********************************
 
 save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.dta", replace
-export delimited using "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.csv"
+export delimited using "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.csv", replace
