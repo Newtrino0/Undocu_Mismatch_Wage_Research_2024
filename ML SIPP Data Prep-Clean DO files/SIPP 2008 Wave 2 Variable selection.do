@@ -24,7 +24,7 @@ drop _merge
 *save ""
 ********* Clean data ***********
 
-keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06
+keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06 eafnow eafever rcutyp01 rcutyp03
 
 *epppnum: Person number. This field differentiates persons within the sample unit. Person number is unique within the sample unit. 
 *eenlevel: Education level
@@ -72,6 +72,10 @@ keep epppnum eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhca
 *eorigin: Spanish, Hispanic or Latino. Is ... Spanish, Hispanic or Latino? 
 *ebornus: Respondent was born in the U.S.. Is ... born in the United States?
 *ehhnumpp: Total number of persons in this household in this month
+*eafnow: Current Armed Forces status. Is ... now on active duty?
+*eafever: Lifetime Armed Forces status. Did ... ever serve on active duty in the U.S. Armed Forces?
+*rcutyp01: Social Security coverage flag
+*rcutyp03: Federal SSI coverage flag
 ********************************
 
 save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.dta", replace

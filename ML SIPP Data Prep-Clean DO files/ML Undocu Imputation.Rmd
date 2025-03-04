@@ -64,7 +64,7 @@ summary(SIPP_2008_Wave_2)
 
 
 ```{r Data preparation}
-
+library(dplyr)
 sipp08_2 <- SIPP_2008_Wave_2 %>%
   mutate(
     undocu_entry = as.factor(ifelse(timstat=="Other", 1, 0)),
@@ -72,10 +72,15 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     education = case_when(
       eeducate == "10th Grade"  | eeducate == "11th Grade" | eeducate == "12th grade, no diploma" | eeducate == "1st, 2nd, 3rd, or 4th grade" | eeducate == "5th Or 6th Grade" | eeducate == "7th Or 8th Grade" | eeducate == "9th Grade" | eeducate == "Less Than 1st Grade"~ "No HS diploma",
       eeducate == "Diploma or certificate from a" | eeducate == "High School Graduate - (diploma" ~ "HS diploma",
+      eeducate == "Some college, but no degree" ~ "Some college",
       eeducate =="Associate (2-yr) college degree" ~ "Associate's",
       eeducate == "Bachelor's degree (for example:" ~ "Bachelor's",
+      eeducate == "Master's degree (For example: MA," ~ "Master's",
+      eeducate == "Doctorate degree (for example:" ~ "PhD",
       TRUE ~ "Unknown" # Default case
     ),
+    college = as.factor(ifelse(eeducate=="Bachelor's degree (for example:" | eeducate=="Master's degree (For example: MA," | eeducate=="Doctorate degree (for example:", 1, 0)),
+    hs_only = as.factor(ifelse(eeducate=="Some college, but no degree" | eeducate== "Associate (2-yr) college degree" | eeducate=="High School Graduate - (diploma" | eeducate=="Diploma or certificate from a", 1, 0)),
     immig_yr = case_when(
       tmoveus == "1961"~1961,
       tmoveus == "1961-1968"~1966,
@@ -122,20 +127,27 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     years_us = rhcalyr - immig_yr,
     citizen = as.factor(ifelse(ecitizen=="Yes", 1, 0)),
     poverty = as.factor(ifelse(thearn<rhpov, 1, 0))
-    )
+  )
+
+
 sipp08_2$year_us <- replace(sipp08_2$years_us, sipp08_2$years_us == 2008 | sipp08_2$years_us == 2009, NA)
 sipp08_2$tage <- replace(sipp08_2$tage, sipp08_2$tage == "Less than 1 full year old", 0)
 sipp08_2$age <- as.numeric(sipp08_2$tage)
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, )
 
 View(sipp08_2)
 ```
 
-**Predictors for the logistic model are: years lived in the U.S., educational attainment, poverty status, region of birth, marital status, difficulties speaking English, Medicaid coverage, household size, spousal citizenship, age, number of children, employment status, race and Hispanic ethnicity.** 
+**Predictors for the logistic model are: years lived in the U.S., educational attainment, poverty status, region of birth, marital status, difficulties speaking English, Medicaid coverage, household size, spousal citizenship, age, number of children, employment status, race and Hispanic ethnicity.**
+
+**Logical edits for undocumented status. A person is not undocumented if:**
+* They are a veteran
+* They receive health care
+* They receive Social Security benefits/income
+* They receive any other form of welfare
 
 
 ```{r EDA}
-# Load necessary libraries
-library(dplyr)
 library(ggplot2)
 
 
@@ -166,12 +178,13 @@ train_index <- createDataPartition(sipp08_2$undocu_likely, p = 0.7, list = FALSE
 train_data <- sipp08_2[train_index, ]
 test_data <- sipp08_2[-train_index, ]
 
-undocu_model <- glm(undocu_likely ~ age + education + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + race + employed + citizen + years_us, data = sipp08_2, family = binomial)
+undocu_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + race + employed + citizen + years_us, data = train_data, family = binomial)
 
 summary(undocu_model)
 
 ```
 ```{r Model performance}
+library(pROC)
 ##Logistic Classification model
 # Predict probabilities
 pred_probs <- predict(undocu_model, newdata = test_data, type = "response")
@@ -182,6 +195,27 @@ pred_classes <- ifelse(pred_probs > 0.5, 1, 0)
 # Convert to factor for evaluation
 pred_classes <- as.factor(pred_classes)
 
-confusionMatrix(pred_classes, test_data$undocu_likely)
+logistic_matrix <- confusionMatrix(pred_classes, test_data$undocu_likely)
+logistic_matrix
 
+
+
+
+# Generate ROC curve
+roc_curve <- roc(test_data$undocu_likely, pred_probs)
+
+# Plot the ROC curve
+plot(roc_curve, col = "blue", main = "ROC Curve for Logistic Regression")
+
+# Compute AUC
+auc_value <- auc(roc_curve)
+print(paste("AUC:", round(auc_value, 3)))
+
+
+##Model comparison table creation
+#ML statistics
+accuracy <- logistic_matrix$overall[['Accuracy']]
+sensitivity <- logistic_matrix$byClass[['Sensitivity']]
+specificity <- logistic_matrix$byClass[['Specificity']]
+ppv <- logistic_matrix$byClass[['Pos Pred Value']]
 ```
