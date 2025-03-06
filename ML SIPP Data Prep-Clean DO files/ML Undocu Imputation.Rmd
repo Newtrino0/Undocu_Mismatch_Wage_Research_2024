@@ -289,6 +289,6 @@ ml_comparison <- as.data.frame(t(ml_table))
 colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "KNN Classifier")
 
 # ML metrics (comparison of ML models)
-xtable(ml_comparison)
+xtable(ml_comparison, digits=4)
 print(ml_comparison)
 ```
