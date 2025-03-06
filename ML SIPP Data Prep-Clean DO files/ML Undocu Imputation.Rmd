@@ -15,9 +15,12 @@ knitr::opts_chunk$set(echo = TRUE)
 * eeducate: Highest Degree received or grade completed. What is the highest level of school ... has completed or the highest degree ... has received?
 * evocat:  Attended vocational, technical, trade, or business school. Has ... ever attended a vocational, technical, trade, or business school beyond high school? 
 * rhpov: Poverty threshold for this household in this month. Poverty threshold for this household in this month. Official poverty rates (from the CPS) use families not households as the unit of analysis.
+* thearn: Total household earned income Reaggregated total household earned income for relevant month of the reference period after topcoding
 * tbyear: Year of birth
+* rhcalyr: Calendar year for this reference month
 * ebmnth:  Month of birth
 * tage: Age as of last birthday. Edited and imputed age as of last birthday. Topcoding combines persons into last two single year of age groups. User should combine last two age groups for microdata analysis.
+* tbrstate: State or country of birth BRSTATE/BCNTRY Where was ... born?
 * esex: Sex of this person
 * epayhr1: Paid by the hour. Does ... have a set annual salary, was ...paid by the hour or was ... paid some other way?
 * eslryb1: Salary draw from business. Did ... draw a regular salary from this business? (That is, take a regular paycheck, as opposed to just treating the profits as ...'s income.)
@@ -30,17 +33,18 @@ knitr::opts_chunk$set(echo = TRUE)
 * ejbind1: Industry code
 * eunion1:  Union/employee-association membership. On this job is ... a member of either a labor union or an employee association like a union?
 * ecntrc1: Coverage by union or something like a union contract
-* eocctim1: Length of time in this occupation. Considering ...'s entire working life, how many years has ... been in this occupation or line of work?
+* eocctim1: eocctim1Length of time in this occupation. Considering ...'s entire working life, how many years has ... been in this occupation or line of work?
 * eenrlm: Enrollment status in this month. Was ... enrolled in school in this month?
 * easst06: Grant, Scholarship, or Tuition remission from school. Did ... receive a grant, scholarship, or tuition remission from the school attended?
 * ems: Marital status
+* epnspous: Person number of spouse
 * espeak: Speak language other than English. Does ... speak a language other than English at home?
 * tlang1: What language is spoken at home. What is this language? (Speaks language other than English at home)
 * ehowwell: Ability to speak English. How well does ... speak English? (Speaks language other than English at home)
 * rcutyp57: Medicaid coverage flag
 * rcutyp58:  Health ins coverage flag (not Medicare or Medicaid)
-* rcuown57: Person number of the owner of the SS coverage US Citizenship Status of Respondent. 
-*ecitizen: Is ... a citizen of the United States?
+* rcuown57: Person number of the owner of the SS coverage
+* ecitizen: US Citizenship Status of Respondent. Is ... a citizen of the United States?
 * enatcit: How the respondent became a US citizen. How is ... a U.S. citizen?
 * timstat: Immigration status upon entry to the U.S. IMSTAT When ... moved to the U.S. to live, what was ...'s immigration status?
 * eadjust: Whether status has changed to permanent resident ADJUST Has ...'s status been changed to permanent resident?
@@ -52,9 +56,12 @@ knitr::opts_chunk$set(echo = TRUE)
 * eorigin: Spanish, Hispanic or Latino. Is ... Spanish, Hispanic or Latino? 
 * ebornus: Respondent was born in the U.S.. Is ... born in the United States?
 * ehhnumpp: Total number of persons in this household in this month
+* eafnow: Current Armed Forces status. Is ... now on active duty?
+* eafever: Lifetime Armed Forces status. Did ... ever serve on active duty in the U.S. Armed Forces?
+* rcutyp01: Social Security coverage flag
+* rcutyp03: Federal SSI coverage flag
 
-
-```{r Load data}
+```{r Load raw data}
 library(readr)
 SIPP_2008_Wave_2 <- read_csv("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data/Core_TM SIPP 2008 Wave 2.csv")
 View(SIPP_2008_Wave_2)
@@ -113,30 +120,43 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     medicaid = as.factor(ifelse(rcutyp57=="Yes, covered", 1, 0)),
     household_size = ehhnumpp,
     race = case_when(
-      erace=="Asian only" ~ "Asian",
-      erace=="Black only" ~ "Black",
-      erace=="White only" ~ "White",
+      erace=="Asian alone" ~ "Asian",
+      erace=="Black alone" ~ "Black",
+      erace=="White alone" ~ "White",
       erace=="Residual" ~ "Other",
       TRUE ~ "Unknown"
     ),
-    employed = case_when(
-      rmesr=="With a job at least 1 but not all" | rmesr=="With a job entire month, absent" | rmesr=="With a job entire month, worked" ~  "Yes",
-      rmesr=="Not in Universe" ~ "Not in Universe",
-      TRUE ~ "No"
-    ),
+    asian = as.factor(ifelse(erace=="Asian alone", 1, 0)),
+    black = as.factor(ifelse(erace=="Black alone", 1, 0)),
+    white = as.factor(ifelse(erace=="White alone", 1, 0)),
+    other_race = as.factor(ifelse(erace=="Residual", 1, 0)),
+    employed = as.factor(ifelse(rmesr=="With a job at least 1 but not all" | rmesr=="With a job entire month, absent" | rmesr=="With a job entire month, worked", 1, 0)),
     years_us = rhcalyr - immig_yr,
     citizen = as.factor(ifelse(ecitizen=="Yes", 1, 0)),
-    poverty = as.factor(ifelse(thearn<rhpov, 1, 0))
+    poverty = as.factor(ifelse(thearn<rhpov, 1, 0)),
+    armed_forces = as.factor(ifelse(eafnow=="Yes" | eafever=="Yes", 1, 0)),
+    health_ins= as.factor(ifelse(rcutyp57=="Yes, covered" | rcutyp58=="Yes, covered" , 1, 0)),
+    social_security = as.factor(ifelse(rcutyp01=="Yes, covered" | rcutyp03=="Yes, covered", 1, 0))
+    
   )
 
 
-sipp08_2$year_us <- replace(sipp08_2$years_us, sipp08_2$years_us == 2008 | sipp08_2$years_us == 2009, NA)
+sipp08_2$years_us <- ifelse(sipp08_2$years_us == 2008 | sipp08_2$years_us == 2009 | sipp08_2$years_us == -1 , NA, sipp08_2$years_us)
 sipp08_2$tage <- replace(sipp08_2$tage, sipp08_2$tage == "Less than 1 full year old", 0)
 sipp08_2$age <- as.numeric(sipp08_2$tage)
-sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, )
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces==1 | sipp08_2$health_ins==1 | sipp08_2$social_security==1, 0 )
+sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$health_ins==0 | sipp08_2$social_security==0), 1, 0))
+
+
+sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0,]
+sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us")]
+sipp08_2_knn[2:16] <- sapply(sipp08_2_knn[2:16],as.numeric)
+sipp08_2_knn <- na.omit(sipp08_2_knn)
 
 View(sipp08_2)
 ```
+
+age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + race + employed + citizen + years_us
 
 **Predictors for the logistic model are: years lived in the U.S., educational attainment, poverty status, region of birth, marital status, difficulties speaking English, Medicaid coverage, household size, spousal citizenship, age, number of children, employment status, race and Hispanic ethnicity.**
 
@@ -174,20 +194,52 @@ ggplot(sipp08_2, aes(x = undocu_likely)) +
 library(caret)
 
 set.seed(0)  # For reproducibility
-train_index <- createDataPartition(sipp08_2$undocu_likely, p = 0.7, list = FALSE)
+train_index <- createDataPartition(sipp08_2_logistic$undocu_likely, p = 0.7, list = FALSE)
 train_data <- sipp08_2[train_index, ]
 test_data <- sipp08_2[-train_index, ]
 
-undocu_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + race + employed + citizen + years_us, data = train_data, family = binomial)
+logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us, data = train_data, family = binomial)
 
-summary(undocu_model)
+summary(logistic_model)
 
 ```
+
+```{r KNN}
+library(class)
+library(caTools)
+
+
+set.seed(0)
+train_index_knn <- createDataPartition(sipp08_2_knn$undocu_likely, p = 0.7, list = FALSE)
+train_knn <- sipp08_2_knn[train_index_knn, ]
+test_knn <- sipp08_2_knn[-train_index_knn, ]
+
+
+# Separate features and labels
+View(sipp08_2_knn)
+train_scaled <- scale(train_knn[, 2:16])
+test_scaled <- scale(test_knn[, 2:16])
+
+
+knn_model <- knn(
+                 train = train_scaled, 
+                 test = test_scaled,
+                 cl = train_knn$undocu_likely, 
+                 k=1
+                 )
+
+
+
+
+```
+
+
 ```{r Model performance}
 library(pROC)
+library(xtable)
 ##Logistic Classification model
 # Predict probabilities
-pred_probs <- predict(undocu_model, newdata = test_data, type = "response")
+pred_probs <- predict(logistic_model, newdata = test_data, type = "response")
 
 # Convert probabilities to binary outcome (threshold = 0.5)
 pred_classes <- ifelse(pred_probs > 0.5, 1, 0)
@@ -197,8 +249,8 @@ pred_classes <- as.factor(pred_classes)
 
 logistic_matrix <- confusionMatrix(pred_classes, test_data$undocu_likely)
 logistic_matrix
-
-
+knn_matrix <- confusionMatrix(test_knn$undocu_likely, knn_model)
+knn_matrix
 
 
 # Generate ROC curve
@@ -212,10 +264,31 @@ auc_value <- auc(roc_curve)
 print(paste("AUC:", round(auc_value, 3)))
 
 
-##Model comparison table creation
-#ML statistics
-accuracy <- logistic_matrix$overall[['Accuracy']]
-sensitivity <- logistic_matrix$byClass[['Sensitivity']]
-specificity <- logistic_matrix$byClass[['Specificity']]
-ppv <- logistic_matrix$byClass[['Pos Pred Value']]
+##Logical edits accuracy
+FN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2$undocu_likely==1))
+TN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2$undocu_likely==0))
+FP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2$undocu_likely==0))
+TP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2$undocu_likely==1))
+
+specificty_logical<- TN_logical/(TN_logical+FP_logical)
+sensitivity_logical<- TP_logical/(TP_logical+FN_logical)
+ppv_logical <- TP_logical/(TP_logical+FP_logical)
+accuracy_logical <- (TP_logical+TN_logical)/(TP_logical+TN_logical+FP_logical+FN_logical)  
+
+
+## Model comparison table creation
+# ML statistics
+accuracy <- c(accuracy_logical, logistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']])
+sensitivity <- c(sensitivity_logical, logistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']])
+specificity <- c(specificty_logical, logistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']])
+ppv <- c(ppv_logical, logistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']])
+
+
+ml_table <- data.frame(accuracy, sensitivity, specificity, ppv)
+ml_comparison <- as.data.frame(t(ml_table))
+colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "KNN Classifier")
+
+# ML metrics (comparison of ML models)
+xtable(ml_comparison)
+print(ml_comparison)
 ```
