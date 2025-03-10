@@ -71,12 +71,14 @@ summary(SIPP_2008_Wave_2)
 
 
 ```{r Data preparation}
+#Include 1986 amnesty filter
 library(dplyr)
 sipp08_2 <- SIPP_2008_Wave_2 %>%
   mutate(
     undocu_entry = as.factor(ifelse(timstat=="Other", 1, 0)),
     undocu_likely = as.factor(ifelse(timstat=="Other" & eadjust=="No", 1, 0)),
     education = case_when(
+      #Create yrsed variable too, use instead (Duplicate Stata indicators)
       eeducate == "10th Grade"  | eeducate == "11th Grade" | eeducate == "12th grade, no diploma" | eeducate == "1st, 2nd, 3rd, or 4th grade" | eeducate == "5th Or 6th Grade" | eeducate == "7th Or 8th Grade" | eeducate == "9th Grade" | eeducate == "Less Than 1st Grade"~ "No HS diploma",
       eeducate == "Diploma or certificate from a" | eeducate == "High School Graduate - (diploma" ~ "HS diploma",
       eeducate == "Some college, but no degree" ~ "Some college",
@@ -85,6 +87,21 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
       eeducate == "Master's degree (For example: MA," ~ "Master's",
       eeducate == "Doctorate degree (for example:" ~ "PhD",
       TRUE ~ "Unknown" # Default case
+    ),
+    yrsed = case_when(
+      eeducate == "10th Grade"~10,
+      eeducate == "11th Grade"~11,
+      eeducate == "12th grade, no diploma" | eeducate == "Diploma or certificate from a" | eeducate == "High School Graduate - (diploma" | eeducate == "Some college, but no degree" ~12,
+      eeducate == "1st, 2nd, 3rd, or 4th grade"~2.5,
+      eeducate == "5th Or 6th Grade"~5.5,
+      eeducate == "7th Or 8th Grade"~7.5,
+      eeducate == "9th Grade"~9,
+      eeducate == "Less Than 1st Grade"~0,
+      eeducate =="Associate (2-yr) college degree"~14,
+      eeducate == "Bachelor's degree (for example:"~16,
+      eeducate == "Master's degree (For example: MA,"~17.5,
+      eeducate == "Doctorate degree (for example:"~22,
+      TRUE ~ -1
     ),
     college = as.factor(ifelse(eeducate=="Bachelor's degree (for example:" | eeducate=="Master's degree (For example: MA," | eeducate=="Doctorate degree (for example:", 1, 0)),
     hs_only = as.factor(ifelse(eeducate=="Some college, but no degree" | eeducate== "Associate (2-yr) college degree" | eeducate=="High School Graduate - (diploma" | eeducate=="Diploma or certificate from a", 1, 0)),
@@ -148,9 +165,9 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces=
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$health_ins==0 | sipp08_2$social_security==0), 1, 0))
 
 
-sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0,]
-sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us")]
-sipp08_2_knn[2:16] <- sapply(sipp08_2_knn[2:16],as.numeric)
+sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0 & sipp08_2$age>=20, c("undocu_likely", "undocu_logical", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0 & sipp08_2$age>=20, c("undocu_likely", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn[2:17] <- sapply(sipp08_2_knn[2:17],as.numeric)
 sipp08_2_knn <- na.omit(sipp08_2_knn)
 
 View(sipp08_2)
@@ -180,6 +197,17 @@ ecitizen_table
 undocu_table<- table(sipp08_2$undocu_entry)
 undocu_table
 
+plot(cooks.distance(logistic_model), type = "h", main = "Cook’s Distance") 
+
+ggplot(sipp08_2_logistic, aes(x = age, y = household_size)) +
+  geom_point() +  # Scatterplot points
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +  # Linear regression line with confidence interval
+  labs(title = "Scatterplot with Linear Trendline",
+       x = "X values",
+       y = "Y values") +
+  theme_minimal()
+
+
 ggplot(sipp08_2, aes(x = timstat)) +
   geom_bar(fill="lightgreen", colour= "black") +
   labs(title = "Color Frequencies", x = "Colors", y = "Frequency")
@@ -198,10 +226,36 @@ train_index <- createDataPartition(sipp08_2_logistic$undocu_likely, p = 0.7, lis
 train_data <- sipp08_2[train_index, ]
 test_data <- sipp08_2[-train_index, ]
 
-logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us, data = train_data, family = binomial)
+
+##Add output to Overleaf (stargazer?; College degree vs No College degree)
+logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_data, family = binomial)
+
 
 summary(logistic_model)
 
+```
+
+```{r Logistic Classification (k-folds)}
+sipp08_2_klogistic <- na.omit(sipp08_2_logistic)
+levels(sipp08_2_klogistic$undocu_likely) <- make.names(levels(sipp08_2_klogistic$undocu_likely))
+
+set.seed(1)
+## Create trainControl object
+control <- trainControl(
+    method = "cv",
+    number = 10,  
+    summaryFunction = twoClassSummary
+)
+## Train glm with custom trainControl
+logistic_kmodel <- train(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, sipp08_2_klogistic,
+               method = "glm",
+               trControl = control)
+
+p_klogistic <- predict(logistic_kmodel, sipp08_2_klogistic)
+
+# Generate confusion matrix
+klogistic_matrix <- confusionMatrix(p_klogistic, sipp08_2_klogistic$undocu_likely, positive = "X1")
+print(klogistic_matrix)
 ```
 
 ```{r KNN}
@@ -217,8 +271,8 @@ test_knn <- sipp08_2_knn[-train_index_knn, ]
 
 # Separate features and labels
 View(sipp08_2_knn)
-train_scaled <- scale(train_knn[, 2:16])
-test_scaled <- scale(test_knn[, 2:16])
+train_scaled <- scale(train_knn[, 2:17])
+test_scaled <- scale(test_knn[, 2:17])
 
 
 knn_model <- knn(
@@ -239,22 +293,23 @@ library(pROC)
 library(xtable)
 ##Logistic Classification model
 # Predict probabilities
-pred_probs <- predict(logistic_model, newdata = test_data, type = "response")
+predictions <- predict(logistic_model, newdata = test_data, type = "response")
+#colAUC(predictions, test_data[["Class"]], plotROC = TRUE)
 
 # Convert probabilities to binary outcome (threshold = 0.5)
-pred_classes <- ifelse(pred_probs > 0.5, 1, 0)
+pred_classes <- ifelse(predictions > 0.5, 1, 0)
 
 # Convert to factor for evaluation
 pred_classes <- as.factor(pred_classes)
 
-logistic_matrix <- confusionMatrix(pred_classes, test_data$undocu_likely)
+logistic_matrix <- confusionMatrix(pred_classes, test_data$undocu_likely, positive = "1")
 logistic_matrix
 knn_matrix <- confusionMatrix(test_knn$undocu_likely, knn_model)
 knn_matrix
 
 
 # Generate ROC curve
-roc_curve <- roc(test_data$undocu_likely, pred_probs)
+roc_curve <- roc(test_data$undocu_likely, predictions)
 
 # Plot the ROC curve
 plot(roc_curve, col = "blue", main = "ROC Curve for Logistic Regression")
@@ -264,11 +319,11 @@ auc_value <- auc(roc_curve)
 print(paste("AUC:", round(auc_value, 3)))
 
 
-##Logical edits accuracy
-FN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2$undocu_likely==1))
-TN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2$undocu_likely==0))
-FP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2$undocu_likely==0))
-TP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2$undocu_likely==1))
+## Logical edits accuracy sipp08_2$undocu_logical
+FN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2_logistic$undocu_likely==1))
+TN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2_logistic$undocu_likely==0))
+FP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2_logistic$undocu_likely==0))
+TP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2_logistic$undocu_likely==1))
 
 specificty_logical<- TN_logical/(TN_logical+FP_logical)
 sensitivity_logical<- TP_logical/(TP_logical+FN_logical)
@@ -278,17 +333,48 @@ accuracy_logical <- (TP_logical+TN_logical)/(TP_logical+TN_logical+FP_logical+FN
 
 ## Model comparison table creation
 # ML statistics
-accuracy <- c(accuracy_logical, logistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']])
-sensitivity <- c(sensitivity_logical, logistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']])
-specificity <- c(specificty_logical, logistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']])
-ppv <- c(ppv_logical, logistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']])
+accuracy <- c(accuracy_logical, logistic_matrix$overall[['Accuracy']], klogistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']])
+
+sensitivity <- c(sensitivity_logical, logistic_matrix$byClass[['Sensitivity']], klogistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']])
+
+specificity <- c(specificty_logical, logistic_matrix$byClass[['Specificity']], klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']])
+
+ppv <- c(ppv_logical, logistic_matrix$byClass[['Pos Pred Value']], klogistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']])
 
 
-ml_table <- data.frame(accuracy, sensitivity, specificity, ppv)
+ml_table <- data.frame(sensitivity, specificity, ppv, accuracy)
 ml_comparison <- as.data.frame(t(ml_table))
-colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "KNN Classifier")
+colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "K-folds Logistic", "KNN Classifier")
 
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
 print(ml_comparison)
+```
+
+```{r KNN Classifier performance}
+k_values <- c(1, 3, 5, 7, 15, 19)
+ 
+# Calculate accuracy for each k value
+accuracy_values <- sapply(k_values, function(k) {
+  knn_model <- knn(
+                 train = train_scaled, 
+                 test = test_scaled,
+                 cl = train_knn$undocu_likely, 
+                 k=k
+                 )
+  1 - mean(knn_model != train_knn$undocu_likely)
+})
+ 
+# Create a data frame for plotting
+accuracy_data <- data.frame(K = k_values, Accuracy = accuracy_values)
+ 
+# Plotting
+ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
+  geom_line(color = "lightblue", linewidth = 1) +
+  geom_point(color = "lightgreen", size = 3) +
+  labs(title = "Model Accuracy for Different K Values",
+       x = "Number of Neighbors (K)",
+       y = "Accuracy") +
+  theme_minimal()
+
 ```
