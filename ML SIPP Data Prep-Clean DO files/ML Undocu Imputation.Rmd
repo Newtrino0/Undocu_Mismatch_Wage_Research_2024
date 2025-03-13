@@ -154,11 +154,13 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     poverty = as.factor(ifelse(thearn<rhpov, 1, 0)),
     armed_forces = as.factor(ifelse(eafnow=="Yes" | eafever=="Yes", 1, 0)),
     health_ins= as.factor(ifelse(rcutyp57=="Yes, covered" | rcutyp58=="Yes, covered" , 1, 0)),
-    social_security = as.factor(ifelse(rcutyp01=="Yes, covered" | rcutyp03=="Yes, covered", 1, 0))
-    
+    social_security = as.factor(ifelse(rcutyp01=="Yes, covered" | rcutyp03=="Yes, covered", 1, 0)),
+    bpl_mex = as.factor(ifelse(tbrstate=="Central America" & eorigin=="Yes", 1, 0)),
+    bpl_usa = as.factor(ifelse(ebornus=="Yes", 1, 0)),
+    bpl_asia = as.factor(ifelse(tbrstate == "Eastern Asia"| tbrstate == "South Central Asia"| tbrstate == "South East Asia, West Asia,", 1, 0))
   )
 
-
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$immig_yr <= 1961, 0)
 sipp08_2$years_us <- ifelse(sipp08_2$years_us == 2008 | sipp08_2$years_us == 2009 | sipp08_2$years_us == -1 , NA, sipp08_2$years_us)
 sipp08_2$tage <- replace(sipp08_2$tage, sipp08_2$tage == "Less than 1 full year old", 0)
 sipp08_2$age <- as.numeric(sipp08_2$tage)
@@ -166,8 +168,9 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces=
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$health_ins==0 | sipp08_2$social_security==0), 1, 0))
 
 
-sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "undocu_logical", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "undocu_logical", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_rf <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_knn[2:17] <- sapply(sipp08_2_knn[2:17],as.numeric)
 sipp08_2_knn <- na.omit(sipp08_2_knn)
 
@@ -185,40 +188,6 @@ age + college + hs_only + married + english_difficult + spanish_hispanic_latino 
 * They receive any other form of welfare
 
 
-```{r EDA}
-library(ggplot2)
-
-
-timstat_table<- table(sipp08_2$timstat)
-timstat_table
-
-ecitizen_table<- table(sipp08_2$ecitizen)
-ecitizen_table
-
-undocu_table<- table(sipp08_2$undocu_entry)
-undocu_table
-
-plot(cooks.distance(logistic_model), type = "h", main = "Cook’s Distance") 
-
-ggplot(sipp08_2_logistic, aes(x = age, y = household_size)) +
-  geom_point() +  # Scatterplot points
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +  # Linear regression line with confidence interval
-  labs(title = "Scatterplot with Linear Trendline",
-       x = "X values",
-       y = "Y values") +
-  theme_minimal()
-
-
-ggplot(sipp08_2, aes(x = timstat)) +
-  geom_bar(fill="lightgreen", colour= "black") +
-  labs(title = "Color Frequencies", x = "Colors", y = "Frequency")
-
-ggplot(sipp08_2, aes(x = undocu_likely)) +
-  geom_bar(fill="lightblue", colour= "black") +
-  labs(title = "Color Frequencies", x = "Colors", y = "Frequency")
-```
-
-
 ```{r Logistic Classification model}
 library(caret)
 
@@ -229,7 +198,7 @@ test_data <- sipp08_2[-train_index, ]
 
 
 ##Add output to Overleaf (stargazer?; College degree vs No College degree)
-logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_data, family = binomial)
+logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + bpl_mex + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_data, family = binomial)
 
 
 summary(logistic_model)
@@ -255,7 +224,7 @@ control <- trainControl(
     classProbs = TRUE
 )
 ## Train glm with custom trainControl
-logistic_kmodel <- train(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
+logistic_kmodel <- train(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + bpl_mex + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
                method = "glm",
                trControl = control)
 
@@ -279,8 +248,8 @@ test_knn <- sipp08_2_knn[-train_index_knn, ]
 
 # Separate features and labels
 View(sipp08_2_knn)
-train_scaled <- scale(train_knn[, 2:17])
-test_scaled <- scale(test_knn[, 2:17])
+train_scaled <- scale(train_knn[, 2:19])
+test_scaled <- scale(test_knn[, 2:19])
 
 
 knn_model <- knn(
@@ -301,8 +270,8 @@ test_kknn <- sipp08_2_knn[-train_index_kknn, ]
 
 # Separate features and labels
 View(sipp08_2_knn)
-train_kscaled <- scale(train_kknn[, 2:17])
-test_kscaled <- scale(test_kknn[, 2:17])
+train_kscaled <- scale(train_kknn[, 2:19])
+test_kscaled <- scale(test_kknn[, 2:19])
 
 
 kknn_model <- train(undocu_likely ~., data = train_kknn, method = "knn", 
@@ -314,6 +283,31 @@ predict_kknn <- predict(kknn_model, test_kknn)
 
 kknn_matrix <- confusionMatrix(predict_kknn, test_kknn$undocu_likely, positive = "X1")
 print(klogistic_matrix)
+```
+
+```{r Random Forest}
+sipp08_2_rf <- na.omit(sipp08_2_rf)
+levels(sipp08_2_rf$undocu_likely) <- make.names(levels(sipp08_2_rf$undocu_likely))
+library("rpart") ## recursive partitioning
+
+train_index_rf <- createDataPartition(sipp08_2_rf$undocu_likely, p = 0.7, list = FALSE)
+train_rf <- sipp08_2_rf[train_index_rf, ]
+test_rf <- sipp08_2_rf[-train_index_rf, ]
+
+
+
+set.seed(1)
+rf_model <- train(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + bpl_mex + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
+               data = train_rf,
+               method = "ranger",
+               trControl = control,
+               tuneLength = 5)
+print(rf_model)
+plot(rf_model)
+
+p_rf <- predict(rf_model, test_rf)
+rf_matrix <- confusionMatrix(p_rf, test_rf$undocu_likely, positive="X1")
+rf_matrix
 ```
 
 
@@ -352,18 +346,18 @@ accuracy_logical <- (TP_logical+TN_logical)/(TP_logical+TN_logical+FP_logical+FN
 
 ## Model comparison table creation
 # ML statistics
-accuracy <- c(accuracy_logical, logistic_matrix$overall[['Accuracy']], klogistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']], kknn_matrix$overall[['Accuracy']])
+accuracy <- c(accuracy_logical, logistic_matrix$overall[['Accuracy']], klogistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']], kknn_matrix$overall[['Accuracy']], rf_matrix$overall[['Accuracy']])
 
-sensitivity <- c(sensitivity_logical, logistic_matrix$byClass[['Sensitivity']], klogistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']], kknn_matrix$byClass[['Sensitivity']])
+sensitivity <- c(sensitivity_logical, logistic_matrix$byClass[['Sensitivity']], klogistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']], kknn_matrix$byClass[['Sensitivity']], rf_matrix$byClass[['Sensitivity']])
 
-specificity <- c(specificty_logical, logistic_matrix$byClass[['Specificity']], klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']], kknn_matrix$byClass[['Specificity']])
+specificity <- c(specificty_logical, logistic_matrix$byClass[['Specificity']], klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']], kknn_matrix$byClass[['Specificity']], rf_matrix$byClass[['Specificity']])
 
-ppv <- c(ppv_logical, logistic_matrix$byClass[['Pos Pred Value']], klogistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']], kknn_matrix$byClass[['Pos Pred Value']])
+ppv <- c(ppv_logical, logistic_matrix$byClass[['Pos Pred Value']], klogistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']], kknn_matrix$byClass[['Pos Pred Value']], rf_matrix$byClass[['Pos Pred Value']])
 
 
 ml_table <- data.frame(sensitivity, specificity, ppv, accuracy)
 ml_comparison <- as.data.frame(t(ml_table))
-colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "K-folds Logistic", "KNN Classifier", "K-folds KNN")
+colnames(ml_comparison) <- c("Logical edits", "Logistic Classification", "K-folds Logistic", "KNN Classifier", "K-folds KNN", "RF")
 
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
