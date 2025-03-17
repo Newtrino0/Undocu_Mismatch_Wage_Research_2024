@@ -17,7 +17,7 @@ set more off, perm
 ********************************
 *cd $rawdata
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "usa_00021.dta", clear
+use "usa_00024.dta", clear
 describe
 
 ********* Clean data ***********
@@ -654,3 +654,4 @@ replace twentytwo_by_2012 = 0 if (2012-birthyr)<22
 drop educd grad*
 
 save "(Undocu)EO_Step_1.dta", replace
+export delimited using "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\ACS_Step_1.csv", replace

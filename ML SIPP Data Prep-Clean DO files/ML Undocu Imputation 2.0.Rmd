@@ -1,5 +1,5 @@
 ---
-title: "ML Undocu imputation method evaluation"
+title: "ML Undocu imputation method"
 author: "Mario Arce Acosta"
 date: "2025-03-02"
 output: html_document
@@ -71,12 +71,20 @@ summary(SIPP_2008_Wave_2)
 
 
 ```{r Data preparation}
+#Include 1986 amnesty filter
 library(dplyr)
 sipp08_2 <- SIPP_2008_Wave_2 %>%
   mutate(
     undocu_entry = as.factor(ifelse(timstat=="Other", 1, 0)),
-    undocu_likely = as.factor(ifelse(timstat=="Other" & eadjust=="No", 1, 0)),
+    undocu_likely = as.factor(
+      case_when(
+        timstat=="Other" & eadjust=="No" ~ "Yes",
+        timstat==NA & eadjust==NA ~ "Missing",
+        TRUE ~ "No"
+      )
+      ),
     education = case_when(
+      #Create yrsed variable too, use instead (Duplicate Stata indicators)
       eeducate == "10th Grade"  | eeducate == "11th Grade" | eeducate == "12th grade, no diploma" | eeducate == "1st, 2nd, 3rd, or 4th grade" | eeducate == "5th Or 6th Grade" | eeducate == "7th Or 8th Grade" | eeducate == "9th Grade" | eeducate == "Less Than 1st Grade"~ "No HS diploma",
       eeducate == "Diploma or certificate from a" | eeducate == "High School Graduate - (diploma" ~ "HS diploma",
       eeducate == "Some college, but no degree" ~ "Some college",
@@ -153,7 +161,7 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     armed_forces = as.factor(ifelse(eafnow=="Yes" | eafever=="Yes", 1, 0)),
     health_ins= as.factor(ifelse(rcutyp57=="Yes, covered" | rcutyp58=="Yes, covered" , 1, 0)),
     social_security = as.factor(ifelse(rcutyp01=="Yes, covered" | rcutyp03=="Yes, covered", 1, 0)),
-    central_latino = as.factor(ifelse(tbrstate=="Central America" & eorigin=="Yes", 1, 0)),
+    bpl_mex = as.factor(ifelse(tbrstate=="Central America" & eorigin=="Yes", 1, 0)),
     bpl_usa = as.factor(ifelse(ebornus=="Yes", 1, 0)),
     bpl_asia = as.factor(ifelse(tbrstate == "Eastern Asia"| tbrstate == "South Central Asia"| tbrstate == "South East Asia, West Asia,", 1, 0))
   )
@@ -162,12 +170,13 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$immig_yr <= 1
 sipp08_2$years_us <- ifelse(sipp08_2$years_us == 2008 | sipp08_2$years_us == 2009 | sipp08_2$years_us == -1 , NA, sipp08_2$years_us)
 sipp08_2$tage <- replace(sipp08_2$tage, sipp08_2$tage == "Less than 1 full year old", 0)
 sipp08_2$age <- as.numeric(sipp08_2$tage)
-sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces==1 | sipp08_2$social_security==1, 0 )
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces==1 | sipp08_2$health_ins==1 | sipp08_2$social_security==1, 0 )
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$health_ins==0 | sipp08_2$social_security==0), 1, 0))
 
-sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "undocu_logical", "central_latino", "bpl_asia", "age", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_rf <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+
+sipp08_2_logistic <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "undocu_logical", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_rf <- sipp08_2[sipp08_2$citizen == 0, c("undocu_likely", "bpl_mex", "bpl_asia", "age", "college", "hs_only", "married", "english_difficult", "spanish_hispanic_latino", "medicaid", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_knn[2:17] <- sapply(sipp08_2_knn[2:17],as.numeric)
 sipp08_2_knn <- na.omit(sipp08_2_knn)
 
@@ -195,14 +204,14 @@ test_data <- sipp08_2[-train_index, ]
 
 
 ##Add output to Overleaf (stargazer?; College degree vs No College degree)
-logistic_model <- glm(undocu_likely ~ age  + married + english_difficult + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_data, family = binomial)
+logistic_model <- glm(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + bpl_mex + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_data, family = binomial)
 
 
 summary(logistic_model)
+
 ```
 
 ```{r Logistic Classification (k-folds)}
-library(stargazer)
 sipp08_2_klogistic <- na.omit(sipp08_2_logistic)
 levels(sipp08_2_klogistic$undocu_likely) <- make.names(levels(sipp08_2_klogistic$undocu_likely))
 
@@ -221,7 +230,7 @@ control <- trainControl(
     classProbs = TRUE
 )
 ## Train glm with custom trainControl
-logistic_kmodel <- train(undocu_likely ~ age + married + english_difficult + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
+logistic_kmodel <- train(undocu_likely ~ age + college + hs_only + married + english_difficult + spanish_hispanic_latino + bpl_mex + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
                method = "glm",
                trControl = control)
 
@@ -230,9 +239,6 @@ p_klogistic <- predict(logistic_kmodel, test_klogistic)
 # Generate confusion matrix
 klogistic_matrix <- confusionMatrix(p_klogistic, test_klogistic$undocu_likely, positive = "X1")
 print(klogistic_matrix)
-summary_logistic<-summary(logistic_kmodel)$coefficients[,c(1,4)]
-summary_logistic
-xtable(summary_logistic, digits=4)
 ```
 
 ```{r KNN}
@@ -261,9 +267,6 @@ knn_model <- knn(
 ```
 
 ```{r KNN K-folds}
-library(class)
-library(caTools)
-
 set.seed(1)
 levels(sipp08_2_knn$undocu_likely) <- make.names(levels(sipp08_2_knn$undocu_likely))
 train_index_kknn <- createDataPartition(sipp08_2_knn$undocu_likely, p = 0.7, list = FALSE)
@@ -273,8 +276,8 @@ test_kknn <- sipp08_2_knn[-train_index_kknn, ]
 
 # Separate features and labels
 View(sipp08_2_knn)
-train_kscaled <- scale(train_kknn[, 2:17])
-test_kscaled <- scale(test_kknn[, 2:17])
+train_kscaled <- scale(train_kknn[, 2:19])
+test_kscaled <- scale(test_kknn[, 2:19])
 
 
 kknn_model <- train(undocu_likely ~., data = train_kknn, method = "knn", 
@@ -286,9 +289,6 @@ predict_kknn <- predict(kknn_model, test_kknn)
 
 kknn_matrix <- confusionMatrix(predict_kknn, test_kknn$undocu_likely, positive = "X1")
 print(klogistic_matrix)
-
-summary_knn<-summary(kknn_model)$coefficients[,c(1,4)]
-summary_knn
 ```
 
 ```{r Random Forest}
@@ -338,7 +338,7 @@ knn_matrix
 
 
 
-## (FIX THIS!!!!!) Logical edits accuracy sipp08_2$undocu_logical
+## Logical edits accuracy sipp08_2$undocu_logical
 FN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2_logistic$undocu_likely==1))
 TN_logical <- length(which(sipp08_2_logistic$undocu_logical==0 & sipp08_2_logistic$undocu_likely==0))
 FP_logical <- length(which(sipp08_2_logistic$undocu_logical==1 & sipp08_2_logistic$undocu_likely==0))

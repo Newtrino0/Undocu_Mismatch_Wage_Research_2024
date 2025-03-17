@@ -87,6 +87,7 @@ drop _merge
 
 save "(Undocu)EO_Step_2.dta", replace
 
+**Check why some states and years did not have a name match
 use "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\IPC Final Full Data 2024 Update.dta", clear
 
 /*
@@ -112,7 +113,7 @@ save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\IPC Final
 
 sort state
 
-merge 1:m statefip year using "(Undocu)EO_Step_2.dta"
-drop _merge
+merge 1:m statefip year using "(Undocu)EO_Step_2.dta", keep(match)
+
 
 save "(Undocu)EO_Step_2.dta", replace
