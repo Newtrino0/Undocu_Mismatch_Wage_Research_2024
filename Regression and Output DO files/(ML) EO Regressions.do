@@ -85,7 +85,8 @@ eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched n
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_logit==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_knn==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_rf==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
+esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn" "Undocu_rf") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
 
 
 ****************************************************************************************************************
@@ -152,12 +153,17 @@ reg vmismatched hundermatched hovermatched undocu_knn $covars metropolitan i.sta
 estadd ysumm
 eststo
 
+***RF V. mismatch model***
+reg vmismatched hundermatched hovermatched undocu_rf $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermatched hovermatched undocu undocu_logit undocu_knn) ///
-order(hundermatched hovermatched undocu undocu_logit undocu_knn) ///
+esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
+order(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Vmismatch (ML)") ///
-mlabel("Foreign-born Vmismatch"  "Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" ) ///
+mlabel("Foreign-born Vmismatch"  "Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" "RF Vmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -188,13 +194,17 @@ eststo
 reg hmismatched vmismatched undocu_knn $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
+***RF H. mismatch model***
+reg hmismatched vmismatched undocu_rf $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn) ///
-order(vmismatched undocu undocu_logit undocu_knn) ///
+esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
+order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hmismatch (ML)") ///
-mlabel("Foreign-born Hmismatch"  "Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" ) ///
+mlabel("Foreign-born Hmismatch"  "Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" "RF Hmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -224,13 +234,17 @@ eststo
 reg hundermatched vmismatched undocu_knn $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
+***RF H. undermatch model***
+reg hundermatched vmismatched undocu_rf $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn) ///
-order(vmismatched undocu undocu_logit undocu_knn) ///
+esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
+order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on H. undermatch (ML)") ///
-mlabel("Foreign-born Hundermatch"  "Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" ) ///
+mlabel("Foreign-born Hundermatch"  "Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" "RF Hundermatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -260,23 +274,26 @@ keep if bpl_foreign==1
 reg ln_adj vmismatched hundermatched hovermatched undocu $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
 eststo
-
 **Logistic classifier column***
 reg ln_adj vmismatched hundermatched hovermatched undocu_logit $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
-
 **KNN column***
 reg ln_adj vmismatched hundermatched hovermatched undocu_knn $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
+**RF column***
+reg ln_adj vmismatched hundermatched hovermatched undocu_rf $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+estadd ysumm
+eststo
+
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using wage_regressions_ml.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn) ///
-order(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn) ///
+esttab using wage_regressions_ml.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
+order(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by demographic, on Wages") ///
-mlabel("Foreign-born model" "Logical edits model" "Logistic Classifier model" "KNN model" ) ///
+mlabel("Foreign-born model" "Logical edits model" "Logistic Classifier model" "KNN model" "RF model") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 

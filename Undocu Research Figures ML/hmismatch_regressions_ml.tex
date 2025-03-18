@@ -1,34 +1,37 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \caption{Regressions of Undocumented Status on Hmismatch (ML)}
-\begin{tabular}{l*{3}{c}}
+\begin{tabular}{l*{4}{c}}
 \toprule
-                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Foreign-born Hmismatch         &Logical edits Hmismatch         &Logistic classifier Hmismatch         \\
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
+                    &Foreign-born Hmismatch         &Logical edits Hmismatch         &Logistic classifier Hmismatch         &KNN Hmismatch         \\
 \midrule
-Vertically Mismatched&      0.1372\sym{***}&      0.1373\sym{***}&      0.1372\sym{***}\\
-                    &    [0.0079]         &    [0.0079]         &    [0.0079]         \\
+Vertically Mismatched&      0.1372\sym{***}&      0.1373\sym{***}&      0.1373\sym{***}&      0.1372\sym{***}\\
+                    &    [0.0079]         &    [0.0079]         &    [0.0079]         &    [0.0079]         \\
 \addlinespace
-undocu              &      0.0136         &                     &                     \\
-                    &    [0.0107]         &                     &                     \\
+undocu              &      0.0136         &                     &                     &                     \\
+                    &    [0.0107]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &     -0.0016         &                     \\
-                    &                     &    [0.0268]         &                     \\
+undocu\_logit        &                     &     -0.0042         &                     &                     \\
+                    &                     &    [0.0295]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &      0.0056         \\
-                    &                     &                     &    [0.0048]         \\
+undocu\_knn          &                     &                     &     -0.0008         &                     \\
+                    &                     &                     &    [0.0052]         &                     \\
+\addlinespace
+undocu\_rf           &                     &                     &                     &      0.0046         \\
+                    &                     &                     &                     &    [0.0077]         \\
 \midrule
-Mean of Dep. Var.   &        0.56         &        0.56         &        0.56         \\
-R-squared           &        0.08         &        0.08         &        0.08         \\
-N                   &      89,424         &      89,424         &      89,424         \\
+Mean of Dep. Var.   &        0.56         &        0.56         &        0.56         &        0.56         \\
+R-squared           &        0.08         &        0.08         &        0.08         &        0.08         \\
+N                   &      89,424         &      89,424         &      89,424         &      89,424         \\
 \bottomrule
-\multicolumn{4}{l}{\footnotesize Additional controls include:}\\
-\multicolumn{4}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
-\multicolumn{4}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
-\multicolumn{4}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
-\multicolumn{4}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
-\multicolumn{4}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
-\multicolumn{4}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
-\multicolumn{4}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\multicolumn{5}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
+\multicolumn{5}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{5}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{5}{l}{\footnotesize Robust standard errors are all clustered by state. Li and Lu found that nativity and}\\
+\multicolumn{5}{l}{\footnotesize foreign credentials explained much of a worker's likelihood to be mismatched, potentially}\\
+\multicolumn{5}{l}{\footnotesize explaining the lack of statistical significance of covariates.}\\
+\multicolumn{5}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
 \end{tabular}
 \end{table}
