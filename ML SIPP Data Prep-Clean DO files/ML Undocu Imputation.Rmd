@@ -334,4 +334,258 @@ xtable(ml_comparison, digits=4)
 print(ml_comparison)
 ```
 
+```{r Education-Focused Random Forest}
+# Create interaction terms with education for college-educated focus
+sipp08_2_edu_rf <- sipp08_2_rf
+
+# 1. Create interaction terms with education/years of education
+key_predictors <- c("age", "married", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "asian", "black", "white","other_race", "household_size", "poverty", "employed", "years_us", "yrsed")
+
+
+for (var in key_predictors) {
+  interaction_name <- paste0(var, "_by_yrsed")
+  sipp08_2_edu_rf[[interaction_name]] <- sipp08_2_edu_rf[[var]] * sipp08_2_edu_rf[["yrsed"]]
+}
+
+# Create college-educated indicator more explicitly
+sipp08_2_edu_rf$college_educated <- ifelse(sipp08_2_edu_rf$yrsed >= 16, 1, 0)
+
+# Handle missing values
+levels(sipp08_2_edu_rf$undocu_likely) <- make.names(levels(sipp08_2_edu_rf$undocu_likely))
+
+# 2. Stratified sampling with emphasis on college-educated
+# Split data into college-educated and non-college-educated
+college_data <- sipp08_2_edu_rf[sipp08_2_edu_rf$college_educated == 1, ]
+noncollege_data <- sipp08_2_edu_rf[sipp08_2_edu_rf$college_educated == 0, ]
+
+# Get counts of undocumented in college sample
+college_undoc_count <- sum(college_data$undocu_likely == "X1")
+college_doc_count <- sum(college_data$undocu_likely == "X0")
+
+# Handle potential class imbalance in college data
+library(ROSE)
+if (college_undoc_count < 50 && college_undoc_count > 0) {
+  # Use ROSE to create synthetic samples
+  set.seed(123)
+  college_balanced <- ROSE(undocu_likely ~ ., data = college_data, N = 2 * college_doc_count)$data
+} else {
+  college_balanced <- college_data
+}
+
+# Sample from non-college population
+noncollege_undoc <- noncollege_data[noncollege_data$undocu_likely == "X1", ]
+noncollege_doc <- noncollege_data[noncollege_data$undocu_likely == "X0", ]
+noncollege_doc_sampled <- noncollege_doc[sample(nrow(noncollege_doc), 
+                                        min(nrow(noncollege_doc), 2 * nrow(noncollege_undoc))), ]
+
+# Combine datasets for training
+training_data <- rbind(college_balanced, noncollege_undoc, noncollege_doc_sampled)
+
+# 3. Create train-test split
+set.seed(1)
+train_index_edu_rf <- createDataPartition(training_data$undocu_likely, p = 0.7, list = FALSE)
+train_edu_rf <- training_data[train_index_edu_rf, ]
+test_edu_rf <- training_data[-train_index_edu_rf, ]
+
+# 4. Set up training control with stratification
+edu_ctrl <- trainControl(
+  method = "cv",
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  sampling = "up",  # Up-sampling during cross-validation
+  verboseIter = TRUE,
+  stratify = TRUE   # Ensure stratified sampling across folds
+)
+
+# 5. Set up weights to emphasize college-educated predictions
+weights <- ifelse(train_edu_rf$college_educated == 1, 2, 1)
+
+# 6. Train the education-focused RF model
+set.seed(1)
+edu_rf_model <- train(
+  undocu_likely ~ . - epppnum - eenlevel - evocat - eeducate - college_educated,
+  data = train_edu_rf,
+  method = "ranger",
+  trControl = edu_ctrl,
+  metric = "ROC",
+  weights = weights,
+  importance = "impurity",
+  tuneLength = 5
+)
+
+print(edu_rf_model)
+plot(edu_rf_model)
+
+# 7. Create college-specific model
+college_model <- train(
+  undocu_likely ~ . - epppnum - eenlevel - evocat - eeducate - college_educated,
+  data = college_balanced,
+  method = "ranger",
+  trControl = edu_ctrl,
+  metric = "ROC",
+  importance = "impurity",
+  tuneLength = 5
+)
+
+print(college_model)
+
+# 8. Create combined prediction function
+predict_combined <- function(newdata) {
+  # Get predictions from main model
+  main_preds <- predict(edu_rf_model, newdata, type = "prob")[, "X1"]
+  
+  # For college-educated, blend with college-specific model
+  college_indices <- which(newdata$college_educated == 1)
+  if (length(college_indices) > 0) {
+    college_preds <- predict(college_model, newdata[college_indices, ], type = "prob")[, "X1"]
+    # Blend predictions (adjust weight as needed)
+    main_preds[college_indices] <- 0.7 * college_preds + 0.3 * main_preds[college_indices]
+  }
+  
+  # Convert to binary predictions using optimized threshold
+  binary_preds <- ifelse(main_preds > 0.5, "X1", "X0")
+  return(factor(binary_preds, levels = c("X0", "X1")))
+}
+
+# 9. Evaluate combined model
+combined_preds <- predict_combined(test_edu_rf)
+edu_rf_matrix <- confusionMatrix(combined_preds, test_edu_rf$undocu_likely, positive = "X1")
+print(edu_rf_matrix)
+
+# 10. Feature importance analysis
+edu_rf_importance <- varImp(edu_rf_model)
+print(edu_rf_importance)
+plot(edu_rf_importance, top = 20)
+
+# Check if education interactions are important
+edu_interactions <- grep("_by_yrsed", rownames(edu_rf_importance$importance), value = TRUE)
+print("Importance of education interaction terms:")
+print(edu_rf_importance$importance[edu_interactions, , drop = FALSE])
+
+# 11. Add to model comparison table
+edu_rf_accuracy <- edu_rf_matrix$overall[['Accuracy']]
+edu_rf_sensitivity <- edu_rf_matrix$byClass[['Sensitivity']]
+edu_rf_specificity <- edu_rf_matrix$byClass[['Specificity']]
+edu_rf_ppv <- edu_rf_matrix$byClass[['Pos Pred Value']]
+
+# Add to existing comparison table
+ml_comparison_updated <- cbind(ml_comparison, 
+                            "Education-Focused RF" = c(edu_rf_sensitivity, 
+                                                  edu_rf_specificity, 
+                                                  edu_rf_ppv, 
+                                                  edu_rf_accuracy))
+print(ml_comparison_updated)
+xtable(ml_comparison_updated, digits=4)
+
+# 12. College-specific analysis
+# Calculate metrics only for college-educated individuals in test set
+college_test <- test_edu_rf[test_edu_rf$college_educated == 1, ]
+if(nrow(college_test) > 0) {
+  college_preds <- predict_combined(college_test)
+  college_matrix <- confusionMatrix(college_preds, college_test$undocu_likely, positive = "X1")
+  print("Performance metrics for college-educated individuals:")
+  print(college_matrix)
+}
+```
+
+```{r Education-Focused Analysis}
+# Add visualizations to compare model performance across education levels
+
+# Create education category variable for visualization
+sipp08_2_edu_rf$edu_category <- cut(sipp08_2_edu_rf$yrsed, 
+                                  breaks = c(0, 12, 16, 22), 
+                                  labels = c("Less than HS", "HS to Some College", "College or higher"))
+
+# Generate predictions for full dataset
+full_preds <- predict(edu_rf_model, sipp08_2_edu_rf, type = "prob")[, "X1"]
+sipp08_2_edu_rf$predicted_prob <- full_preds
+
+# Plot prediction distributions by education level
+library(ggplot2)
+
+ggplot(sipp08_2_edu_rf, aes(x = predicted_prob, fill = edu_category)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~edu_category) +
+  labs(title = "Distribution of Undocumented Probability by Education Level",
+       x = "Predicted Probability of Undocumented Status",
+       y = "Density") +
+  theme_minimal()
+
+# Compare accuracy across education levels
+sipp08_2_edu_rf$predicted_class <- ifelse(sipp08_2_edu_rf$predicted_prob > 0.5, "X1", "X0")
+sipp08_2_edu_rf$correct_prediction <- sipp08_2_edu_rf$predicted_class == sipp08_2_edu_rf$undocu_likely
+
+# Calculate accuracy by education category
+edu_accuracy <- aggregate(correct_prediction ~ edu_category, 
+                         data = sipp08_2_edu_rf, 
+                         FUN = function(x) mean(x, na.rm = TRUE))
+
+print(edu_accuracy)
+
+# Plot accuracy by education level
+ggplot(edu_accuracy, aes(x = edu_category, y = correct_prediction, fill = edu_category)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Model Accuracy by Education Level",
+       x = "Education Level",
+       y = "Accuracy") +
+  theme_minimal() +
+  ylim(0, 1)
+
+# Create comparison with original RF model
+# Also predict with original RF model if available
+if(exists("rf_model")) {
+  sipp08_2_edu_rf$orig_rf_pred <- predict(rf_model, sipp08_2_edu_rf, type = "prob")[, "X1"]
+  sipp08_2_edu_rf$orig_rf_class <- ifelse(sipp08_2_edu_rf$orig_rf_pred > 0.5, "X1", "X0")
+  sipp08_2_edu_rf$orig_correct <- sipp08_2_edu_rf$orig_rf_class == sipp08_2_edu_rf$undocu_likely
+  
+  # Calculate original RF accuracy by education category
+  orig_edu_accuracy <- aggregate(orig_correct ~ edu_category, 
+                               data = sipp08_2_edu_rf, 
+                               FUN = function(x) mean(x, na.rm = TRUE))
+  
+  # Combine for comparison
+  edu_comparison <- merge(edu_accuracy, orig_edu_accuracy, by = "edu_category")
+  names(edu_comparison) <- c("Education", "Education-Focused RF", "Original RF")
+  
+  print("Accuracy comparison by education level:")
+  print(edu_comparison)
+  
+  # Plot comparison
+  edu_comparison_long <- reshape2::melt(edu_comparison, id.vars = "Education")
+  
+  ggplot(edu_comparison_long, aes(x = Education, y = value, fill = variable)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = "Model Accuracy Comparison by Education Level",
+         x = "Education Level",
+         y = "Accuracy",
+         fill = "Model") +
+    theme_minimal() +
+    ylim(0, 1)
+}
+```
+
+{r Apply to ACS Data}
+# This section would implement the trained model on ACS data
+# You would need to first load and preprocess your ACS data similarly to SIPP
+
+# Example code structure (you'll need to fill in the actual data loading):
+# library(readr)
+# ACS_data <- read_csv("path_to_your_ACS_data.csv")
+
+# Preprocess ACS data to match SIPP structure
+# ACS_processed <- preprocess_ACS_data(ACS_data)  # You'd need to define this function
+
+# Apply the model to predict undocumented status
+# ACS_processed$undocu_predicted <- predict_combined(ACS_processed)
+
+# College-specific analysis on ACS data
+# ACS_college <- ACS_processed[ACS_processed$college_educated == 1, ]
+# ACS_college$undocu_predicted <- predict_combined(ACS_college)
+
+# Calculate summary statistics
+# college_undoc_pct <- mean(ACS_college$undocu_predicted == "X1")
+# print(paste("Estimated percentage of undocumented among college-educated:", 
+#             round(college_undoc_pct * 100, 2), "%"))
+
 
