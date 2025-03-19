@@ -332,6 +332,8 @@ colnames(ml_comparison) <- c("Logical edits", "Logistic", "KNN", "RF")
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
 print(ml_comparison)
+summary_rf<-summary(sipp08_2_rf)
+stagazer(summary_rf)
 ```
 
 ```{r Education-Focused Random Forest}
@@ -339,7 +341,7 @@ print(ml_comparison)
 sipp08_2_edu_rf <- sipp08_2_rf
 
 # 1. Create interaction terms with education/years of education
-key_predictors <- c("age", "married", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "asian", "black", "white","other_race", "household_size", "poverty", "employed", "years_us", "yrsed")
+key_predictors <- c("age", "household_size", "years_us", "yrsed")
 
 
 for (var in key_predictors) {
@@ -394,8 +396,8 @@ edu_ctrl <- trainControl(
   classProbs = TRUE,
   summaryFunction = twoClassSummary,
   sampling = "up",  # Up-sampling during cross-validation
-  verboseIter = TRUE,
-  stratify = TRUE   # Ensure stratified sampling across folds
+  verboseIter = TRUE
+  # Ensure stratified sampling across folds
 )
 
 # 5. Set up weights to emphasize college-educated predictions
@@ -404,7 +406,7 @@ weights <- ifelse(train_edu_rf$college_educated == 1, 2, 1)
 # 6. Train the education-focused RF model
 set.seed(1)
 edu_rf_model <- train(
-  undocu_likely ~ . - epppnum - eenlevel - evocat - eeducate - college_educated,
+  undocu_likely ~ .    - college_educated,
   data = train_edu_rf,
   method = "ranger",
   trControl = edu_ctrl,
