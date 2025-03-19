@@ -332,8 +332,14 @@ colnames(ml_comparison) <- c("Logical edits", "Logistic", "KNN", "RF")
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
 print(ml_comparison)
-summary_rf<-summary(sipp08_2_rf)
-stagazer(summary_rf)
+library(stargazer)
+mydata %>%
+  select(undocu_likely, bpl_foreign) %>%
+  stargazer(type = "text", title="Descriptive statistics", digits=1, out="table4.txt", 
+            covariate.labels=c("undocu_likely","% FR Meals","# Enrolled Students",
+                               "% Lt HS","% HS grad","% Some College",
+                               "% College Grad","% Grad School"),
+            summary.stat=c("n","mean", "sd","p25","median", "p75","min", "max"))
 ```
 
 ```{r Education-Focused Random Forest}
