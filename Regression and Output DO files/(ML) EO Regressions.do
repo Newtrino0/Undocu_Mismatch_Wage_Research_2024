@@ -80,12 +80,12 @@ save "(ML) Pre Regression sample", replace
 eststo clear
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if bpl_foreign==1 & citizen==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_logit==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_knn==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem if undocu_rf==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if bpl_foreign==1 & citizen==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_logit==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_knn==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_rf==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
 esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn" "Undocu_rf") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
 
 
@@ -139,7 +139,7 @@ eststo clear
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(ML) Pre Regression sample",clear
-keep if bpl_foreign==1
+keep if bpl_foreign == 1
 ***Logical edits V. mismatch model***
 reg vmismatched hundermatched hovermatched undocu $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
@@ -163,7 +163,7 @@ esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermat
 order(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Vmismatch (ML)") ///
-mlabel("Foreign-born Vmismatch"  "Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" "RF Vmismatch") ///
+mlabel("Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" "RF Vmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -181,7 +181,7 @@ eststo clear
 ***Horizontal mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(ML) Pre Regression sample",clear
-keep if bpl_foreign==1
+keep if bpl_foreign == 1
 ***Logical edits H. mismatch model***
 reg hmismatched vmismatched undocu $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
@@ -204,7 +204,7 @@ esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatch
 order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hmismatch (ML)") ///
-mlabel("Foreign-born Hmismatch"  "Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" "RF Hmismatch") ///
+mlabel("Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" "RF Hmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -221,7 +221,7 @@ eststo clear
 ***Horizontal undermatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(ML) Pre Regression sample",clear
-keep if bpl_foreign==1
+keep if bpl_foreign == 1
 ***Logical edits H. undermatch model***
 reg hundermatched vmismatched undocu $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
 estadd ysumm
@@ -244,7 +244,7 @@ esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismat
 order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on H. undermatch (ML)") ///
-mlabel("Foreign-born Hundermatch"  "Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" "RF Hundermatch") ///
+mlabel("Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" "RF Hundermatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 
@@ -269,7 +269,7 @@ eststo clear
 *** WAGE MODEL***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(ML) Pre Regression sample",clear
-keep if bpl_foreign==1
+keep if bpl_foreign == 1
 ***Logical edits column***
 reg ln_adj vmismatched hundermatched hovermatched undocu $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
@@ -293,7 +293,7 @@ esttab using wage_regressions_ml.tex, replace label booktabs keep(vmismatched hu
 order(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by demographic, on Wages") ///
-mlabel("Foreign-born model" "Logical edits model" "Logistic Classifier model" "KNN model" "RF model") ///
+mlabel("Logical edits model" "Logistic Classifier model" "KNN model" "RF model") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
 addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category," /// 

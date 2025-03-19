@@ -5,20 +5,26 @@ global figures "C:\Users\mario\Documents\Local_mario_MSRIP\MSRIP_Figures"
 
 
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\ACS_SIPP_knn.csv", clear 
+import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\ACS_SIPP_rf.csv", clear 
+
 gen undocu_logit=0 if undocu_logistic=="X0"
 replace undocu_logit=1 if undocu_logistic=="X1"
-replace undocu_logit=0 if undocu_logit==.
+
 gen undocu_knn=0 if knn_undocu=="X0"
 replace undocu_knn=1 if knn_undocu=="X1"
-replace undocu_knn=0 if undocu_knn==.
 
-keep undocu_logit undocu_knn undocu year serial pernum
+gen undocu_rf=0 if rf_undocu=="X0"
+replace undocu_rf=1 if rf_undocu=="X1"
+
+keep undocu_logit undocu_knn undocu_rf undocu year serial pernum
 
 
-*destring sample, replace force
+
 merge 1:1 year serial pernum using "(Undocu)EO_Step_2.dta"
 
+replace undocu_logit=0 if undocu_logit==.
+replace undocu_knn=0 if undocu_knn==.
+replace undocu_rf=0 if undocu_rf==.
 
 
 

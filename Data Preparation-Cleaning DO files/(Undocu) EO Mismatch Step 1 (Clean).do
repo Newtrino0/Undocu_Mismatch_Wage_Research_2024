@@ -62,6 +62,9 @@ gen anyss = incss>0
 	replace anyss=. if incss==99999
 gen anyssi = incsupp>0
 	replace anyssi=. if incsupp==99999
+gen medicare = hinscare==2
+
+
 gen healthins = (hcovany==2)
 replace foodstmp = foodstmp-1
 label var foodstmp "Food Stamp Recipient in HH"
@@ -72,13 +75,14 @@ bysort serial sample year: egen hhvet = max(vet)
 bysort serial sample year: egen hhwelf = max(anywelfare)
 bysort serial sample year: egen hhss = max(anyss)
 bysort serial sample year: egen hhssi = max(anyssi)
+bysort serial sample year: egen hhmedicare = max(medicare)
 drop vetstat incwelfr incss incsupp vet anywelfare anyss anyssi
 
 *** Legal if any of the above hold
-egen hhlegal = rowtotal(hhvet hhwelf hhss hhssi)
+egen hhlegal = rowtotal(hhvet hhwelf hhss hhssi hhmedicare)
 tab hhlegal, m
 replace hhlegal=1 if hhlegal>1 
-drop hhvet hhwelf hhss hhssi 
+drop hhvet hhwelf hhss hhssi hhmedicare
 
 ******************************
 *** CLEAN/CREATE CONTROL VARS

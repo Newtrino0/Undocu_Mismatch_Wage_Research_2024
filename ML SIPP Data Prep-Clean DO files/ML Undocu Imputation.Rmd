@@ -271,7 +271,7 @@ ACS_sipp$years_us <- as.numeric(ACS_sipp$years_us)
 
 ACS_sipp$other_race <- as.factor(ifelse(ACS$black!=1 & ACS$white!=1 & ACS$asian!=1, 1, 0))
 ACS_sipp_na <- ACS_sipp  %>%
-  filter(!is.na(age), !is.na(married), !is.na(nonfluent), !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed), !is.na(years_us), !is.na(yrsed)
+  filter(undocu==1, !is.na(age), !is.na(married), !is.na(nonfluent), !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed), !is.na(years_us), !is.na(yrsed)
          )
 
 ACS_cols_numeric <- c("central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
