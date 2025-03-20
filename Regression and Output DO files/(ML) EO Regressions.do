@@ -1,3 +1,4 @@
+*Take out occ_category, introduce inclusive and exclusive
 clear matrix
 clear
 set more off
