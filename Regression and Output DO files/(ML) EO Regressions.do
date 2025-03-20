@@ -93,16 +93,14 @@ esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("
 ********************************************************************************************************
 *******************************************Descriptive Table (SIPP)********************************************
 ********************************************************************************************************
+clear
 eststo clear
-import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\ACS_SIPP_rf.csv", clear 
+import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\SIPP_rf.csv", clear 
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
 
-eststo: estpost tabstat undocu_likely if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if bpl_foreign==1 & citizen==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu==1 & bpl_usa==0 , statistics(mean sd) columns(statistics)  
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_logit==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_knn==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_rf==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn" "Undocu_rf") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed if undocu_likely==1, statistics(mean sd) columns(statistics) 
+esttab est* using dTable_SIPP_ml.tex, replace label main(mean) aux(sd) title("SIPP Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented")
 
 
 ****************************************************************************************************************
