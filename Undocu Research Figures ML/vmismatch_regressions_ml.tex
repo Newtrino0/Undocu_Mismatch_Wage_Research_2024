@@ -6,27 +6,33 @@
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
                     &Logical edits Vmismatch         &Logistic classifier Vmismatch         &KNN Vmismatch         &RF Vmismatch         \\
 \midrule
-Horizontally Undermatched&      0.0724\sym{***}&      0.0724\sym{***}&      0.0724\sym{***}&      0.0724\sym{***}\\
-                    &    [0.0032]         &    [0.0032]         &    [0.0032]         &    [0.0032]         \\
+Horizontally Undermatched&      0.2195\sym{***}&      0.2203\sym{***}&      0.2201\sym{***}&      0.2201\sym{***}\\
+                    &    [0.0050]         &    [0.0049]         &    [0.0049]         &    [0.0049]         \\
 \addlinespace
-Horizontally Overmatched&     -0.0407\sym{***}&     -0.0407\sym{***}&     -0.0406\sym{***}&     -0.0407\sym{***}\\
-                    &    [0.0038]         &    [0.0038]         &    [0.0038]         &    [0.0038]         \\
+Horizontally Overmatched&     -0.1174\sym{***}&     -0.1173\sym{***}&     -0.1173\sym{***}&     -0.1173\sym{***}\\
+                    &    [0.0027]         &    [0.0027]         &    [0.0027]         &    [0.0027]         \\
 \addlinespace
-undocu              &      0.0017         &                     &                     &                     \\
-                    &    [0.0054]         &                     &                     &                     \\
+undocu              &      0.0558\sym{***}&                     &                     &                     \\
+                    &    [0.0059]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &      0.0158         &                     &                     \\
-                    &                     &    [0.0143]         &                     &                     \\
+undocu\_logit        &                     &      0.1554\sym{***}&                     &                     \\
+                    &                     &    [0.0232]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &      0.0164\sym{**} &                     \\
-                    &                     &                     &    [0.0065]         &                     \\
+undocu\_knn          &                     &                     &      0.0551\sym{***}&                     \\
+                    &                     &                     &    [0.0071]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &                     &      0.0075         \\
-                    &                     &                     &                     &    [0.0092]         \\
+undocu\_rf           &                     &                     &                     &      0.0559\sym{***}\\
+                    &                     &                     &                     &    [0.0071]         \\
+\addlinespace
+inclusive           &      0.0053\sym{***}&      0.0051\sym{***}&      0.0049\sym{***}&      0.0051\sym{***}\\
+                    &    [0.0008]         &    [0.0009]         &    [0.0009]         &    [0.0009]         \\
+\addlinespace
+exclusive           &      0.0301\sym{***}&      0.0306\sym{***}&      0.0307\sym{***}&      0.0305\sym{***}\\
+                    &    [0.0018]         &    [0.0018]         &    [0.0018]         &    [0.0018]         \\
 \midrule
 Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         &        0.23         \\
-R-squared           &        0.64         &        0.64         &        0.64         &        0.64         \\
-N                   &      89,302         &      89,302         &      89,302         &      89,302         \\
+R-squared           &        0.17         &        0.17         &        0.17         &        0.17         \\
+N                   &   1,393,360         &   1,393,360         &   1,393,360         &   1,393,360         \\
 \bottomrule
 \multicolumn{5}{l}{\footnotesize Additional controls include:}\\
 \multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\

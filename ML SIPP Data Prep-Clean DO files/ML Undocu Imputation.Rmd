@@ -115,10 +115,10 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces=
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$medicare==0 | sipp08_2$social_security==0), 1, 0))
 
 
-sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 
 
 sipp08_2_dTable[2:17] <- sapply(sipp08_2_dTable[2:17],as.numeric)
@@ -131,8 +131,7 @@ sipp08_2_rf <- na.omit(sipp08_2_rf)
 
 View(sipp08_2)
 
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
-write.csv(sipp08_2_dTable, "SIPP_rf.csv", row.names = FALSE)
+
 ```
 
 
@@ -165,6 +164,7 @@ logistic_kmodel <- train(undocu_likely ~ age + married + nonfluent + spanish_his
 
 p_klogistic <- predict(logistic_kmodel, test_klogistic)
 
+
 # Generate confusion matrix
 klogistic_matrix <- confusionMatrix(p_klogistic, test_klogistic$undocu_likely, positive = "X1")
 print(klogistic_matrix)
@@ -190,7 +190,9 @@ knn_model <- train(undocu_likely ~., data = train_knn, method = "knn",
                        tuneLength = 10)
 
 knn_model
+
 predict_knn <- predict(knn_model, test_knn)
+
 
 knn_matrix <- confusionMatrix(predict_knn, test_knn$undocu_likely, positive = "X1")
 print(knn_matrix)
@@ -227,8 +229,15 @@ print(rf_model)
 plot(rf_model)
 
 p_rf <- predict(rf_model, test_rf)
+
 rf_matrix <- confusionMatrix(p_rf, test_rf$undocu_likely, positive="X1")
 rf_matrix
+
+sipp08_2_dTable$undocu_logit <- predict(logistic_kmodel, sipp08_2_klogistic)
+sipp08_2_dTable$undocu_knn <- predict(knn_model, sipp08_2_knn)
+sipp08_2_dTable$undocu_rf <- predict(rf_model, sipp08_2_rf)
+setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+write.csv(sipp08_2_dTable, "SIPP_dTable.csv", row.names = FALSE)
 ```
 
 *undocu_likely
@@ -342,14 +351,6 @@ colnames(ml_comparison) <- c("Logical edits", "Logistic", "KNN", "RF")
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
 print(ml_comparison)
-library(stargazer)
-mydata %>%
-  select(undocu_likely, bpl_foreign) %>%
-  stargazer(type = "text", title="Descriptive statistics", digits=1, out="table4.txt", 
-            covariate.labels=c("undocu_likely","% FR Meals","# Enrolled Students",
-                               "% Lt HS","% HS grad","% Some College",
-                               "% College Grad","% Grad School"),
-            summary.stat=c("n","mean", "sd","p25","median", "p75","min", "max"))
 ```
 
 ```{r Education-Focused Random Forest}

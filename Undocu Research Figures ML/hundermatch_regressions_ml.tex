@@ -6,24 +6,30 @@
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
                     &Logical edits Hundermatch         &Logistic classifier Hundermatch         &KNN Hundermatch         &RF Hundermatch         \\
 \midrule
-Vertically Mismatched&      0.2414\sym{***}&      0.2414\sym{***}&      0.2414\sym{***}&      0.2414\sym{***}\\
-                    &    [0.0077]         &    [0.0077]         &    [0.0077]         &    [0.0077]         \\
+Vertically Mismatched&      0.3624\sym{***}&      0.3635\sym{***}&      0.3633\sym{***}&      0.3633\sym{***}\\
+                    &    [0.0048]         &    [0.0047]         &    [0.0047]         &    [0.0047]         \\
 \addlinespace
-undocu              &      0.0157\sym{**} &                     &                     &                     \\
-                    &    [0.0075]         &                     &                     &                     \\
+undocu              &      0.0683\sym{***}&                     &                     &                     \\
+                    &    [0.0049]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &     -0.0285         &                     &                     \\
-                    &                     &    [0.0477]         &                     &                     \\
+undocu\_logit        &                     &      0.0005         &                     &                     \\
+                    &                     &    [0.0171]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &     -0.0045         &                     \\
-                    &                     &                     &    [0.0160]         &                     \\
+undocu\_knn          &                     &                     &      0.0459\sym{***}&                     \\
+                    &                     &                     &    [0.0072]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &                     &     -0.0046         \\
-                    &                     &                     &                     &    [0.0200]         \\
+undocu\_rf           &                     &                     &                     &      0.0492\sym{***}\\
+                    &                     &                     &                     &    [0.0070]         \\
+\addlinespace
+inclusive           &      0.0433\sym{***}&      0.0427\sym{***}&      0.0428\sym{***}&      0.0429\sym{***}\\
+                    &    [0.0009]         &    [0.0009]         &    [0.0009]         &    [0.0009]         \\
+\addlinespace
+exclusive           &      0.0715\sym{***}&      0.0719\sym{***}&      0.0722\sym{***}&      0.0720\sym{***}\\
+                    &    [0.0018]         &    [0.0017]         &    [0.0017]         &    [0.0017]         \\
 \midrule
 Mean of Dep. Var.   &        0.43         &        0.43         &        0.43         &        0.43         \\
-R-squared           &        0.22         &        0.22         &        0.22         &        0.22         \\
-N                   &      89,302         &      89,302         &      89,302         &      89,302         \\
+R-squared           &        0.11         &        0.11         &        0.11         &        0.11         \\
+N                   &   1,393,360         &   1,393,360         &   1,393,360         &   1,393,360         \\
 \bottomrule
 \multicolumn{5}{l}{\footnotesize Additional controls include:}\\
 \multicolumn{5}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, occupational category,}\\
