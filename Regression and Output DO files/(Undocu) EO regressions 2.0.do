@@ -95,26 +95,26 @@ eststo clear
 ***Vertical mismatch model***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-reg vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal mismatch model***
-reg hmismatched vmismatched undocu inclusive annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal undermatch model***
-reg hundermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal overmatch model***
-reg hovermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hovermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-esttab using mismatch_regressions_total.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
-order(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
+esttab using mismatch_regressions_total.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Education-Occupation Mismatch (with IPC total indicator)") ///
 mlabel("Vrt. mismatch" "Horiz. mismatch"  "Horiz. undermatch" "Horiz. overmatch") ///
@@ -138,31 +138,31 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-reg vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-esttab using vmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
-order(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
+esttab using vmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Vmismatch (IPC)") ///
 mlabel("Complete Vmismatch"  "Foreign Vmismatch" "Mexican Vmismatch" "Hispanic V.mismatch" ) ///
@@ -185,31 +185,31 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-reg hmismatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg hmismatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg hmismatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg hmismatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-esttab using hmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
-order(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
+esttab using hmismatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hmismatch (IPC)") ///
 mlabel("Complete Hmismatch"  "Foreign Hmismatch" "Mexican Hmismatch" "Hispanic Hmismatch" ) ///
@@ -233,31 +233,31 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-reg hundermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg hundermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg hundermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg hundermatched vmismatched undocu annual_total undocu_annual_total $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu inclusive exclusive $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-esttab using hundermatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
-order(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
+esttab using hundermatch_regressions_ipc.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status on Hundermatch (IPC)") ///
 mlabel("Complete Hundermatch"  "Foreign Hundermatch" "Mexican Hundermatch" "Hispanic Hundermatch" ) ///
@@ -282,25 +282,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete V. mismatch model**
-reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic V. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -329,25 +329,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. mismatch model**
-reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. mismatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -377,25 +377,25 @@ eststo clear
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
 **Complete H. undermatch model**
-reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Mexican H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Hispanic H. undermatch model***
 use "(Undocu) Pre Regression sample",clear
 keep if hisp==1
-reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year i.occ_category [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.statefip##i.year  [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -425,19 +425,19 @@ use "(Undocu) Pre Regression sample",clear
 
 ***COMPLETE WAGE MODEL***
 keep if twentytwo_by_2012==1
-reg ln_adj vmismatched hundermatched hovermatched undocu undocu_year* $covars metropolitan i.occ_category i.statefip##i.year b1.annual_total_dummy [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu undocu_year* $covars metropolitan  i.statefip##i.year b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Vertical mismatch-elig_year model***
-reg vmismatched hundermatched hovermatched undocu undocu_year* $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
+reg vmismatched hundermatched hovermatched undocu undocu_year* $covars metropolitan i.statefip##i.year  b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo 
 ***Horizontal mismatch-elig_year model***
-reg hmismatched vmismatched undocu undocu_year* $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
+reg hmismatched vmismatched undocu undocu_year* $covars metropolitan i.statefip##i.year  b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Horizontal undermatch-elig_year model***
-reg hundermatched vmismatched undocu undocu_year* $covars metropolitan i.statefip##i.year i.occ_category b1.annual_total_dummy [pweight=perwt], r cl(statefip)
+reg hundermatched vmismatched undocu undocu_year* $covars metropolitan i.statefip##i.year  b1.annual_total_dummy [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
@@ -467,33 +467,33 @@ eststo clear
 *** THE COMPLETE WAGE MODEL***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-reg ln_adj vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign born column***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg ln_adj vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Mexico born column***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg ln_adj vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
 eststo
 
 **Hispanic column***
 use "(Undocu) Pre Regression sample", clear
 keep if hisp==1
-reg ln_adj vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu inclusive exclusive $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures 2.0"
-esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
-order(vmismatched hundermatched hovermatched undocu annual_total undocu_annual_total) ///
+esttab using demographic_wage_regressions.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
+order(vmismatched hundermatched hovermatched undocu inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by demographic, on Wages") ///
 mlabel("Complete model" "Foreign-born only" "Mexico-born only" "Hispanic only" ) ///
@@ -516,27 +516,27 @@ eststo clear
 *** THE COMPLETE WAGE MODEL***
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(Undocu) Pre Regression sample",clear
-reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 ***Foreign born column***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl_foreign==1
-reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo	
 
 ***Mexico born column***
 use "(Undocu) Pre Regression sample",clear
 keep if bpl==200
-reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm 
 eststo
 
 **Hispanic column***
 use "(Undocu) Pre Regression sample", clear
 keep if hisp==1
-reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan i.occ_category i.statefip##i.year [pweight=perwt], r cl(statefip)
+reg ln_adj vmismatched hundermatched hovermatched undocu b1.drivers_license b1.professional_licensure b1.e_verify  $covars metropolitan  i.statefip##i.year [pweight=perwt], r cl(statefip)
 estadd ysumm
 eststo
 

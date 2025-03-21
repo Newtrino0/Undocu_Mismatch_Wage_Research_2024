@@ -94,8 +94,22 @@ eststo clear
 import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\SIPP_dTable.csv", clear 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
 
-eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed if undocu_likely==1, statistics(mean sd) columns(statistics) 
+
+gen sipp_logit=0 if undocu_logit=="X0"
+replace sipp_logit=1 if undocu_logit=="X1"
+
+gen sipp_knn=0 if undocu_knn=="X0"
+replace sipp_knn=1 if undocu_knn=="X1"
+
+gen sipp_rf=0 if undocu_rf=="X0"
+replace sipp_rf=1 if undocu_rf=="X1"
+
+replace sipp_logit=0 if sipp_logit==.
+replace sipp_knn=0 if sipp_knn==.
+replace sipp_rf=0 if sipp_rf==.
+
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed sipp_logit sipp_knn sipp_rf, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed sipp_logit sipp_knn sipp_rf if undocu_likely==1, statistics(mean sd) columns(statistics) 
 esttab est* using dTable_SIPP_ml.tex, replace label main(mean) aux(sd) title("SIPP Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented")
 
 
