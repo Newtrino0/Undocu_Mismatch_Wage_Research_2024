@@ -115,10 +115,10 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces=
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$medicare==0 | sipp08_2$social_security==0), 1, 0))
 
 
-sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$employed==1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 
 
 sipp08_2_dTable[2:17] <- sapply(sipp08_2_dTable[2:17],as.numeric)
@@ -185,6 +185,7 @@ train_knn <- sipp08_2_knn[train_index_knn, ]
 test_knn <- sipp08_2_knn[-train_index_knn, ]
 
 
+
 knn_model <- train(undocu_likely ~., data = train_knn, method = "knn", 
                        trControl = control, 
                        tuneLength = 10)
@@ -197,6 +198,14 @@ predict_knn <- predict(knn_model, test_knn)
 knn_matrix <- confusionMatrix(predict_knn, test_knn$undocu_likely, positive = "X1")
 print(knn_matrix)
 ```
+
+* The number of trees in the forest
+* The number of features to consider at any given split: $m_{try}$
+* The complexity of each tree
+* The sampling scheme
+* The splitting rule to use during tree construction
+* and (2) typically have the largest impact on predictive accuracy and should always be tuned. (3) and (4) tend to have marginal impact on predictive accuracy but are still worth exploring. They also have the ability to influence computational efficiency. (5) tends to have the smallest impact on predictive accuracy and is used primarily to increase computational efficiency.
+
 
 ```{r Random Forest}
 library(class)
@@ -211,7 +220,7 @@ train_index_rf <- createDataPartition(sipp08_2_rf$undocu_likely, p = 0.7, list =
 train_rf <- sipp08_2_rf[train_index_rf, ]
 test_rf <- sipp08_2_rf[-train_index_rf, ]
 
-control <- trainControl(
+control_rf <- trainControl(
     method = "cv",
     number = 10,  
     summaryFunction = twoClassSummary,
@@ -223,7 +232,7 @@ set.seed(1)
 rf_model <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
                data = train_rf,
                method = "ranger",
-               trControl = control,
+               trControl = control_rf,
                tuneLength = 5)
 print(rf_model)
 plot(rf_model)
@@ -238,6 +247,77 @@ sipp08_2_dTable$undocu_knn <- predict(knn_model, sipp08_2_knn)
 sipp08_2_dTable$undocu_rf <- predict(rf_model, sipp08_2_rf)
 setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
 write.csv(sipp08_2_dTable, "SIPP_dTable.csv", row.names = FALSE)
+
+
+
+#Manual search by create 10 folds and repeat 3 times
+control_rf <- trainControl(method = 'repeatedcv',
+                        number = 10,
+                        repeats = 3,
+                        search = 'grid')
+
+tunegrid <- expand.grid(mtry = c(2,4,8,12),
+                      splitrule = c("gini", "extratrees"),
+                      min.node.size = 1)
+
+#train with different ntree parameters
+  set.seed(123)
+fit <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
+               data = train_rf,
+               method = 'ranger',
+               metric = 'Accuracy',
+               tuneGrid = tunegrid,
+               trControl = control_rf)
+
+print(fit)
+plot(fit)
+
+p_fit <- predict(fit, test_rf)
+
+fit_matrix <- confusionMatrix(p_fit, test_rf$undocu_likely, positive="X1")
+fit_matrix
+
+```
+
+```{r Over-fitting}
+library(randomForest)
+
+# Predictions
+train_preds <- predict(rf_model, train_rf)
+test_preds <- predict(rf_model, test_rf)
+
+fit_train_preds <- predict(fit, train_rf)
+fit_test_preds <- predict(fit, test_rf)
+
+# Accuracy Calculation
+train_acc <- mean(train_preds == train_rf$undocu_likely)
+test_acc <- mean(test_preds == test_rf$undocu_likely)
+
+fit_train_acc <- mean(fit_train_preds == train_rf$undocu_likely)
+fit_test_acc <- mean(fit_test_preds == test_rf$undocu_likely)
+
+cat("Training Accuracy: ", train_acc, "\n")
+cat("Test Accuracy: ", test_acc, "\n")
+
+cat("Training Accuracy: ", fit_train_acc, "\n")
+cat("Test Accuracy: ", fit_test_acc, "\n")
+
+# Extract OOB error from resampling results
+oob_results <- rf_model$results
+
+# View OOB error metrics
+print(oob_results)
+
+# Plotting OOB Error vs. mtry (number of variables tried at each split)
+plot(oob_results$mtry, oob_results$Accuracy, type = "b",
+     xlab = "mtry (Number of Variables Tried at Each Split)",
+     ylab = "OOB Accuracy",
+     main = "OOB Error vs. mtry")
+
+print(rf_model)
+plot(rf_model)
+
+
 ```
 
 *undocu_likely
