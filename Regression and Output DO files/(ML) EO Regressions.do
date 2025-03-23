@@ -81,7 +81,7 @@ eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched n
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_logit==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_knn==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_rf==1 & bpl_usa==0 , statistics(mean sd) columns(statistics) 
-esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn" "Undocu_rf") note("Note: Log wage is adjusted for inflation with CPI valuesstarting January 2009, every year in January until January 2024.")
+esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Foreign-born citizens" "Undocumented noncitizens" "Undocu_logit" "Undocu_knn" "Undocu_rf") note("Note: Log wage is adjusted for inflation with CPI values starting January 2009, every year in January until January 2019.")
 
 
 ****************************************************************************************************************
@@ -149,7 +149,7 @@ cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Re
 esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive) ///
 order(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on Vmismatch (ML)") ///
+title("Regressions of Undocumented Status, by ML method, on Vmismatch (ML)") ///
 mlabel("Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" "RF Vmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
@@ -189,7 +189,7 @@ cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Re
 esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive) ///
 order(vmismatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on Hmismatch (ML)") ///
+title("Regressions of Undocumented Status, by ML method, on Hmismatch (ML)") ///
 mlabel("Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" "RF Hmismatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
@@ -228,7 +228,7 @@ cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Re
 esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive ) ///
 order(vmismatched undocu undocu_logit undocu_knn undocu_rf inclusive exclusive) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on H. undermatch (ML)") ///
+title("Regressions of Undocumented Status, by ML method, on H. undermatch (ML)") ///
 mlabel("Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" "RF Hundermatch") ///
 r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
 note("Additional controls include:") ///
