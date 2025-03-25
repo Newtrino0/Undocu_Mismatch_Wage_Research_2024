@@ -1,31 +1,25 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Hmismatch (ML)}
+\caption{Regressions of Undocumented Status, by ML method, on Hmismatch (ML)}
 \begin{tabular}{l*{4}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
                     &Logical edits Hmismatch         &Logistic classifier Hmismatch         &KNN Hmismatch         &RF Hmismatch         \\
 \midrule
-Vertically Mismatched&      0.2031\sym{***}&      0.2041\sym{***}&      0.2039\sym{***}&      0.2039\sym{***}\\
-                    &    [0.0053]         &    [0.0053]         &    [0.0053]         &    [0.0053]         \\
+Vertically Mismatched&      0.2052\sym{***}&      0.2060\sym{***}&      0.2059\sym{***}&      0.2058\sym{***}\\
+                    &    [0.0053]         &    [0.0052]         &    [0.0052]         &    [0.0052]         \\
 \addlinespace
-undocu              &      0.0634\sym{***}&                     &                     &                     \\
-                    &    [0.0052]         &                     &                     &                     \\
+undocu              &      0.0587\sym{***}&                     &                     &                     \\
+                    &    [0.0045]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &      0.0175         &                     &                     \\
-                    &                     &    [0.0195]         &                     &                     \\
+undocu\_logit        &                     &      0.0396\sym{**} &                     &                     \\
+                    &                     &    [0.0149]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &      0.0407\sym{***}&                     \\
-                    &                     &                     &    [0.0062]         &                     \\
+undocu\_knn          &                     &                     &      0.0305\sym{***}&                     \\
+                    &                     &                     &    [0.0052]         &                     \\
 \addlinespace
 undocu\_rf           &                     &                     &                     &      0.0482\sym{***}\\
-                    &                     &                     &                     &    [0.0062]         \\
-\addlinespace
-inclusive           &     -0.0050\sym{***}&     -0.0055\sym{***}&     -0.0055\sym{***}&     -0.0053\sym{***}\\
-                    &    [0.0015]         &    [0.0015]         &    [0.0015]         &    [0.0015]         \\
-\addlinespace
-exclusive           &      0.0547\sym{***}&      0.0551\sym{***}&      0.0553\sym{***}&      0.0551\sym{***}\\
-                    &    [0.0024]         &    [0.0024]         &    [0.0024]         &    [0.0024]         \\
+                    &                     &                     &                     &    [0.0050]         \\
 \midrule
 Mean of Dep. Var.   &        0.57         &        0.57         &        0.57         &        0.57         \\
 R-squared           &        0.04         &        0.04         &        0.04         &        0.04         \\

@@ -1,34 +1,28 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Vmismatch (ML)}
+\caption{Regressions of Undocumented Status, by ML method, on Vmismatch (ML)}
 \begin{tabular}{l*{4}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
                     &Logical edits Vmismatch         &Logistic classifier Vmismatch         &KNN Vmismatch         &RF Vmismatch         \\
 \midrule
-Horizontally Undermatched&      0.2195\sym{***}&      0.2203\sym{***}&      0.2201\sym{***}&      0.2201\sym{***}\\
-                    &    [0.0050]         &    [0.0049]         &    [0.0049]         &    [0.0049]         \\
+Horizontally Undermatched&      0.2219\sym{***}&      0.2225\sym{***}&      0.2225\sym{***}&      0.2224\sym{***}\\
+                    &    [0.0049]         &    [0.0049]         &    [0.0049]         &    [0.0049]         \\
 \addlinespace
-Horizontally Overmatched&     -0.1174\sym{***}&     -0.1173\sym{***}&     -0.1173\sym{***}&     -0.1173\sym{***}\\
+Horizontally Overmatched&     -0.1180\sym{***}&     -0.1180\sym{***}&     -0.1179\sym{***}&     -0.1180\sym{***}\\
                     &    [0.0027]         &    [0.0027]         &    [0.0027]         &    [0.0027]         \\
 \addlinespace
-undocu              &      0.0558\sym{***}&                     &                     &                     \\
-                    &    [0.0059]         &                     &                     &                     \\
+undocu              &      0.0485\sym{***}&                     &                     &                     \\
+                    &    [0.0053]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &      0.1554\sym{***}&                     &                     \\
-                    &                     &    [0.0232]         &                     &                     \\
+undocu\_logit        &                     &      0.1724\sym{***}&                     &                     \\
+                    &                     &    [0.0233]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &      0.0551\sym{***}&                     \\
-                    &                     &                     &    [0.0071]         &                     \\
+undocu\_knn          &                     &                     &      0.0389\sym{***}&                     \\
+                    &                     &                     &    [0.0064]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &                     &      0.0559\sym{***}\\
-                    &                     &                     &                     &    [0.0071]         \\
-\addlinespace
-inclusive           &      0.0053\sym{***}&      0.0051\sym{***}&      0.0049\sym{***}&      0.0051\sym{***}\\
-                    &    [0.0008]         &    [0.0009]         &    [0.0009]         &    [0.0009]         \\
-\addlinespace
-exclusive           &      0.0301\sym{***}&      0.0306\sym{***}&      0.0307\sym{***}&      0.0305\sym{***}\\
-                    &    [0.0018]         &    [0.0018]         &    [0.0018]         &    [0.0018]         \\
+undocu\_rf           &                     &                     &                     &      0.0555\sym{***}\\
+                    &                     &                     &                     &    [0.0081]         \\
 \midrule
 Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         &        0.23         \\
 R-squared           &        0.17         &        0.17         &        0.17         &        0.17         \\
