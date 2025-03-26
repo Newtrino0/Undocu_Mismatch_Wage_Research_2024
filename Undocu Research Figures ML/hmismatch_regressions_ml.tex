@@ -6,23 +6,38 @@
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         \\
                     &Logical edits Hmismatch         &Logistic classifier Hmismatch         &KNN Hmismatch         &RF Hmismatch         \\
 \midrule
-Vertically Mismatched&      0.2052\sym{***}&      0.2060\sym{***}&      0.2059\sym{***}&      0.2058\sym{***}\\
-                    &    [0.0053]         &    [0.0052]         &    [0.0052]         &    [0.0052]         \\
+Vertically Mismatched&      0.1748\sym{***}&      0.1757\sym{***}&      0.1757\sym{***}&      0.1754\sym{***}\\
+                    &    [0.0032]         &    [0.0032]         &    [0.0032]         &    [0.0032]         \\
 \addlinespace
-undocu              &      0.0587\sym{***}&                     &                     &                     \\
-                    &    [0.0045]         &                     &                     &                     \\
+undocu              &      0.0608\sym{***}&                     &                     &                     \\
+                    &    [0.0047]         &                     &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &      0.0396\sym{**} &                     &                     \\
-                    &                     &    [0.0149]         &                     &                     \\
+undocu\_logit        &                     &      0.0522\sym{***}&                     &                     \\
+                    &                     &    [0.0134]         &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &                     &      0.0305\sym{***}&                     \\
-                    &                     &                     &    [0.0052]         &                     \\
+undocu\_knn          &                     &                     &      0.0314\sym{***}&                     \\
+                    &                     &                     &    [0.0047]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &                     &      0.0482\sym{***}\\
-                    &                     &                     &                     &    [0.0050]         \\
+undocu\_rf           &                     &                     &                     &      0.0596\sym{***}\\
+                    &                     &                     &                     &    [0.0057]         \\
+\addlinespace
+Science and Engineering Group&      0.0000         &      0.0000         &      0.0000         &      0.0000         \\
+                    &         [.]         &         [.]         &         [.]         &         [.]         \\
+\addlinespace
+Science and Engineering Related Fields&     -0.2837\sym{***}&     -0.2839\sym{***}&     -0.2838\sym{***}&     -0.2838\sym{***}\\
+                    &    [0.0074]         &    [0.0073]         &    [0.0074]         &    [0.0074]         \\
+\addlinespace
+Business            &     -0.5456\sym{***}&     -0.5455\sym{***}&     -0.5455\sym{***}&     -0.5456\sym{***}\\
+                    &    [0.0064]         &    [0.0064]         &    [0.0064]         &    [0.0064]         \\
+\addlinespace
+Education           &     -0.3790\sym{***}&     -0.3787\sym{***}&     -0.3786\sym{***}&     -0.3788\sym{***}\\
+                    &    [0.0082]         &    [0.0082]         &    [0.0082]         &    [0.0082]         \\
+\addlinespace
+Arts, Humanities, and Other&      0.1352\sym{***}&      0.1353\sym{***}&      0.1354\sym{***}&      0.1353\sym{***}\\
+                    &    [0.0073]         &    [0.0072]         &    [0.0072]         &    [0.0072]         \\
 \midrule
 Mean of Dep. Var.   &        0.57         &        0.57         &        0.57         &        0.57         \\
-R-squared           &        0.04         &        0.04         &        0.04         &        0.04         \\
+R-squared           &        0.30         &        0.30         &        0.30         &        0.30         \\
 N                   &   1,394,569         &   1,394,569         &   1,394,569         &   1,394,569         \\
 \bottomrule
 \multicolumn{5}{l}{\footnotesize Additional controls include:}\\

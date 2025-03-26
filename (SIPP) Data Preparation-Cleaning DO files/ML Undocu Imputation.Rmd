@@ -103,7 +103,8 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     social_security = as.factor(ifelse(rcutyp01=="Yes, covered" | rcutyp03=="Yes, covered", 1, 0)),
     central_latino = as.factor(ifelse(tbrstate=="Central America" & eorigin=="Yes", 1, 0)),
     bpl_usa = as.factor(ifelse(ebornus=="Yes", 1, 0)),
-    bpl_asia = as.factor(ifelse(tbrstate == "Eastern Asia"| tbrstate == "South Central Asia"| tbrstate == "South East Asia, West Asia,", 1, 0))
+    bpl_asia = as.factor(ifelse(tbrstate == "Eastern Asia"| tbrstate == "South Central Asia"| tbrstate == "South East Asia, West Asia,", 1, 0)),
+    top_ten_states = as.factor(ifelse(tfipsst=="California" | tfipsst=="Texas" | tfipsst=="Florida" | tfipsst=="New Jersey" | tfipsst=="Illinois" | tfipsst=="New York" | tfipsst=="North Carolina" | tfipsst=="Georgia" | tfipsst=="Washington" | tfipsst=="Arizona", 1, 0))
   )
 
 sipp08_2$bpl_foreign <- as.factor(ifelse(sipp08_2$bpl_usa==1, 0, 1))
@@ -115,14 +116,16 @@ sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces=
 sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$armed_forces==0 | sipp08_2$medicare==0 | sipp08_2$social_security==0), 1, 0))
 
 
-sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0]
-sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1]
-sipp08_2_spanish_hispanic_latino <- sipp08_2[sipp08_2$spanish_hispanic_latino==1]
-sipp08_2_top_states <- sipp08_2[sipp08_2$]
-sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+
+sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "undocu_logical", "bpl_foreign", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+
+sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0,]
+sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1,]
+sipp08_2_spanish_hispanic_latino <- sipp08_2[sipp08_2$spanish_hispanic_latino==1,]
+sipp08_2_top_states <- sipp08_2[sipp08_2$top_ten_states==1,]
 
 
 sipp08_2_dTable[2:17] <- sapply(sipp08_2_dTable[2:17],as.numeric)
@@ -407,35 +410,82 @@ FN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==
 TN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==0))
 FP_logical <- length(which(sipp08_2$undocu_logical==1 & sipp08_2$undocu_likely==0))
 TP_logical <- length(which(sipp08_2$undocu_logical==1 & sipp08_2$undocu_likely==1))
-## General
-FN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==1))
-TN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==0))
-FP_logical <- length(which(sipp08_2$undocu_logical==1 & sipp08_2$undocu_likely==0))
-TP_logical <- length(which(sipp08_2$undocu_logical==1 & sipp08_2$undocu_likely==1))
 
-specificty_logical<- TN_logical/(TN_logical+FP_logical)
+specificity_logical<- TN_logical/(TN_logical+FP_logical)
 sensitivity_logical<- TP_logical/(TP_logical+FN_logical)
 ppv_logical <- TP_logical/(TP_logical+FP_logical)
 accuracy_logical <- (TP_logical+TN_logical)/(TP_logical+TN_logical+FP_logical+FN_logical)  
 
+## Noncitizens
+FN_logical_noncit <- length(which(sipp08_2_noncit$undocu_logical==0 & sipp08_2_noncit$undocu_likely==1))
+TN_logical_noncit <- length(which(sipp08_2_noncit$undocu_logical==0 & sipp08_2_noncit$undocu_likely==0))
+FP_logical_noncit <- length(which(sipp08_2_noncit$undocu_logical==1 & sipp08_2_noncit$undocu_likely==0))
+TP_logical_noncit <- length(which(sipp08_2_noncit$undocu_logical==1 & sipp08_2_noncit$undocu_likely==1))
 
-logical_sensitivity <- c(sensitivity_logical, klogistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']], rf_matrix$byClass[['Sensitivity']])
+specificity_logical_noncit<- TN_logical_noncit/(TN_logical_noncit+FP_logical_noncit)
+sensitivity_logical_noncit<- TP_logical_noncit/(TP_logical_noncit+FN_logical_noncit)
+ppv_logical_noncit <- TP_logical_noncit/(TP_logical_noncit+FP_logical_noncit)
+accuracy_logical_noncit <- (TP_logical_noncit+TN_logical_noncit)/(TP_logical_noncit+TN_logical_noncit+FP_logical_noncit+FN_logical_noncit)  
 
-logical_specificity <- c(specificty_logical, klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']], rf_matrix$byClass[['Specificity']])
+## Top ten states of undocumented immigrants
+FN_logical_top_states <- length(which(sipp08_2_top_states$undocu_logical==0 & sipp08_2_top_states$undocu_likely==1))
+TN_logical_top_states <- length(which(sipp08_2_top_states$undocu_logical==0 & sipp08_2_top_states$undocu_likely==0))
+FP_logical_top_states <- length(which(sipp08_2_top_states$undocu_logical==1 & sipp08_2_top_states$undocu_likely==0))
+TP_logical_top_states <- length(which(sipp08_2_top_states$undocu_logical==1 & sipp08_2_top_states$undocu_likely==1))
 
-logical_ppv <- c(ppv_logical, klogistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']],rf_matrix$byClass[['Pos Pred Value']])
+specificity_logical_top_states<- TN_logical_top_states/(TN_logical_top_states+FP_logical_top_states)
+sensitivity_logical_top_states<- TP_logical_top_states/(TP_logical_top_states+FN_logical_top_states)
+ppv_logical_top_states <- TP_logical_top_states/(TP_logical_top_states+FP_logical_top_states)
+accuracy_logical_top_states <- (TP_logical_top_states+TN_logical_top_states)/(TP_logical_top_states+TN_logical_top_states+FP_logical_top_states+FN_logical_top_states)  
 
-logical_accuracy <- c(accuracy_logical, klogistic_matrix$overall[['Accuracy']], knn_matrix$overall[['Accuracy']], rf_matrix$overall[['Accuracy']])
+## Hispanic, latino, spanish
+FN_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==0 & sipp08_2_spanish_hispanic_latino$undocu_likely==1))
+TN_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==0 & sipp08_2_spanish_hispanic_latino$undocu_likely==0))
+FP_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==1 & sipp08_2_spanish_hispanic_latino$undocu_likely==0))
+TP_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==1 & sipp08_2_spanish_hispanic_latino$undocu_likely==1))
+
+specificity_logical_spanish_hispanic_latino<- TN_logical_spanish_hispanic_latino/(TN_logical_spanish_hispanic_latino+FP_logical_spanish_hispanic_latino)
+sensitivity_logical_spanish_hispanic_latino<- TP_logical_spanish_hispanic_latino/(TP_logical_spanish_hispanic_latino+FN_logical_spanish_hispanic_latino)
+ppv_logical_spanish_hispanic_latino <- TP_logical_spanish_hispanic_latino/(TP_logical_spanish_hispanic_latino+FP_logical_spanish_hispanic_latino)
+accuracy_logical_spanish_hispanic_latino <- (TP_logical_spanish_hispanic_latino+TN_logical_spanish_hispanic_latino)/(TP_logical_spanish_hispanic_latino+TN_logical_spanish_hispanic_latino+FP_logical_spanish_hispanic_latino+FN_logical_spanish_hispanic_latino)  
+
+## Central America and Latino (Central America + Mexico)
+FN_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==0 & sipp08_2_central_latino$undocu_likely==1))
+TN_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==0 & sipp08_2_central_latino$undocu_likely==0))
+FP_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==1 & sipp08_2_central_latino$undocu_likely==0))
+TP_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==1 & sipp08_2_central_latino$undocu_likely==1))
 
 
-ml_table <- data.frame(sensitivity, specificity, ppv, accuracy)
-ml_comparison <- as.data.frame(t(ml_table))
-colnames(ml_comparison) <- c("Logical edits", "Logistic", "KNN", "RF")
+specificity_logical_central_latino<- TN_logical_central_latino/(TN_logical_central_latino+FP_logical_central_latino)
+sensitivity_logical_central_latino<- TP_logical_central_latino/(TP_logical_central_latino+FN_logical_central_latino)
+ppv_logical_central_latino <- TP_logical_central_latino/(TP_logical_central_latino+FP_logical_central_latino)
+accuracy_logical_central_latino <- (TP_logical_central_latino+TN_logical_central_latino)/(TP_logical_central_latino+TN_logical_central_latino+FP_logical_central_latino+FN_logical_central_latino)
 
-# ML metrics (comparison of ML models)
-xtable(ml_comparison, digits=4)
-print(ml_comparison)
+
+
+logical_sensitivity <- c(sensitivity_logical, sensitivity_logical_noncit, sensitivity_logical_top_states, sensitivity_logical_spanish_hispanic_latino, sensitivity_logical_central_latino)
+
+logical_specificity <- c(specificity_logical, specificity_logical_noncit, specificity_logical_top_states, specificity_logical_spanish_hispanic_latino, specificity_logical_central_latino)
+
+logical_ppv <- c(ppv_logical, ppv_logical_noncit, ppv_logical_top_states, ppv_logical_spanish_hispanic_latino, ppv_logical_central_latino)
+
+logical_accuracy <- c(accuracy_logical, accuracy_logical_noncit, accuracy_logical_top_states, accuracy_logical_spanish_hispanic_latino, accuracy_logical_central_latino)
+
+
+logical_edits_table <- data.frame(logical_sensitivity, logical_specificity, logical_ppv, logical_accuracy)
+logical_edits_comparison <- as.data.frame(t(logical_edits_table))
+colnames(logical_edits_comparison) <- c("Initial SIPP sample", "Noncitizens", "Top 10 states", "Hispanic/Latino/Spanish", "Central America and Latino")
+
+# Logical edits metrics (comparison of Logical edits filters)
+xtable(logical_edits_comparison, digits=4)
+print(logical_edits_comparison)
 ```
+
+https://bradleyboehmke.github.io/HOML/process.html
+Sensitivity: $\frac{TP}{TP + FN}$
+Specificity: $\frac{TN}{TN + FP}$
+Precision / Positive-predictive value: $\frac{TP}{TP + FP}$
+Accuracy: $\frac{TP + TN}{total}$
 
 ```{r General Model performance}
 library(pROC)

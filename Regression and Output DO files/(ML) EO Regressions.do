@@ -64,7 +64,7 @@ clear matrix
 set more off
 
 xtset statefip
-global covars i.age hisp male gov_worker immig_by_ten nonfluent yrsed stem_deg
+global covars i.age hisp male gov_worker immig_by_ten nonfluent yrsed i.degfield_broader
 global individual_ipc b1.pub_insurance_immigrant_kids 	b1.prenatal_care_pregnant_immigrant 	b1.pub_insurance_pregnant_immigrant 	b1.pub_insurance_immigrant_older_ad 	b1.food_assistance_for_lpr_adults 	b1.tuition_equity 	b1.financial_aid 	b1.blocks_enrollment 	b1.professional_licensure 	b1.drivers_license	b1.omnibus 	b1.cooperation_federal_immigration 	b1.e_verify b1.secure_communities_participated
 
 save "(ML) Pre Regression sample", replace
@@ -112,17 +112,17 @@ foreach var in bpl_foreign central_latino bpl_asia married nonfluent spanish_his
  replace `var'=`var'-1
 }
 
-eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed sipp_logit sipp_knn sipp_rf, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed sipp_logit sipp_knn sipp_rf if undocu_likely==1, statistics(mean sd) columns(statistics) 
-esttab est* using dTable_SIPP_ml.tex, replace label main(mean) aux(sd) title("SIPP Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented")
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed undocu_likely if yrsed>=16, statistics(mean sd) columns(statistics)
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed undocu_likely if yrsed>=16 & undocu_likely==1, statistics(mean sd) columns(statistics)  
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed undocu_likely if yrsed>=16 & sipp_logit==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed undocu_likely if yrsed>=16 & sipp_knn==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age married central_latino bpl_asia  nonfluent spanish_hispanic_latino household_size poverty asian black white other_race employed years_us yrsed undocu_likely if yrsed>=16 & sipp_rf==1, statistics(mean sd) columns(statistics) 
+esttab est* using dTable_SIPP_ml.tex, replace label main(mean) aux(sd) title("SIPP Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented" "Undocumented (Logit)" "Undocumented (KNN)" "Undocumented (RF)")
 
-
-**ADD dTable on Logical edits for different demographics, move to top ***
 
 **Add feature importance table for RF**
 
 *Add bar graphs (for mismatch across majors), coefficient plots*
-*hide inclusive and exclusive*
 
 ****************************************************************************************	
 ********************************Individual Mismatch regressions (ML) ************************************
@@ -152,8 +152,8 @@ estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
-order(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
+esttab using vmismatch_regressions_ml.tex, replace label booktabs keep(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
+order(hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by ML method, on Vmismatch (ML)") ///
 mlabel("Logical edits Vmismatch" "Logistic classifier Vmismatch" "KNN Vmismatch" "RF Vmismatch") ///
@@ -192,8 +192,8 @@ estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
-order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
+esttab using hmismatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
+order(vmismatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by ML method, on Hmismatch (ML)") ///
 mlabel("Logical edits Hmismatch" "Logistic classifier Hmismatch" "KNN Hmismatch" "RF Hmismatch") ///
@@ -231,8 +231,8 @@ estadd ysumm
 eststo
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
-order(vmismatched undocu undocu_logit undocu_knn undocu_rf) ///
+esttab using hundermatch_regressions_ml.tex, replace label booktabs keep(vmismatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
+order(vmismatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by ML method, on H. undermatch (ML)") ///
 mlabel("Logical edits Hundermatch" "Logistic classifier Hundermatch" "KNN Hundermatch" "RF Hundermatch") ///
@@ -279,8 +279,8 @@ eststo
 
 
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
-esttab using wage_regressions_ml.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
-order(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf) ///
+esttab using wage_regressions_ml.tex, replace label booktabs keep(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
+order(vmismatched hundermatched hovermatched undocu undocu_logit undocu_knn undocu_rf 1.degfield_broader 2.degfield_broader 3.degfield_broader 4.degfield_broader 5.degfield_broader) ///
 stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
 title("Regressions of Undocumented Status, by ML method, on Wages") ///
 mlabel("Logical edits model" "Logistic Classifier model" "KNN model" "RF model") ///
