@@ -240,7 +240,8 @@ rf_model <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic_l
                data = train_rf,
                method = "ranger",
                trControl = control_rf,
-               tuneLength = 5)
+               tuneLength = 5,
+               importance = "impurity")
 print(rf_model)
 plot(rf_model)
 
@@ -248,6 +249,14 @@ p_rf <- predict(rf_model, test_rf)
 
 rf_matrix <- confusionMatrix(p_rf, test_rf$undocu_likely, positive="X1")
 rf_matrix
+
+feature_importance_stats<-varImp(rf_model)
+
+library(vip)
+library(gridExtra)
+feature_importance <- vip(rf_model, num_features = 16, bar = FALSE)
+
+grid.arrange(feature_importance, nrow = 1)
 
 sipp08_2_dTable$undocu_logit <- predict(logistic_kmodel, sipp08_2_klogistic)
 sipp08_2_dTable$undocu_knn <- predict(knn_model, sipp08_2_knn)
@@ -283,8 +292,9 @@ p_rf_2 <- predict(rf_model_2, test_rf)
 
 rf_matrix_2 <- confusionMatrix(p_rf_2, test_rf$undocu_likely, positive="X1")
 rf_matrix_2
-
 ```
+
+
 
 
 ```{r Over-fitting}
