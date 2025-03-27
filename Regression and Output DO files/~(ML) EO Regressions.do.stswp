@@ -148,7 +148,7 @@ esttab est* using dTable_SIPP_ml.tex, replace label main(mean) aux(sd) title("SI
 
 
 **Start writing, add IPC table last
-**RERUN TABLES 3-4 with new undocu measures
+**RERUN TABLES 3-4 with new undocu measure
 **Conduct literature review (Van Hook, Stimpson, )
 **UPDATES TO NOTES: Remove Li and Lu note, remove stem and replace with broad categories, no occupational categories
 **UPDATES TO LABELS: Undocu, logit, knn, rf: compact, remove undocumented from columns. Undocumented (RF) etc. to rows

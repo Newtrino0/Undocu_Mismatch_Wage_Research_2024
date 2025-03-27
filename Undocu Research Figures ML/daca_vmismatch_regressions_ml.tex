@@ -1,28 +1,28 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Vmismatch (ML)}
+\caption{Regressions of DACA Status on Vmismatch (ML)}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
                     &Logical edits Vmismatch         &KNN Vmismatch         &RF Vmismatch         \\
 \midrule
-Horizontally Undermatched&      0.2442\sym{***}&      0.2449\sym{***}&      0.2447\sym{***}\\
+Horizontally Undermatched&      0.2451\sym{***}&      0.2451\sym{***}&      0.2451\sym{***}\\
                     &    [0.0043]         &    [0.0043]         &    [0.0043]         \\
 \addlinespace
-Horizontally Overmatched&     -0.0967\sym{***}&     -0.0964\sym{***}&     -0.0966\sym{***}\\
+Horizontally Overmatched&     -0.0964\sym{***}&     -0.0964\sym{***}&     -0.0964\sym{***}\\
                     &    [0.0023]         &    [0.0023]         &    [0.0023]         \\
 \addlinespace
-undocu              &      0.0471\sym{***}&                     &                     \\
-                    &    [0.0053]         &                     &                     \\
+Eligible            &     -0.0020         &                     &                     \\
+                    &    [0.0061]         &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &                     &                     \\
+elig\_logit          &                     &                     &                     \\
                     &                     &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &      0.0374\sym{***}&                     \\
-                    &                     &    [0.0061]         &                     \\
+elig\_knn            &                     &     -0.0057         &                     \\
+                    &                     &    [0.0096]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &      0.0536\sym{***}\\
-                    &                     &                     &    [0.0078]         \\
+elig\_rf             &                     &                     &      0.0060         \\
+                    &                     &                     &    [0.0193]         \\
 \midrule
 Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         \\
 R-squared           &        0.17         &        0.17         &        0.17         \\

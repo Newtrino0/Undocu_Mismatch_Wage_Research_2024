@@ -1,25 +1,25 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on H. undermatch (ML)}
+\caption{Regressions of DACA Status on H. undermatch (ML)}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
                     &Logical edits Hundermatch         &KNN Hundermatch         &RF Hundermatch         \\
 \midrule
-Vertically Mismatched&      0.3430\sym{***}&      0.3439\sym{***}&      0.3437\sym{***}\\
-                    &    [0.0043]         &    [0.0043]         &    [0.0043]         \\
+Vertically Mismatched&      0.3441\sym{***}&      0.3441\sym{***}&      0.3441\sym{***}\\
+                    &    [0.0042]         &    [0.0042]         &    [0.0042]         \\
 \addlinespace
-undocu              &      0.0653\sym{***}&                     &                     \\
-                    &    [0.0048]         &                     &                     \\
+Eligible            &      0.0216\sym{***}&                     &                     \\
+                    &    [0.0064]         &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &                     &                     \\
+elig\_logit          &                     &                     &                     \\
                     &                     &                     &                     \\
 \addlinespace
-undocu\_knn          &                     &      0.0358\sym{***}&                     \\
-                    &                     &    [0.0055]         &                     \\
+elig\_knn            &                     &      0.0227\sym{*}  &                     \\
+                    &                     &    [0.0120]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &      0.0571\sym{***}\\
-                    &                     &                     &    [0.0072]         \\
+elig\_rf             &                     &                     &      0.0387\sym{*}  \\
+                    &                     &                     &    [0.0196]         \\
 \midrule
 Mean of Dep. Var.   &        0.43         &        0.43         &        0.43         \\
 R-squared           &        0.25         &        0.25         &        0.25         \\

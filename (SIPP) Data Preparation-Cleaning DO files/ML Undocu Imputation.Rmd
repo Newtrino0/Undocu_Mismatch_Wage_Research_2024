@@ -122,10 +122,10 @@ sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "
 sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 
-sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0,]
-sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1,]
-sipp08_2_spanish_hispanic_latino <- sipp08_2[sipp08_2$spanish_hispanic_latino==1,]
-sipp08_2_top_states <- sipp08_2[sipp08_2$top_ten_states==1,]
+sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0 & sipp08_2$college==1,]
+sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1 & sipp08_2$college==1,]
+sipp08_2_spanish_hispanic_latino <- sipp08_2[sipp08_2$spanish_hispanic_latino==1 & sipp08_2$college==1,]
+sipp08_2_top_states <- sipp08_2[sipp08_2$top_ten_states==1 & sipp08_2$college==1,]
 
 
 sipp08_2_dTable[2:17] <- sapply(sipp08_2_dTable[2:17],as.numeric)
@@ -415,6 +415,7 @@ write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
 ```
 
 ```{r Logical edits performance}
+library(xtable)
 ## General
 FN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==1))
 TN_logical <- length(which(sipp08_2$undocu_logical==0 & sipp08_2$undocu_likely==0))
