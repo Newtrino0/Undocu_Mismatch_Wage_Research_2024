@@ -1,10 +1,10 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of DACA Status on Wages}
+\caption{Regressions of DACA-eligible Status on Log-Wage}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Logical edits model         &   KNN model         &    RF model         \\
+                    &Logical edits         &         KNN         &          RF         \\
 \midrule
 Vertically Mismatched&     -0.3229\sym{***}&     -0.3229\sym{***}&     -0.3229\sym{***}\\
                     &    [0.0065]         &    [0.0065]         &    [0.0065]         \\
@@ -15,13 +15,13 @@ Horizontally Undermatched&     -0.1612\sym{***}&     -0.1613\sym{***}&     -0.16
 Horizontally Overmatched&      0.0209\sym{***}&      0.0209\sym{***}&      0.0209\sym{***}\\
                     &    [0.0056]         &    [0.0056]         &    [0.0056]         \\
 \addlinespace
-Eligible            &     -0.0474\sym{***}&                     &                     \\
+DACA-eligible       &     -0.0474\sym{***}&                     &                     \\
                     &    [0.0117]         &                     &                     \\
 \addlinespace
-elig\_knn            &                     &     -0.0655\sym{**} &                     \\
+DACA-eligible (KNN) &                     &     -0.0655\sym{**} &                     \\
                     &                     &    [0.0251]         &                     \\
 \addlinespace
-elig\_rf             &                     &                     &     -0.0961\sym{***}\\
+DACA-eligible (RF)  &                     &                     &     -0.0961\sym{***}\\
                     &                     &                     &    [0.0315]         \\
 \midrule
 Mean of Dep. Var.   &        3.47         &        3.47         &        3.47         \\

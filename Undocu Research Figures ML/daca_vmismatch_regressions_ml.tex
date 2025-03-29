@@ -1,10 +1,10 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of DACA Status on Vmismatch (ML)}
+\caption{Regressions of DACA-eligible Status on Vmismatch}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Logical edits Vmismatch         &KNN Vmismatch         &RF Vmismatch         \\
+                    &Logical edits         &         KNN         &          RF         \\
 \midrule
 Horizontally Undermatched&      0.2451\sym{***}&      0.2451\sym{***}&      0.2451\sym{***}\\
                     &    [0.0043]         &    [0.0043]         &    [0.0043]         \\
@@ -12,16 +12,13 @@ Horizontally Undermatched&      0.2451\sym{***}&      0.2451\sym{***}&      0.24
 Horizontally Overmatched&     -0.0964\sym{***}&     -0.0964\sym{***}&     -0.0964\sym{***}\\
                     &    [0.0023]         &    [0.0023]         &    [0.0023]         \\
 \addlinespace
-Eligible            &     -0.0020         &                     &                     \\
+DACA-eligible       &     -0.0020         &                     &                     \\
                     &    [0.0061]         &                     &                     \\
 \addlinespace
-elig\_logit          &                     &                     &                     \\
-                    &                     &                     &                     \\
-\addlinespace
-elig\_knn            &                     &     -0.0057         &                     \\
+DACA-eligible (KNN) &                     &     -0.0057         &                     \\
                     &                     &    [0.0096]         &                     \\
 \addlinespace
-elig\_rf             &                     &                     &      0.0060         \\
+DACA-eligible (RF)  &                     &                     &      0.0060         \\
                     &                     &                     &    [0.0193]         \\
 \midrule
 Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         \\

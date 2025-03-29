@@ -1,24 +1,21 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of DACA Status on H. undermatch (ML)}
+\caption{Regressions of DACA-eligible Status on H. undermatch}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Logical edits Hundermatch         &KNN Hundermatch         &RF Hundermatch         \\
+                    &Logical edits         &         KNN         &          RF         \\
 \midrule
 Vertically Mismatched&      0.3441\sym{***}&      0.3441\sym{***}&      0.3441\sym{***}\\
                     &    [0.0042]         &    [0.0042]         &    [0.0042]         \\
 \addlinespace
-Eligible            &      0.0216\sym{***}&                     &                     \\
+DACA-eligible       &      0.0216\sym{***}&                     &                     \\
                     &    [0.0064]         &                     &                     \\
 \addlinespace
-elig\_logit          &                     &                     &                     \\
-                    &                     &                     &                     \\
-\addlinespace
-elig\_knn            &                     &      0.0227\sym{*}  &                     \\
+DACA-eligible (KNN) &                     &      0.0227\sym{*}  &                     \\
                     &                     &    [0.0120]         &                     \\
 \addlinespace
-elig\_rf             &                     &                     &      0.0387\sym{*}  \\
+DACA-eligible (RF)  &                     &                     &      0.0387\sym{*}  \\
                     &                     &                     &    [0.0196]         \\
 \midrule
 Mean of Dep. Var.   &        0.43         &        0.43         &        0.43         \\

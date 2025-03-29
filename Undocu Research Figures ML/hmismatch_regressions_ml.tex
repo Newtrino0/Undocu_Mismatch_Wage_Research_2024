@@ -1,24 +1,21 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Hmismatch (ML)}
+\caption{Regressions of Undocumented Status on Hmismatch}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Logical edits Hmismatch         &KNN Hmismatch         &RF Hmismatch         \\
+                    &Logical edits         &         KNN         &          RF         \\
 \midrule
 Vertically Mismatched&      0.1748\sym{***}&      0.1757\sym{***}&      0.1754\sym{***}\\
                     &    [0.0032]         &    [0.0032]         &    [0.0032]         \\
 \addlinespace
-undocu              &      0.0608\sym{***}&                     &                     \\
+Undocumented        &      0.0608\sym{***}&                     &                     \\
                     &    [0.0047]         &                     &                     \\
 \addlinespace
-undocu\_logit        &                     &                     &                     \\
-                    &                     &                     &                     \\
-\addlinespace
-undocu\_knn          &                     &      0.0314\sym{***}&                     \\
+Undocumented (KNN)  &                     &      0.0314\sym{***}&                     \\
                     &                     &    [0.0047]         &                     \\
 \addlinespace
-undocu\_rf           &                     &                     &      0.0596\sym{***}\\
+Undocumented (RF)   &                     &                     &      0.0596\sym{***}\\
                     &                     &                     &    [0.0057]         \\
 \midrule
 Mean of Dep. Var.   &        0.57         &        0.57         &        0.57         \\
