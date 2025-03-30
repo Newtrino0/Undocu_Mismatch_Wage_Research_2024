@@ -1,7 +1,3 @@
-ssc install outreg2
-ssc install tabout
-ssc install estout
-ssc install groups
 global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Data Preparation-Cleaning DO files"
 global figures "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
@@ -17,19 +13,19 @@ keep if undocu_rf==1
 
 collapse (median)hmismatch_rate_occ=hmproportion (median)hunderproportion (median)hoverproportion (median)vmean_occ_yrs (median)vmismatched_att (median)undocu_rf_occ_count, by(occ)
 gsort -undocu_rf_occ_count
-keep if undocu_rf_occ_count > 85
+keep if undocu_rf_occ_count > 274
 gsort -hmismatch_rate_occ
 save ten_occ_undocu_rf_table.dta, replace
 
 
 ***Top 10 deg, then sorted by mismatch
-use "(Undocu)EO_Final_Sample", clear
+use "(ML)EO_Final_Sample", clear
 sort degfield
 keep if undocu_rf==1
 
 collapse (median)hmismatch_rate_deg=hmproportion_deg (median)hunderproportion_deg (median)hoverproportion_deg (median)vmean_deg_yrs (mean)vmismatched_att (median)undocu_rf_deg_count, by(degfield)
 gsort -undocu_rf_deg_count
-keep if undocu_rf_deg_count > 172
+keep if undocu_rf_deg_count > 419
 gsort -hmismatch_rate_deg
 save ten_deg_undocu_rf_table.dta, replace
 

@@ -296,48 +296,6 @@ rf_matrix_2
 
 
 
-
-```{r Over-fitting}
-library(randomForest)
-
-# Predictions
-train_preds <- predict(rf_model, train_rf)
-test_preds <- predict(rf_model, test_rf)
-
-fit_train_preds <- predict(fit, train_rf)
-fit_test_preds <- predict(fit, test_rf)
-
-# Accuracy Calculation
-train_acc <- mean(train_preds == train_rf$undocu_likely)
-test_acc <- mean(test_preds == test_rf$undocu_likely)
-
-fit_train_acc <- mean(fit_train_preds == train_rf$undocu_likely)
-fit_test_acc <- mean(fit_test_preds == test_rf$undocu_likely)
-
-cat("Training Accuracy: ", train_acc, "\n")
-cat("Test Accuracy: ", test_acc, "\n")
-
-cat("Training Accuracy: ", fit_train_acc, "\n")
-cat("Test Accuracy: ", fit_test_acc, "\n")
-
-# Extract OOB error from resampling results
-oob_results <- rf_model$results
-
-# View OOB error metrics
-print(oob_results)
-
-# Plotting OOB Error vs. mtry (number of variables tried at each split)
-plot(oob_results$mtry, oob_results$Accuracy, type = "b",
-     xlab = "mtry (Number of Variables Tried at Each Split)",
-     ylab = "OOB Accuracy",
-     main = "OOB Error vs. mtry")
-
-print(rf_model)
-plot(rf_model)
-
-
-```
-
 *undocu_likely
 *age 
 *married 
@@ -512,7 +470,7 @@ accuracy <- c(accuracy_logical, klogistic_matrix$overall[['Accuracy']], knn_matr
 
 sensitivity <- c(sensitivity_logical, klogistic_matrix$byClass[['Sensitivity']], knn_matrix$byClass[['Sensitivity']], rf_matrix$byClass[['Sensitivity']])
 
-specificity <- c(specificty_logical, klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']], rf_matrix$byClass[['Specificity']])
+specificity <- c(specificity_logical, klogistic_matrix$byClass[['Specificity']], knn_matrix$byClass[['Specificity']], rf_matrix$byClass[['Specificity']])
 
 ppv <- c(ppv_logical, klogistic_matrix$byClass[['Pos Pred Value']], knn_matrix$byClass[['Pos Pred Value']],rf_matrix$byClass[['Pos Pred Value']])
 
