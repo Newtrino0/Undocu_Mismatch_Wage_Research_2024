@@ -13,7 +13,7 @@ keep if undocu_rf==1
 
 collapse (median)hmismatch_rate_occ=hmproportion (median)hunderproportion (median)hoverproportion (median)vmean_occ_yrs (median)vmismatched_att (median)undocu_rf_occ_count, by(occ)
 gsort -undocu_rf_occ_count
-keep if undocu_rf_occ_count > 28
+keep if undocu_rf_occ_count > 2
 gsort -hmismatch_rate_occ
 save ten_occ_undocu_rf_table.dta, replace
 

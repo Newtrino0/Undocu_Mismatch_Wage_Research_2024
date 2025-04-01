@@ -17,7 +17,7 @@ set more off, perm
 ********************************
 *cd $rawdata
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "usa_00025.dta", clear
+use "usa_00031.dta", clear
 describe
 
 ********* Clean data ***********

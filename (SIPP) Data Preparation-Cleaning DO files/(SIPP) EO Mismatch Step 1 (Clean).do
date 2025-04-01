@@ -17,7 +17,7 @@ set more off, perm
 ********************************
 *cd $rawdata
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "Core_TM SIPP 2008 Wave 2.dta", clear
+import delimited "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\SIPP08_2.csv", clear 
 describe
 
 
