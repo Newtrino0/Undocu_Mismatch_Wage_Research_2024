@@ -6,26 +6,26 @@
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
                     &Logical edits         &         KNN         &          RF         \\
 \midrule
-Vertically Mismatched&      0.3516\sym{***}&      0.3528\sym{***}&      0.3526\sym{***}\\
+Vertically Mismatched&      0.3516\sym{***}&      0.3528\sym{***}&      0.3525\sym{***}\\
                     &    [0.0038]         &    [0.0037]         &    [0.0037]         \\
 \addlinespace
 undocu=0            &      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
 \addlinespace
-Undocumented        &      0.0335\sym{***}&      0.0529\sym{***}&      0.1359\sym{***}\\
-                    &    [0.0102]         &    [0.0186]         &    [0.0190]         \\
+Undocumented        &      0.0337\sym{***}&      0.0602\sym{***}&      0.0625\sym{***}\\
+                    &    [0.0100]         &    [0.0169]         &    [0.0140]         \\
 \addlinespace
-STEM                &      0.1047\sym{***}&      0.1059\sym{***}&      0.1061\sym{***}\\
+STEM                &      0.1047\sym{***}&      0.1059\sym{***}&      0.1055\sym{***}\\
                     &    [0.0080]         &    [0.0083]         &    [0.0083]         \\
 \addlinespace
-STEM Related        &     -0.1775\sym{***}&     -0.1744\sym{***}&     -0.1743\sym{***}\\
-                    &    [0.0052]         &    [0.0050]         &    [0.0050]         \\
+STEM Related        &     -0.1776\sym{***}&     -0.1744\sym{***}&     -0.1751\sym{***}\\
+                    &    [0.0052]         &    [0.0051]         &    [0.0051]         \\
 \addlinespace
-Business            &     -0.3959\sym{***}&     -0.3996\sym{***}&     -0.3995\sym{***}\\
-                    &    [0.0055]         &    [0.0055]         &    [0.0055]         \\
+Business            &     -0.3959\sym{***}&     -0.3996\sym{***}&     -0.3988\sym{***}\\
+                    &    [0.0054]         &    [0.0055]         &    [0.0055]         \\
 \addlinespace
-Education           &     -0.2998\sym{***}&     -0.2943\sym{***}&     -0.2946\sym{***}\\
-                    &    [0.0049]         &    [0.0046]         &    [0.0046]         \\
+Education           &     -0.2999\sym{***}&     -0.2943\sym{***}&     -0.2949\sym{***}\\
+                    &    [0.0049]         &    [0.0046]         &    [0.0047]         \\
 \addlinespace
 Arts, Humanities, and Other&      0.0000         &      0.0000         &      0.0000         \\
                     &         [.]         &         [.]         &         [.]         \\
@@ -45,17 +45,17 @@ undocu=0 $\times$ Education&      0.0000         &                     &        
 undocu=0 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
 \addlinespace
-Undocumented x STEM &     -0.0024         &      0.0378\sym{*}  &     -0.0475\sym{*}  \\
-                    &    [0.0080]         &    [0.0216]         &    [0.0279]         \\
+Undocumented x STEM &     -0.0023         &      0.0286         &      0.0125         \\
+                    &    [0.0081]         &    [0.0225]         &    [0.0119]         \\
 \addlinespace
-Undocumented x STEM Related&      0.0386\sym{***}&      0.0978\sym{***}&      0.1301\sym{***}\\
-                    &    [0.0117]         &    [0.0312]         &    [0.0336]         \\
+Undocumented x STEM Related&      0.0393\sym{***}&      0.0911\sym{***}&      0.0706\sym{***}\\
+                    &    [0.0115]         &    [0.0285]         &    [0.0209]         \\
 \addlinespace
-Undocumented x Business&     -0.0830\sym{***}&     -0.1203\sym{***}&     -0.2789\sym{***}\\
-                    &    [0.0123]         &    [0.0321]         &    [0.0236]         \\
+Undocumented x Business&     -0.0836\sym{***}&     -0.1355\sym{***}&     -0.1356\sym{***}\\
+                    &    [0.0119]         &    [0.0269]         &    [0.0212]         \\
 \addlinespace
-Undocumented x Education&      0.1749\sym{***}&      0.1799\sym{***}&      0.2477\sym{***}\\
-                    &    [0.0195]         &    [0.0446]         &    [0.0387]         \\
+Undocumented x Education&      0.1744\sym{***}&      0.2044\sym{***}&      0.1616\sym{***}\\
+                    &    [0.0189]         &    [0.0410]         &    [0.0309]         \\
 \addlinespace
 undocu=1 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
@@ -102,7 +102,7 @@ undocu\_rf=0 $\times$ Arts, Humanities, and Other&                     &        
 undocu\_rf=1 $\times$ Arts, Humanities, and Other&                     &                     &      0.0000         \\
                     &                     &                     &         [.]         \\
 \addlinespace
-Constant            &      0.4229\sym{***}&      0.4237\sym{***}&      0.4237\sym{***}\\
+Constant            &      0.4229\sym{***}&      0.4237\sym{***}&      0.4235\sym{***}\\
                     &    [0.0050]         &    [0.0049]         &    [0.0049]         \\
 \midrule
 Mean of Dep. Var.   &        0.42         &        0.42         &        0.42         \\
