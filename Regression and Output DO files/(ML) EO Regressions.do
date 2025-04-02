@@ -100,12 +100,12 @@ use "(ML) Pre Regression sample",clear
 cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
 
 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu==1 & bpl_foreign==1, statistics(mean sd) columns(statistics)  
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_knn==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if undocu_rf==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj fem white black asian hisp if elig_rf==1 & bpl_foreign==1, statistics(mean sd) columns(statistics)
-esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("ACS U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented (Logical edits)" "Undocumented (KNN)" "Undocumented (RF)" "DACA-eligible (RF)") note("Note: Log wage is adjusted for inflation with CPI values starting January 2009, every year in January until January 2019.")
+eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if elig==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu_knn==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu_rf==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("ACS U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented (Logical edits)" "DACA-eligible" "Undocumented (KNN)" "Undocumented (RF)") note("Note: Log wage is adjusted for inflation with CPI values starting January 2009, every year in January until January 2019.")
 
 
 ****************************************************************************************************************

@@ -1,0 +1,122 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Vmismatch (Degree Interaction Terms)}
+\begin{tabular}{l*{3}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
+                    &Logical edits         &         KNN         &          RF         \\
+\midrule
+Horizontally Undermatched&      0.2673\sym{***}&      0.2699\sym{***}&      0.2694\sym{***}\\
+                    &    [0.0049]         &    [0.0049]         &    [0.0049]         \\
+\addlinespace
+Horizontally Overmatched&     -0.0901\sym{***}&     -0.0885\sym{***}&     -0.0885\sym{***}\\
+                    &    [0.0021]         &    [0.0021]         &    [0.0021]         \\
+\addlinespace
+undocu=0            &      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+Undocumented        &      0.0745\sym{***}&      0.0617\sym{***}&      0.3132\sym{***}\\
+                    &    [0.0084]         &    [0.0226]         &    [0.0187]         \\
+\addlinespace
+STEM                &     -0.1300\sym{***}&     -0.1310\sym{***}&     -0.1312\sym{***}\\
+                    &    [0.0036]         &    [0.0037]         &    [0.0037]         \\
+\addlinespace
+STEM Related        &     -0.0893\sym{***}&     -0.0848\sym{***}&     -0.0848\sym{***}\\
+                    &    [0.0056]         &    [0.0062]         &    [0.0062]         \\
+\addlinespace
+Business            &      0.0526\sym{***}&      0.0600\sym{***}&      0.0597\sym{***}\\
+                    &    [0.0049]         &    [0.0054]         &    [0.0053]         \\
+\addlinespace
+Education           &     -0.0842\sym{***}&     -0.0764\sym{***}&     -0.0769\sym{***}\\
+                    &    [0.0049]         &    [0.0059]         &    [0.0059]         \\
+\addlinespace
+Arts, Humanities, and Other&      0.0000         &      0.0000         &      0.0000         \\
+                    &         [.]         &         [.]         &         [.]         \\
+\addlinespace
+undocu=0 $\times$ Science and Engineering Group&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+undocu=0 $\times$ Science and Engineering Related Fields&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+undocu=0 $\times$ Business&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+undocu=0 $\times$ Education&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+undocu=0 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+Undocumented x STEM &     -0.0535\sym{***}&     -0.0525\sym{**} &      0.0772\sym{***}\\
+                    &    [0.0084]         &    [0.0198]         &    [0.0241]         \\
+\addlinespace
+Undocumented x STEM Related&      0.0264\sym{***}&      0.0427         &      0.0360         \\
+                    &    [0.0093]         &    [0.0389]         &    [0.0422]         \\
+\addlinespace
+Undocumented x Business&      0.0843\sym{***}&      0.0969\sym{***}&      0.1481\sym{***}\\
+                    &    [0.0065]         &    [0.0347]         &    [0.0258]         \\
+\addlinespace
+Undocumented x Education&      0.2069\sym{***}&      0.1866\sym{***}&      0.1885\sym{***}\\
+                    &    [0.0142]         &    [0.0544]         &    [0.0280]         \\
+\addlinespace
+undocu=1 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
+                    &         [.]         &                     &                     \\
+\addlinespace
+undocu\_knn=0        &                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=0 $\times$ Science and Engineering Group&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=0 $\times$ Science and Engineering Related Fields&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=0 $\times$ Business&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=0 $\times$ Education&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=0 $\times$ Arts, Humanities, and Other&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_knn=1 $\times$ Arts, Humanities, and Other&                     &      0.0000         &                     \\
+                    &                     &         [.]         &                     \\
+\addlinespace
+undocu\_rf=0         &                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=0 $\times$ Science and Engineering Group&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=0 $\times$ Science and Engineering Related Fields&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=0 $\times$ Business&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=0 $\times$ Education&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=0 $\times$ Arts, Humanities, and Other&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+undocu\_rf=1 $\times$ Arts, Humanities, and Other&                     &                     &      0.0000         \\
+                    &                     &                     &         [.]         \\
+\addlinespace
+Constant            &      0.1859\sym{***}&      0.1866\sym{***}&      0.1867\sym{***}\\
+                    &    [0.0036]         &    [0.0038]         &    [0.0038]         \\
+\midrule
+Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         \\
+R-squared           &        0.14         &        0.14         &        0.14         \\
+N                   &   2,287,291         &   2,287,291         &   2,287,291         \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{4}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, statefip##year age}\\
+\multicolumn{4}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{4}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{4}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
+\multicolumn{4}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

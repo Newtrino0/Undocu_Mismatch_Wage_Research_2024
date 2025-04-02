@@ -4,8 +4,9 @@ set more off
 
 set scheme s1color
 
-cd "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu/My Drive/Undocumented DACA research, 2024 /ML Undocumented status imputation research/Data"
+cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 use "(ML)EO_Final_Sample.dta", clear
+
 
 
 
@@ -116,7 +117,7 @@ reghdfe vmismatched hundermatched hovermatched undocu_rf##ib5.degfield_broader $
 estadd ysumm
 eststo rf_vmismatch
 
-*cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Undocu Research Figures ML"
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(ML) Figures and Appendix output"
 esttab logical_vmismatch knn_vmismatch rf_vmismatch using vmismatch_regressions_degree.tex, replace label booktabs drop($covars_reghdfe) ///
 rename(1.degfield_broader "STEM" 2.degfield_broader "STEM Related" 3.degfield_broader "Business" 4.degfield_broader "Education" ///
 1.undocu_rf  "Undocumented" 1.undocu_rf#2.degfield_broader "Undocumented x STEM Related" 1.undocu_rf#3.degfield_broader "Undocumented x Business" 1.undocu_rf#4.degfield_broader "Undocumented x Education" 1.undocu_rf#1.degfield_broader "Undocumented x STEM" ///
