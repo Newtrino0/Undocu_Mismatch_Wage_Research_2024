@@ -1,21 +1,27 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Horizontal Undermatch (IPC Interaction Terms)}
+\caption{Regressions of Undocumented Status on Horizontal Undermatch (Policy Interaction Terms)}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
                     &Logical edits         &         KNN         &          RF         \\
 \midrule
-Vertically Mismatched&      0.3520\sym{***}&      0.3528\sym{***}&      0.3525\sym{***}\\
+Vertically Mismatched&      0.3520\sym{***}&      0.3527\sym{***}&      0.3527\sym{***}\\
                     &    [0.0038]         &    [0.0037]         &    [0.0037]         \\
 \addlinespace
-Undocumented        &      0.0351\sym{***}&      0.0522\sym{***}&      0.0564\sym{***}\\
-                    &    [0.0027]         &    [0.0159]         &    [0.0085]         \\
+Undocumented        &      0.0360\sym{***}&      0.0366\sym{***}&      0.0413\sym{***}\\
+                    &    [0.0025]         &    [0.0060]         &    [0.0054]         \\
 \addlinespace
-Undocumented x Inclusive&     -0.0162\sym{*}  &      0.0221         &     -0.0092         \\
-                    &    [0.0097]         &    [0.0184]         &    [0.0105]         \\
+Undocumented x Inclusive Everify&     -0.0310\sym{***}&     -0.0269\sym{**} &     -0.0098\sym{**} \\
+                    &    [0.0040]         &    [0.0121]         &    [0.0043]         \\
 \addlinespace
-Constant            &      0.3315\sym{***}&      0.3328\sym{***}&      0.3325\sym{***}\\
+Undocumented x Inclusive OCC&      0.0012         &      0.0022         &     -0.0168\sym{***}\\
+                    &    [0.0038]         &    [0.0103]         &    [0.0032]         \\
+\addlinespace
+Undocumented x Inclusive Drive&     -0.0062\sym{*}  &      0.0006         &      0.0009         \\
+                    &    [0.0033]         &    [0.0094]         &    [0.0068]         \\
+\addlinespace
+Constant            &      0.3315\sym{***}&      0.3325\sym{***}&      0.3326\sym{***}\\
                     &    [0.0009]         &    [0.0009]         &    [0.0009]         \\
 \midrule
 Mean of Dep. Var.   &        0.42         &        0.42         &        0.42         \\

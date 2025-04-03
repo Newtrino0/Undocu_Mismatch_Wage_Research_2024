@@ -1,31 +1,34 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-\caption{Regressions of Undocumented Status on Horizontal Undermatch (Degree Interaction Terms)}
+\caption{Regressions of Undocumented Status on Vmismatch (Degree Interaction Terms)}
 \begin{tabular}{l*{3}{c}}
 \toprule
                     &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
                     &Logical edits         &         KNN         &          RF         \\
 \midrule
-Vertically Mismatched&      0.3516\sym{***}&      0.3528\sym{***}&      0.3525\sym{***}\\
-                    &    [0.0038]         &    [0.0037]         &    [0.0037]         \\
+Horizontally Undermatched&      0.2673\sym{***}&      0.2695\sym{***}&      0.2696\sym{***}\\
+                    &    [0.0049]         &    [0.0049]         &    [0.0049]         \\
+\addlinespace
+Horizontally Overmatched&     -0.0901\sym{***}&     -0.0888\sym{***}&     -0.0887\sym{***}\\
+                    &    [0.0021]         &    [0.0021]         &    [0.0021]         \\
 \addlinespace
 undocu=0            &      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
 \addlinespace
-Undocumented        &      0.0337\sym{***}&      0.0602\sym{***}&      0.0625\sym{***}\\
-                    &    [0.0100]         &    [0.0169]         &    [0.0140]         \\
+Undocumented        &      0.0745\sym{***}&      0.0660\sym{***}&      0.0786\sym{***}\\
+                    &    [0.0084]         &    [0.0122]         &    [0.0167]         \\
 \addlinespace
-STEM                &      0.1047\sym{***}&      0.1059\sym{***}&      0.1055\sym{***}\\
-                    &    [0.0080]         &    [0.0083]         &    [0.0083]         \\
+STEM                &     -0.1300\sym{***}&     -0.1306\sym{***}&     -0.1308\sym{***}\\
+                    &    [0.0036]         &    [0.0037]         &    [0.0037]         \\
 \addlinespace
-STEM Related        &     -0.1776\sym{***}&     -0.1744\sym{***}&     -0.1751\sym{***}\\
-                    &    [0.0052]         &    [0.0051]         &    [0.0051]         \\
+STEM Related        &     -0.0893\sym{***}&     -0.0854\sym{***}&     -0.0855\sym{***}\\
+                    &    [0.0056]         &    [0.0061]         &    [0.0062]         \\
 \addlinespace
-Business            &     -0.3959\sym{***}&     -0.3996\sym{***}&     -0.3988\sym{***}\\
-                    &    [0.0054]         &    [0.0055]         &    [0.0055]         \\
+Business            &      0.0526\sym{***}&      0.0588\sym{***}&      0.0592\sym{***}\\
+                    &    [0.0049]         &    [0.0053]         &    [0.0053]         \\
 \addlinespace
-Education           &     -0.2999\sym{***}&     -0.2943\sym{***}&     -0.2949\sym{***}\\
-                    &    [0.0049]         &    [0.0046]         &    [0.0047]         \\
+Education           &     -0.0842\sym{***}&     -0.0778\sym{***}&     -0.0772\sym{***}\\
+                    &    [0.0049]         &    [0.0058]         &    [0.0059]         \\
 \addlinespace
 Arts, Humanities, and Other&      0.0000         &      0.0000         &      0.0000         \\
                     &         [.]         &         [.]         &         [.]         \\
@@ -45,17 +48,17 @@ undocu=0 $\times$ Education&      0.0000         &                     &        
 undocu=0 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
 \addlinespace
-Undocumented x STEM &     -0.0023         &      0.0286         &      0.0125         \\
-                    &    [0.0081]         &    [0.0225]         &    [0.0119]         \\
+Undocumented x STEM &     -0.0535\sym{***}&     -0.0578\sym{***}&     -0.0612\sym{***}\\
+                    &    [0.0084]         &    [0.0109]         &    [0.0139]         \\
 \addlinespace
-Undocumented x STEM Related&      0.0393\sym{***}&      0.0911\sym{***}&      0.0706\sym{***}\\
-                    &    [0.0115]         &    [0.0285]         &    [0.0209]         \\
+Undocumented x STEM Related&      0.0264\sym{***}&      0.0028         &      0.0182         \\
+                    &    [0.0093]         &    [0.0165]         &    [0.0165]         \\
 \addlinespace
-Undocumented x Business&     -0.0836\sym{***}&     -0.1355\sym{***}&     -0.1356\sym{***}\\
-                    &    [0.0119]         &    [0.0269]         &    [0.0212]         \\
+Undocumented x Business&      0.0843\sym{***}&      0.0513\sym{***}&      0.0531\sym{**} \\
+                    &    [0.0065]         &    [0.0138]         &    [0.0215]         \\
 \addlinespace
-Undocumented x Education&      0.1744\sym{***}&      0.2044\sym{***}&      0.1616\sym{***}\\
-                    &    [0.0189]         &    [0.0410]         &    [0.0309]         \\
+Undocumented x Education&      0.2069\sym{***}&      0.2026\sym{***}&      0.2152\sym{***}\\
+                    &    [0.0142]         &    [0.0251]         &    [0.0214]         \\
 \addlinespace
 undocu=1 $\times$ Arts, Humanities, and Other&      0.0000         &                     &                     \\
                     &         [.]         &                     &                     \\
@@ -102,11 +105,11 @@ undocu\_rf=0 $\times$ Arts, Humanities, and Other&                     &        
 undocu\_rf=1 $\times$ Arts, Humanities, and Other&                     &                     &      0.0000         \\
                     &                     &                     &         [.]         \\
 \addlinespace
-Constant            &      0.4229\sym{***}&      0.4237\sym{***}&      0.4235\sym{***}\\
-                    &    [0.0050]         &    [0.0049]         &    [0.0049]         \\
+Constant            &      0.1859\sym{***}&      0.1865\sym{***}&      0.1865\sym{***}\\
+                    &    [0.0036]         &    [0.0037]         &    [0.0038]         \\
 \midrule
-Mean of Dep. Var.   &        0.42         &        0.42         &        0.42         \\
-R-squared           &        0.26         &        0.26         &        0.26         \\
+Mean of Dep. Var.   &        0.23         &        0.23         &        0.23         \\
+R-squared           &        0.14         &        0.14         &        0.14         \\
 N                   &   2,287,291         &   2,287,291         &   2,287,291         \\
 \bottomrule
 \multicolumn{4}{l}{\footnotesize Additional controls include:}\\

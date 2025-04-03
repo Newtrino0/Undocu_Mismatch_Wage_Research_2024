@@ -57,6 +57,8 @@ drop cbserial momloc poploc
 gen vet = (vetstat==2)					
 	replace vet=. if vetstat==9 | vetstat==0
 gen medicaid = hinscaid==2
+gen anywelfare = incwelfr>0
+	replace anywelfare=. if incwelfr==99999
 gen anyss = incss>0
 	replace anyss=. if incss==99999
 gen anyssi = incsupp>0
@@ -71,16 +73,17 @@ label var healthins "Health Insurance"
 
 *** Aggregate them to household level
 bysort serial sample year: egen hhvet = max(vet)
+bysort serial sample year: egen hhwelf = max(anywelfare)
 bysort serial sample year: egen hhss = max(anyss)
 bysort serial sample year: egen hhssi = max(anyssi)
 bysort serial sample year: egen hhmedicare = max(medicare)
-drop vetstat incwelfr incss incsupp vet anyss anyssi
+drop vetstat incwelfr incss incsupp vet anyss anyssi anywelfare
 
 *** Legal if any of the above hold
-egen hhlegal = rowtotal(hhvet hhss hhssi hhmedicare)
+egen hhlegal = rowtotal(hhvet hhss hhssi hhmedicare hhwelf)
 tab hhlegal, m
 replace hhlegal=1 if hhlegal>1 
-drop hhvet hhss hhssi hhmedicare
+drop hhvet hhss hhssi hhmedicare hhwelf
 
 ******************************
 *** CLEAN/CREATE CONTROL VARS

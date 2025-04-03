@@ -117,7 +117,7 @@ reghdfe vmismatched hundermatched hovermatched undocu_rf##ib5.degfield_broader $
 estadd ysumm
 eststo rf_vmismatch
 
-cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(ML) Figures and Appendix output"
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(ML) Appendix"
 esttab logical_vmismatch knn_vmismatch rf_vmismatch using vmismatch_regressions_degree.tex, replace label booktabs drop($covars_reghdfe) ///
 rename(1.degfield_broader "STEM" 2.degfield_broader "STEM Related" 3.degfield_broader "Business" 4.degfield_broader "Education" ///
 1.undocu_rf  "Undocumented" 1.undocu_rf#2.degfield_broader "Undocumented x STEM Related" 1.undocu_rf#3.degfield_broader "Undocumented x Business" 1.undocu_rf#4.degfield_broader "Undocumented x Education" 1.undocu_rf#1.degfield_broader "Undocumented x STEM" ///
@@ -324,7 +324,7 @@ addn("dummy age indicators, gender, race/ethnicity, metropolitan residence, stat
 	
 
 **Coefficient Plots****
-
+cd "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(ML) Figures"
  
 *vertical mismatch
 coefplot (logical_vmismatch, label(Logical Edits) ) (knn_vmismatch, label(KNN) ) (rf_vmismatch, label(Random Forest) ) ///

@@ -1,0 +1,32 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Horizontal Undermatch (IPC Interaction Terms)}
+\begin{tabular}{l*{3}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
+                    &Logical edits         &         KNN         &          RF         \\
+\midrule
+Vertically Mismatched&      0.3520\sym{***}&      0.3527\sym{***}&      0.3527\sym{***}\\
+                    &    [0.0038]         &    [0.0037]         &    [0.0037]         \\
+\addlinespace
+Undocumented        &      0.0348\sym{***}&      0.0365\sym{***}&      0.0438\sym{***}\\
+                    &    [0.0027]         &    [0.0059]         &    [0.0057]         \\
+\addlinespace
+Undocumented x Inclusive&     -0.0162         &     -0.0103         &     -0.0166\sym{**} \\
+                    &    [0.0099]         &    [0.0089]         &    [0.0075]         \\
+\addlinespace
+Constant            &      0.3315\sym{***}&      0.3325\sym{***}&      0.3326\sym{***}\\
+                    &    [0.0009]         &    [0.0009]         &    [0.0009]         \\
+\midrule
+Mean of Dep. Var.   &        0.42         &        0.42         &        0.42         \\
+R-squared           &        0.26         &        0.26         &        0.26         \\
+N                   &   2,287,291         &   2,287,291         &   2,287,291         \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{4}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, statefip##year age}\\
+\multicolumn{4}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{4}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{4}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
+\multicolumn{4}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

@@ -1,0 +1,38 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Regressions of Undocumented Status on Log Wages (IPC Interaction Terms)}
+\begin{tabular}{l*{3}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
+                    &Logical edits         &         KNN         &          RF         \\
+\midrule
+Vertically Mismatched&     -0.3688\sym{***}&     -0.3707\sym{***}&     -0.3707\sym{***}\\
+                    &    [0.0068]         &    [0.0069]         &    [0.0069]         \\
+\addlinespace
+Horizontally Undermatched&     -0.1810\sym{***}&     -0.1818\sym{***}&     -0.1818\sym{***}\\
+                    &    [0.0053]         &    [0.0053]         &    [0.0053]         \\
+\addlinespace
+Horizontally Overmatched&      0.0725\sym{***}&      0.0718\sym{***}&      0.0718\sym{***}\\
+                    &    [0.0033]         &    [0.0033]         &    [0.0033]         \\
+\addlinespace
+Undocumented        &     -0.0917\sym{***}&     -0.0927\sym{***}&     -0.1140\sym{***}\\
+                    &    [0.0160]         &    [0.0161]         &    [0.0161]         \\
+\addlinespace
+Undocumented x Inclusive&      0.0158         &      0.0551\sym{**} &      0.0495\sym{**} \\
+                    &    [0.0211]         &    [0.0228]         &    [0.0244]         \\
+\addlinespace
+Constant            &      3.7197\sym{***}&      3.7166\sym{***}&      3.7165\sym{***}\\
+                    &    [0.0031]         &    [0.0031]         &    [0.0031]         \\
+\midrule
+Mean of Dep. Var.   &        3.56         &        3.56         &        3.56         \\
+R-squared           &        0.26         &        0.26         &        0.26         \\
+N                   &   2,287,291         &   2,287,291         &   2,287,291         \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{4}{l}{\footnotesize dummy age indicators, gender, race/ethnicity, metropolitan residence, statefip##year age}\\
+\multicolumn{4}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{4}{l}{\footnotesize STEM degree indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{4}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
+\multicolumn{4}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\end{tabular}
+\end{table}

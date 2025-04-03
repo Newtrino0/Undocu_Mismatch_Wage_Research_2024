@@ -119,7 +119,7 @@ sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$arme
 
 
 sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia","medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
 sipp08_2_education <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$college==1, c("undocu_likely", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us")]
@@ -166,12 +166,15 @@ control <- trainControl(
     method = "cv",
     number = 10,  
     summaryFunction = twoClassSummary,
-    classProbs = TRUE
+    classProbs = TRUE,
+    sampling = "up"
 )
+
 ## Train glm with custom trainControl
-logistic_kmodel <- train(undocu_likely ~ age + fem + married + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
+logistic_kmodel <- train(undocu_likely ~ age + fem + married + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
                method = "glm",
-               trControl = control)
+               trControl = control,
+               metric = 'ROC')
 
 p_klogistic <- predict(logistic_kmodel, test_klogistic)
 
@@ -199,7 +202,8 @@ test_knn <- sipp08_2_knn[-train_index_knn, ]
 
 knn_model <- train(undocu_likely ~., data = train_knn, method = "knn", 
                        trControl = control, 
-                       tuneLength = 10)
+                       tuneLength = 10,
+                       metric = 'ROC')
 
 knn_model
 
@@ -267,7 +271,7 @@ rf_model <- train(undocu_likely ~ age + fem + married + medicaid + nonfluent + s
                trControl = control_rf,
                tuneLength = 5,
                importance = "impurity",
-               metric = 'Accuracy')
+               metric = 'ROC')
 print(rf_model)
 plot(rf_model)
 
@@ -283,7 +287,7 @@ education_model <- train(undocu_likely ~ age + fem + married + medicaid + nonflu
                trControl = control_rf,
                tuneLength = 5,
                importance = "impurity",
-               metric = 'Accuracy')
+               metric = 'ROC')
 print(education_model)
 plot(education_model)
 
