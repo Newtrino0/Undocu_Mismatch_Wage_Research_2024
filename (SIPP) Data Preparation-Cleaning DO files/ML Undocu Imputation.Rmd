@@ -203,7 +203,8 @@ test_knn <- sipp08_2_knn[-train_index_knn, ]
 knn_model <- train(undocu_likely ~., data = train_knn, method = "knn", 
                        trControl = control, 
                        tuneLength = 10,
-                       metric = 'ROC')
+                       metric = 'ROC',
+                       preProcess = c('center', 'scale'))
 
 knn_model
 
