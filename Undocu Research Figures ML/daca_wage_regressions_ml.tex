@@ -1,38 +1,38 @@
 \begin{table}[htbp]\centering
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \caption{Regressions of DACA-eligible Status on Log-Wage}
-\begin{tabular}{l*{3}{c}}
+\begin{tabular}{l*{6}{c}}
 \toprule
-                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         \\
-                    &Logical edits         &         KNN         &          RF         \\
+                    &\multicolumn{1}{c}{(1)}         &\multicolumn{1}{c}{(2)}         &\multicolumn{1}{c}{(3)}         &\multicolumn{1}{c}{(4)}         &\multicolumn{1}{c}{(5)}         &\multicolumn{1}{c}{(6)}         \\
+                    &Logical edits         &         KNN         &          RF         &logical\_wage         &    knn\_wage         &     rf\_wage         \\
 \midrule
-Vertically Mismatched&     -0.3254\sym{***}&     -0.3254\sym{***}&     -0.3254\sym{***}\\
-                    &    [0.0053]         &    [0.0053]         &    [0.0053]         \\
+Vertically Mismatched&      0.3405\sym{***}&      0.3405\sym{***}&      0.3405\sym{***}&     -0.3254\sym{***}&     -0.3254\sym{***}&     -0.3254\sym{***}\\
+                    &    [0.0035]         &    [0.0035]         &    [0.0035]         &    [0.0053]         &    [0.0053]         &    [0.0053]         \\
 \addlinespace
-Horizontally Undermatched&     -0.1607\sym{***}&     -0.1607\sym{***}&     -0.1607\sym{***}\\
-                    &    [0.0042]         &    [0.0042]         &    [0.0042]         \\
+Horizontally Undermatched&                     &                     &                     &     -0.1607\sym{***}&     -0.1607\sym{***}&     -0.1607\sym{***}\\
+                    &                     &                     &                     &    [0.0042]         &    [0.0042]         &    [0.0042]         \\
 \addlinespace
-Horizontally Overmatched&      0.0531\sym{***}&      0.0531\sym{***}&      0.0531\sym{***}\\
-                    &    [0.0032]         &    [0.0032]         &    [0.0032]         \\
+Horizontally Overmatched&                     &                     &                     &      0.0531\sym{***}&      0.0531\sym{***}&      0.0531\sym{***}\\
+                    &                     &                     &                     &    [0.0032]         &    [0.0032]         &    [0.0032]         \\
 \addlinespace
-DACA-eligible       &     -0.0363\sym{***}&                     &                     \\
-                    &    [0.0098]         &                     &                     \\
+DACA-eligible       &      0.0321\sym{***}&                     &                     &     -0.0363\sym{***}&                     &                     \\
+                    &    [0.0061]         &                     &                     &    [0.0098]         &                     &                     \\
 \addlinespace
-DACA-eligible (KNN) &                     &     -0.0179         &                     \\
-                    &                     &    [0.0146]         &                     \\
+DACA-eligible (KNN) &                     &      0.0271\sym{**} &                     &                     &     -0.0179         &                     \\
+                    &                     &    [0.0103]         &                     &                     &    [0.0146]         &                     \\
 \addlinespace
-DACA-eligible (RF)  &                     &                     &     -0.1091\sym{***}\\
-                    &                     &                     &    [0.0241]         \\
+DACA-eligible (RF)  &                     &                     &      0.0332\sym{**} &                     &                     &     -0.1091\sym{***}\\
+                    &                     &                     &    [0.0142]         &                     &                     &    [0.0241]         \\
 \midrule
-Mean of Dep. Var.   &        3.56         &        3.56         &        3.56         \\
-R-squared           &        0.31         &        0.31         &        0.31         \\
-N                   &   2,287,291         &   2,287,291         &   2,287,291         \\
+Mean of Dep. Var.   &        0.42         &        0.42         &        0.42         &        3.56         &        3.56         &        3.56         \\
+R-squared           &        0.26         &        0.26         &        0.26         &        0.31         &        0.31         &        0.31         \\
+N                   &   2,287,291         &   2,287,291         &   2,287,291         &   2,287,291         &   2,287,291         &   2,287,291         \\
 \bottomrule
-\multicolumn{4}{l}{\footnotesize Additional controls include:}\\
-\multicolumn{4}{l}{\footnotesize dummy age indicators, gender, Medicaid reception, race/ethnicity, metropolitan residence,}\\
-\multicolumn{4}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
-\multicolumn{4}{l}{\footnotesize Broad degree category indicators, years of schooling, state and year interaction fixed effects.}\\
-\multicolumn{4}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
-\multicolumn{4}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
+\multicolumn{7}{l}{\footnotesize Additional controls include:}\\
+\multicolumn{7}{l}{\footnotesize dummy age indicators, gender, Medicaid reception, race/ethnicity, metropolitan residence,}\\
+\multicolumn{7}{l}{\footnotesize government occupation, English-speaking fluency, foreign born, immigration by age 10,}\\
+\multicolumn{7}{l}{\footnotesize Broad degree category indicators, years of schooling, state and year interaction fixed effects.}\\
+\multicolumn{7}{l}{\footnotesize Robust standard errors are all clustered by state.}\\
+\multicolumn{7}{l}{\footnotesize \sym{*} \(p<.1\), \sym{**} \(p<0.05\), \sym{***} \(p<0.01\)}\\
 \end{tabular}
 \end{table}

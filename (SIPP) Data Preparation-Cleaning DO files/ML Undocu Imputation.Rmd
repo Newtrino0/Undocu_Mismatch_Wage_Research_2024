@@ -348,65 +348,7 @@ rf_model_2 <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic
 *years_us
 *yrsed
 
-```{r Loading ACS data}
-library(readr)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
-ACS <- read_csv("ACS.csv")
-View(ACS)
 
-```
-
-```{r Preparing ACS data}
-ACS_sipp <- ACS %>%
-  mutate(
-    spanish_hispanic_latino = as.factor(ifelse(hisp==1 | spanish==1, 1, 0)),
-    central_latino = as.factor(ifelse((hisp==1) & (bpld=="belize/british honduras" | bpld=="costa rica" | bpld=="el salvador" | bpld=="guatemala" | bpld=="honduras" | bpld=="nicaragua" | bpld=="panama" | bpld=="mexico"), 1, 0)),
-    black = as.factor(ifelse(race=="black/african america", 1, 0)),
-    white = as.factor(ifelse(race=="white", 1, 0)),
-    employed = as.factor(ifelse(empstat==1, 1, 0)),
-    poverty = as.factor(ifelse(poverty<100, 1, 0)),
-    married = as.factor(married),
-    nonfluent = as.factor(nonfluent),
-    bpl_asia = as.factor(bpl_asia),
-    asian = as.factor(asian),
-    fem = as.factor(fem),
-    household_size = numprec,
-    #Change SIPP 0 years_us to NA
-    years_us = yrsusa1,
-    medicare = as.factor(ifelse(hinscare=="yes", 1, 0)),
-    medicaid = as.factor(ifelse(hinscaid=="has insurance through medicaid", 1, 0))
-    
-  )
-ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==1, NA)
-ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==0, 0)
-ACS_sipp$years_us <- as.numeric(ACS_sipp$years_us)
-
-ACS_sipp$other_race <- as.factor(ifelse(ACS$black!=1 & ACS$white!=1 & ACS$asian!=1, 1, 0))
-ACS_sipp_na <- ACS_sipp  %>%
-  filter(undocu==1, !is.na(years_us),!is.na(medicaid), !is.na(age),!is.na(fem), !is.na(married), !is.na(nonfluent),  !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed),  !is.na(yrsed))
-
-ACS_cols_numeric <- c("central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
-
-ACS_sipp_knn <- ACS_sipp_na %>%
-  mutate_at(ACS_cols_numeric, as.numeric)
-```
-
-```{r Undocu imputation}
-## Imputation method 1: Logistic regression 
-ACS_sipp_na$undocu_logistic <- predict(logistic_kmodel, ACS_sipp_na)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
-write.csv(ACS_sipp_na, "ACS_SIPP_logistic.csv", row.names = FALSE)
-
-## Imputation method 2: KNN 
-ACS_sipp_na$knn_undocu <- predict(knn_model, ACS_sipp_knn)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
-write.csv(ACS_sipp_na, "ACS_SIPP_knn.csv", row.names = FALSE)
-
-## Imputation method 2: RF 
-ACS_sipp_na$rf_undocu <- predict(education_model, ACS_sipp_na)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
-write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
-```
 
 ```{r Logical edits performance}
 library(xtable)
@@ -515,6 +457,66 @@ colnames(ml_comparison) <- c("Logical edits", "Logistic", "KNN", "RF")
 # ML metrics (comparison of ML models)
 xtable(ml_comparison, digits=4)
 print(ml_comparison)
+```
+
+```{r Loading ACS data}
+library(readr)
+setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+ACS <- read_csv("ACS.csv")
+View(ACS)
+
+```
+
+```{r Preparing ACS data}
+ACS_sipp <- ACS %>%
+  mutate(
+    spanish_hispanic_latino = as.factor(ifelse(hisp==1 | spanish==1, 1, 0)),
+    central_latino = as.factor(ifelse((hisp==1) & (bpld=="belize/british honduras" | bpld=="costa rica" | bpld=="el salvador" | bpld=="guatemala" | bpld=="honduras" | bpld=="nicaragua" | bpld=="panama" | bpld=="mexico"), 1, 0)),
+    black = as.factor(ifelse(race=="black/african america", 1, 0)),
+    white = as.factor(ifelse(race=="white", 1, 0)),
+    employed = as.factor(ifelse(empstat==1, 1, 0)),
+    poverty = as.factor(ifelse(poverty<100, 1, 0)),
+    married = as.factor(married),
+    nonfluent = as.factor(nonfluent),
+    bpl_asia = as.factor(bpl_asia),
+    asian = as.factor(asian),
+    fem = as.factor(fem),
+    household_size = numprec,
+    #Change SIPP 0 years_us to NA
+    years_us = yrsusa1,
+    medicare = as.factor(ifelse(hinscare=="yes", 1, 0)),
+    medicaid = as.factor(ifelse(hinscaid=="has insurance through medicaid", 1, 0))
+    
+  )
+ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==1, NA)
+ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==0, 0)
+ACS_sipp$years_us <- as.numeric(ACS_sipp$years_us)
+
+ACS_sipp$other_race <- as.factor(ifelse(ACS$black!=1 & ACS$white!=1 & ACS$asian!=1, 1, 0))
+ACS_sipp_na <- ACS_sipp  %>%
+  filter(undocu==1, !is.na(years_us),!is.na(medicaid), !is.na(age),!is.na(fem), !is.na(married), !is.na(nonfluent),  !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed),  !is.na(yrsed))
+
+ACS_cols_numeric <- c("central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
+
+ACS_sipp_knn <- ACS_sipp_na %>%
+  mutate_at(ACS_cols_numeric, as.numeric)
+```
+
+```{r Undocu imputation}
+## Imputation method 1: Logistic regression 
+ACS_sipp_na$undocu_logistic <- predict(logistic_kmodel, ACS_sipp_na)
+setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+write.csv(ACS_sipp_na, "ACS_SIPP_logistic.csv", row.names = FALSE)
+
+## Imputation method 2: KNN 
+ACS_sipp_na$knn_undocu <- predict(knn_model, ACS_sipp_knn)
+setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+write.csv(ACS_sipp_na, "ACS_SIPP_knn.csv", row.names = FALSE)
+
+## Imputation method 2: RF 
+ACS_sipp_na$rf_undocu <- predict(rf_model, ACS_sipp_na)
+setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
 ```
 
 
