@@ -314,7 +314,7 @@ setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
 write.csv(sipp08_2_dTable, "SIPP_dTable.csv", row.names = FALSE)
 
 
-
+rf_model$finalModel$num.trees
 
 ```
 
