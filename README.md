@@ -1,13 +1,16 @@
 <h1 align="center">Abstract</h1>
-This study aims to estimate the wage penalties associated with education-occupation mis-
-match for DACA-eligible college graduates. We use data from The American Community
-Survey (ACS) to identify whether a worker is vertically mismatched (employed in an occupa-
-tion that doesn’t match their educational attainment) or horizontally mismatched (employed
-in an occupation that doesn’t match their field of study). We find higher proportions of hori-
-zontal mismatch for the DACA-eligible group of college graduates in the post-DACA period.
-Relatedly, we find that earnings were approximately 5 percentage points lower. The results
-suggest that DACA generated additional wage penalties for the eligible population of college
-graduates.
+This study aims to estimate the education-occupation mismatch rates and associated wage
+penalties of undocumented status for college graduates. We use data from the Survey of
+Income and Program Participation (SIPP) and machine learning methods to impute undocu-
+mented status in our American Community Survey (ACS) sample. Then, we identify whether
+a worker is vertically mismatched (employed in an occupation that doesn’t match their ed-
+ucational attainment) or horizontally mismatched (employed in an occupation that doesn’t
+match their field of study). We find that undocumented status is associated with an increase
+in education-occupation mismatch. Moreover, we find that earnings are approximately four to
+seven percentage points lower for undocumented college graduate workers. The results suggest
+that undocumented status generates additional mismatch and wage penalties for college grad-
+uates, with generally lessened effects for the DACA-eligible population and for immigrants
+living in states with inclusive policy climates
 
 <h3>Keywords:</h3>
  Undocumented; Education-occupation mismatch; Legal status; Labor; Wage;
