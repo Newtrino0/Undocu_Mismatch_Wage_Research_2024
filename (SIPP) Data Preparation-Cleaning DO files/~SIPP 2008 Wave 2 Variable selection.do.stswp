@@ -29,9 +29,14 @@ keep if srefmon==1
 bys epppnum eentaid ssuid:gen count=_N
 tab count
 
-keep epppnum shhadid ssuid eentaid eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 ecrmth rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin tfipsst ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06 eafnow eafever rcutyp01 rcutyp03
+keep epppnum ehrefper errp shhadid ssuid eentaid eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 ecrmth rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin tfipsst ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06 eafnow eafever rcutyp01 rcutyp03
+
+
+by ssuid: gen cit_spouse = (errp==1 & ecitizen==1) | (errp==3 & ecitizen==1)
 
 * epppnum: Person number. This field differentiates persons within the sample unit. Person number is unique within the sample unit. 
+* ehrefper: number of household reference person
+* errp: Household relationship
 * shhadid: Hhld Address ID differentiates hhlds in sample unit
 * eenlevel: Education level
 * eeducate: Highest Degree received or grade completed. What is the highest level of school ... has completed or the highest degree ... has received?

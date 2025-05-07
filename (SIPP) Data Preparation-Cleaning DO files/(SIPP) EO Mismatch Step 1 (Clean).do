@@ -1,5 +1,5 @@
 *** SET DIRECTORIES 
-global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\Data Preparation-Cleaning DO files"
+global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(SIPP) Data Preparation-Cleaning DO files"
 global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
 
 *global prepdata "C:\Users\mario\Documents\Local_Mario_MSRIP\data\Replication\prepdata"

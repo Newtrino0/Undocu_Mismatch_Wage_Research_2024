@@ -17,7 +17,7 @@ set more off, perm
 ********************************
 *cd $rawdata
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "usa_00033.dta", clear
+use "usa_00034.dta", clear
 describe
 
 ********* Clean data ***********
@@ -230,6 +230,11 @@ gen eighteen_by_arrival = (ageimmig<=18 | ageimmig==.)
 *** Citizen/non citizen
 gen noncit=citizen==3
 replace noncit=. if citizen==.
+
+gen noncit_spouse=citizen_sp==3
+replace noncit_spouse=. if citizen_sp==.
+gen cit_spouse =noncit_spouse==0
+
 
 *** Eligible: noncitizen, immigrated by 16 and 2007, less than 31 in June 2012
 // Note: for most of our analysis, we de-fact compare citizens to noncizens
