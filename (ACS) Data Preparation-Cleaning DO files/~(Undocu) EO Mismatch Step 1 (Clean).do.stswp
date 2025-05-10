@@ -42,7 +42,7 @@ drop cbserial momloc poploc
 
 1.) People with an occupation listed
 2.) People who earned a wage/salary
-3.) People who are employed
+3.) People who are employed, and not self-employed
 4.) People who are not currently attending school
 5.) People who are 18 at the time they resided in the U.S.
 */
