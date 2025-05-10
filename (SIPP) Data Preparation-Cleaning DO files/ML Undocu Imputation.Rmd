@@ -97,6 +97,7 @@ sipp08_2 <- SIPP_2008_Wave_2 %>%
     employed = as.factor(ifelse(rmesr=="With a job at least 1 but not all" | rmesr=="With a job entire month, absent" | rmesr=="With a job entire month, worked", 1, 0)),
     years_us = rhcalyr - immig_yr,
     citizen = as.factor(ifelse(ecitizen=="Yes", 1, 0)),
+    cit_spouse = as.factor(cit_spouse),
     poverty = as.factor(ifelse(thearn<rhpov, 1, 0)),
     armed_forces = as.factor(ifelse(eafnow=="Yes" | eafever=="Yes", 1, 0)),
     health_ins= as.factor(ifelse(rcutyp57=="Yes, covered" | rcutyp58=="Yes, covered" , 1, 0)),
@@ -118,11 +119,11 @@ sipp08_2$undocu_logical <- as.factor(ifelse(sipp08_2$citizen==0 & (sipp08_2$arme
 
 
 
-sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia","medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
-sipp08_2_education <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$college==1, c("undocu_likely", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us")]
+sipp08_2_dTable <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_logistic <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia","medicaid", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_knn <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_rf <- sipp08_2[sipp08_2$undocu_logical == 1, c("undocu_likely", "central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")]
+sipp08_2_education <- sipp08_2[sipp08_2$undocu_logical == 1 & sipp08_2$college==1, c("undocu_likely", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us")]
 
 sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0 & sipp08_2$college==1,]
 sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1 & sipp08_2$college==1,]
@@ -171,7 +172,7 @@ control <- trainControl(
 )
 
 ## Train glm with custom trainControl
-logistic_kmodel <- train(undocu_likely ~ age + fem + married + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
+logistic_kmodel <- train(undocu_likely ~ age + fem + married + cit_spouse + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
                method = "glm",
                trControl = control,
                metric = 'ROC')
@@ -266,7 +267,7 @@ control_rf <- trainControl(
 
 
 set.seed(1)
-rf_model <- train(undocu_likely ~ age + fem + married + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
+rf_model <- train(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
                data = train_rf,
                method = "ranger",
                trControl = control_rf,
@@ -282,7 +283,7 @@ rf_matrix <- confusionMatrix(p_rf, test_rf$undocu_likely, positive="X1")
 rf_matrix
 
 set.seed(1)
-education_model <- train(undocu_likely ~ age + fem + married + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us,
+education_model <- train(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us,
                data = train_edu,
                method = "ranger",
                trControl = control_rf,
@@ -303,7 +304,7 @@ feature_importance_stats<-varImp(education_model)
 
 library(vip)
 library(gridExtra)
-feature_importance <- vip(education_model, num_features = 18, bar = FALSE)
+feature_importance <- vip(education_model, num_features = 19, bar = FALSE)
 
 grid.arrange(feature_importance, nrow = 1)
 
@@ -477,6 +478,7 @@ ACS_sipp <- ACS %>%
     employed = as.factor(ifelse(empstat==1, 1, 0)),
     poverty = as.factor(ifelse(poverty<100, 1, 0)),
     married = as.factor(married),
+    cit_spouse = as.factor(cit_spouse),
     nonfluent = as.factor(nonfluent),
     bpl_asia = as.factor(bpl_asia),
     asian = as.factor(asian),
@@ -494,9 +496,9 @@ ACS_sipp$years_us <- as.numeric(ACS_sipp$years_us)
 
 ACS_sipp$other_race <- as.factor(ifelse(ACS$black!=1 & ACS$white!=1 & ACS$asian!=1, 1, 0))
 ACS_sipp_na <- ACS_sipp  %>%
-  filter(undocu==1, !is.na(years_us),!is.na(medicaid), !is.na(age),!is.na(fem), !is.na(married), !is.na(nonfluent),  !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed),  !is.na(yrsed))
+  filter(undocu==1, !is.na(years_us),!is.na(medicaid), !is.na(age),!is.na(fem), !is.na(married),!is.na(cit_spouse), !is.na(nonfluent),  !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed),  !is.na(yrsed))
 
-ACS_cols_numeric <- c("central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
+ACS_cols_numeric <- c("central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
 
 ACS_sipp_knn <- ACS_sipp_na %>%
   mutate_at(ACS_cols_numeric, as.numeric)
