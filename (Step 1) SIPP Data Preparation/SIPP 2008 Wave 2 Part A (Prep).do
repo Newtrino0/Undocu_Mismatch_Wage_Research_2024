@@ -16,15 +16,15 @@ set mem 1000m
 **   the complete path and name of the raw data file.
 **   On a PC, use backslashes in paths as in C:\  
 
-local dat_name "C:\Users\mario\Downloads\l08puw2\l08puw2.dat"
+local dat_name "C:\Users\ecran\Documents\GitHub\Undocu Research Data\l08puw2.dat"
 
 ** The following line should contain the path to your output '.dta' file 
 
-local dta_name "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\sippl08puw2.dta"
+local dta_name "C:\Users\ecran\Documents\GitHub\Undocu Research Data\l08puw2.dta"
 
 ** The following line should contain the path to the data dictionary file 
 
-local dct_name "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\ML SIPP Data Prep-Clean DO files\SIPP 2008 Wave 2 dictionary.do"
+local dct_name "C:\Users\ecran\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(Step 1) SIPP Data Preparation\SIPP 2008 Wave 2 dictionary.do"
 
 ** The line below does NOT need to be changed 
 
@@ -9421,8 +9421,9 @@ label define ahicvmth
 desc,short
 
 sort ssuid eentaid epppnum swave srotaton 
-save dta_name , replace
-
+cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
+save "SIPP 2008 Wave 2.dta", replace
+export delimited using "SIPP 2008 Wave 2.csv"
 
 
 ** Copyright 2010 shared by the National Bureau of Economic Research and Jean Roth ;

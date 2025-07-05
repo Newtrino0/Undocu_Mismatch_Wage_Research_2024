@@ -1,6 +1,5 @@
 *** SET DIRECTORIES 
-global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(ACS) Data Preparation-Cleaning DO files"
-global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+global rawdata "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
 
 *global prepdata "C:\Users\mario\Documents\Local_Mario_MSRIP\data\Replication\prepdata"
 
@@ -16,7 +15,7 @@ set more off, perm
 *** Read data from local file***
 ********************************
 *cd $rawdata
-cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
 use "usa_00034.dta", clear
 describe
 
