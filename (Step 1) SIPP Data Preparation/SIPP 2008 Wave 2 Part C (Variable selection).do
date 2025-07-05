@@ -1,6 +1,5 @@
 *** SET DIRECTORIES 
-global dofiles "C:\Users\mario\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\ML SIPP Data Prep-Clean DO files"
-global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
+global rawdata "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
 
 
 					 ***********************************************
@@ -11,14 +10,14 @@ global rawdata "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data
 *** Read data from local file***
 ********************************
 *cd $rawdata
-cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "SIPP 2008 Wave 2.dta", clear
+cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
+use "(Step 1 output) SIPP 2008 Wave 2.dta", clear
 describe
 
 
 sort epppnum
 
-merge m:1 epppnum eentaid ssuid using "TM SIPP 2008 Wave 2.dta"
+merge m:1 epppnum eentaid ssuid using "(Step 1 output) TM SIPP 2008 Wave 2.dta"
 drop _merge
 
 *save ""
@@ -103,5 +102,5 @@ gen cit_spouse = (cond1 & cond2)
 * rcutyp03: Federal SSI coverage flag
 ********************************
 
-save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.dta", replace
-export delimited using "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\Core_TM SIPP 2008 Wave 2.csv", replace
+save "C:\Users\ecran\Documents\GitHub\Undocu Research Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace
+export delimited using "C:\Users\ecran\Documents\GitHub\Undocu Research Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace

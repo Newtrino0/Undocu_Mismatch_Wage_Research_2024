@@ -11439,3 +11439,15 @@ file SIPP 2008 Wave 2.csv saved
 . 
 end of do-file
 
+. do "C:\Users\ecran\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(Step 1) SIPP Data Preparation\TM SIPP 2008 Wave 2 prep.do"
+file C:\Users\ecran\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(Step 1) SIPP Data Preparation\TM SIPP 2008 Wave 2 prep.do not found
+r(601);
+
+. do "C:\Users\ecran\AppData\Local\Temp\STD4ce4_000000.tmp"
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\ecran\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(Step 1) SIPP Data Preparation\sippl08puw2.log
+  log type:  text
+ closed on:   5 Jul 2025, 11:40:23
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
