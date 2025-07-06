@@ -16,7 +16,7 @@ set more off, perm
 ********************************
 *cd $rawdata
 cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
-use "usa_00034.dta", clear
+use "(Step 2 data) usa_00034.dta", clear
 describe
 
 ********* Clean data ***********
@@ -873,5 +873,5 @@ replace twentytwo_by_2012 = 0 if (2012-birthyr)<22
 
 drop educd grad*
 
-save "(Undocu)EO_Step_1.dta", replace
-export delimited using "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\ACS.csv", replace
+save "EO_A.dta", replace
+export delimited using "ACS.csv", replace

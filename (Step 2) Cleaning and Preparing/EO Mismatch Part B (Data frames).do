@@ -6,7 +6,7 @@ cap log close
 set more off, perm
 
 cd "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data"
-use "(Undocu)EO_Step_1.dta", clear
+use "EO_Step_1.dta", clear
 
 /* Filters applied in Clean data section, includes:
 
@@ -42,12 +42,12 @@ by occ: egen namode2_degd = mode(degfieldd) if degfieldd!=namode1_degd, maxmode 
 collapse (median)med_yrs_by_occ=yrsed (mean)namode1_deg (mean)namode2_deg (mean)namode1_degd (mean)namode2_degd (median)med_wage_by_occ=incwage (median)med_hourly_occ=adj_hourly (mean)mode_att, by(occ)
 *merge this information back to the Shih sample by occ
 
-save "(Undocu)EO_Table_by_occ.dta",replace
+save "EO_Table_by_occ.dta",replace
 ************************************************************************************************************
 
 
 ********* Observe only U.S. born sample (excluding those not in main territory)***********
-use "(Undocu)EO_Step_1.dta", clear
+use "EO_Step_1.dta", clear
 drop if bpl >=100
 keep occ yrsed degfield incwage adj_hourly
 ******************************************************************************************
@@ -61,31 +61,31 @@ by degfield: egen mode2_occ = mode(occ) if occ!=mode1_occ & occ!=0, maxmode miss
 collapse (median)med_yrs=yrsed (mean)mode1_occ (mean)mode2_occ (median)med_wage_by_degfield=incwage (median)med_hourly_degfield=adj_hourly, by(degfield)
 drop med_yrs
 
-save "(Undocu)EO_Table_by_degfield.dta", replace
+save "EO_Table_by_degfield.dta", replace
 *************************************************************************************************************
 
 
 *********Merging data frames with our sample*******************************************
-use "(Undocu)EO_Step_1.dta", clear
+use "EO_Step_1.dta", clear
 sort degfield
-save "(Undocu)EO_Step_1.dta", replace
+save "EO_Step_1.dta", replace
 
-use "(Undocu)EO_Table_by_degfield.dta", clear
+use "EO_Table_by_degfield.dta", clear
 sort degfield
 
-merge 1:m degfield using "(Undocu)EO_Step_1.dta"
+merge 1:m degfield using "EO_Step_1.dta"
 drop _merge
 
-save "(Undocu)EO_Step_2.dta", replace
+save "EO_Step_2.dta", replace
 
 **2nd merge: by degfieldd**
-use "(Undocu)EO_Table_by_occ.dta", clear
+use "EO_Table_by_occ.dta", clear
 sort occ
 
-merge 1:m occ using "(Undocu)EO_Step_2.dta"
+merge 1:m occ using "EO_Step_2.dta"
 drop _merge
 
-save "(Undocu)EO_Step_2.dta", replace
+save "EO_Step_2.dta", replace
 
 **Check why some states and years did not have a name match
 use "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\IPC Final Full Data 2024 Update.dta", clear
@@ -113,7 +113,7 @@ save "C:\Users\mario\Documents\Undocu_Mismatch_Wage_Research_2024 Data\IPC Final
 
 sort state
 
-merge 1:m statefip year using "(Undocu)EO_Step_2.dta", keep(match)
+merge 1:m statefip year using "EO_Step_2.dta", keep(match)
 drop _merge
 
-save "(Undocu)EO_Step_2.dta", replace
+save "EO_Step_2.dta", replace
