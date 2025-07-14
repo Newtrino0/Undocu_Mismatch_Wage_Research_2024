@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r Load raw data}
 library(readr)
-SIPP_2008_Wave_2 <- read_csv("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data/Core_TM SIPP 2008 Wave 2.csv")
+SIPP_2008_Wave_2 <- read_csv("C:/Users/ecran/Documents/Undocu Research Data/(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
 View(SIPP_2008_Wave_2)
 ```
 
@@ -142,7 +142,7 @@ sipp08_2_education <- na.omit(sipp08_2_education)
 
 View(sipp08_2)
 
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 write.csv(sipp08_2, "SIPP08_2.csv", row.names = FALSE)
 ```
 
@@ -311,7 +311,7 @@ grid.arrange(feature_importance, nrow = 1)
 sipp08_2_dTable$undocu_logit <- predict(logistic_kmodel, sipp08_2_klogistic)
 sipp08_2_dTable$undocu_knn <- predict(knn_model, sipp08_2_knn)
 sipp08_2_dTable$undocu_rf <- predict(rf_model, sipp08_2_rf)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 write.csv(sipp08_2_dTable, "SIPP_dTable.csv", row.names = FALSE)
 
 
@@ -462,7 +462,7 @@ print(ml_comparison)
 
 ```{r Loading ACS data}
 library(readr)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 ACS <- read_csv("ACS.csv")
 View(ACS)
 
@@ -507,17 +507,17 @@ ACS_sipp_knn <- ACS_sipp_na %>%
 ```{r Undocu imputation}
 ## Imputation method 1: Logistic regression 
 ACS_sipp_na$undocu_logistic <- predict(logistic_kmodel, ACS_sipp_na)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 write.csv(ACS_sipp_na, "ACS_SIPP_logistic.csv", row.names = FALSE)
 
 ## Imputation method 2: KNN 
 ACS_sipp_na$knn_undocu <- predict(knn_model, ACS_sipp_knn)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 write.csv(ACS_sipp_na, "ACS_SIPP_knn.csv", row.names = FALSE)
 
 ## Imputation method 2: RF 
 ACS_sipp_na$rf_undocu <- predict(rf_model, ACS_sipp_na)
-setwd("C:/Users/mario/Documents/Undocu_Mismatch_Wage_Research_2024 Data")
+setwd("C:/Users/ecran/Documents/Undocu Research Data")
 write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
 ```
 
