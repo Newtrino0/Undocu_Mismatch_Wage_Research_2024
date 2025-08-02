@@ -167,7 +167,6 @@ label var hovermatched "Horizontally Overmatched"
 label var incwage "Wage and Salary income"
 label var adj_hourly "Inflation-adjusted Hourly wage"
 
-
 ********************************************************************************
 ***************** Pre Regression recoding and preparation **********************
 ********************************************************************************
