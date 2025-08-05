@@ -10,8 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r Load raw data}
+data_path <- "G:/Shared drives/Undocu Research/Data"
+setwd(data_path)
+
 library(readr)
-SIPP_2008_Wave_2 <- read_csv("C:/Users/ecran/Documents/Undocu Research Data/(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
+SIPP_2008_Wave_2 <- read_csv(data_path)
 View(SIPP_2008_Wave_2)
 ```
 

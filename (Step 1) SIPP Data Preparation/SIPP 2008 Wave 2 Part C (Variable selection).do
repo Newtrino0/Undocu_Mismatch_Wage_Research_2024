@@ -1,5 +1,5 @@
 *** SET DIRECTORIES 
-global rawdata "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
+global data "G:\Shared drives\Undocu Research\Data"	
 
 
 					 ***********************************************
@@ -10,7 +10,7 @@ global rawdata "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
 *** Read data from local file***
 ********************************
 *cd $rawdata
-cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
+cd "$data"
 use "(Step 1 output) SIPP 2008 Wave 2.dta", clear
 describe
 

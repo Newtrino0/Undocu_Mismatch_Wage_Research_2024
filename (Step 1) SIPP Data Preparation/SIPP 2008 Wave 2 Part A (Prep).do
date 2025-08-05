@@ -1,6 +1,6 @@
 log using sippl08puw2, text replace
 set mem 1000m
-
+global "G:\Shared drives\Undocu Research\Data"	
 **------------------------------------------------;
 
 **  This program reads the 2008 SIPP Wave 2 Core Data File 
@@ -16,7 +16,7 @@ set mem 1000m
 **   the complete path and name of the raw data file.
 **   On a PC, use backslashes in paths as in C:\  
 
-local dat_name "C:\Users\ecran\Documents\GitHub\Undocu Research Data\(Step 1 data) l08puw2.dat"
+local dat_name "SIPP 2008 Wave 2 data (Core Module).dat"
 
 ** The following line should contain the path to your output '.dta' file 
 
@@ -9421,7 +9421,7 @@ label define ahicvmth
 desc,short
 
 sort ssuid eentaid epppnum swave srotaton 
-cd "C:\Users\ecran\Documents\GitHub\Undocu Research Data"
+cd "$data"
 save "(Step 1 output) SIPP 2008 Wave 2.dta", replace
 export delimited using "(Step 1 output) SIPP 2008 Wave 2.csv"
 
