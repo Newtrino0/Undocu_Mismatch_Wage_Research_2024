@@ -36,3 +36,17 @@ Kuka, Shenhav, and Shih rightfully emphasize that this method cannot distinguish
 - Horizontal mismatch: Worker that holds a degree in a field that is not one of two most common degree fields for an occupation (e.g. engineering major working as an accountant)
 - Horizontal undermatch: A horizontally mismatched worker, whose median wage for their occupation is less than the median wage for workers, that are horizontally matched, with the same field of study
 - Horizontal overmatch: A horizontally mismatched worker, whose median wage for their occupation is more than the median wage for workers, that are horizontally matched, with the same field of study
+
+<h3>Replication steps</h3>
+<h4> Step 1: SIPP (Survey of Income and Program Participation) Data Preparation </h4>
+- Part A: Prepare the SIPP core module using the associated DO file
+- Part B: Prepare the SIPP topical module (with data on immigration status) using the associated DO file
+- Part C: Merge the two module datasets and keep only the variables relevant to the study
+<h4> Step 2: ACS (American Community Survey) Cleaning and Preparing </h4>
+- Part A: Clean and prepare ACS data by creating all variables except mismatch indicators
+- Part B: Create collapsed table of modal occupations and fields of study, as well as associated median wages
+<h4> Step 3: Machine Learning Estmations </h4>
+- Part A: Train and evaluate machine learning models, impute undocumented status with best-performing models
+- Part B: Reintroduce machine learning imputations of undocumented status into ACS and create mismatch indicators
+<h4> Step 4: Regression Analysis </h4>
+- 
