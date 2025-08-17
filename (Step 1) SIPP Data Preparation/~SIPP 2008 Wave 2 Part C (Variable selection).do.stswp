@@ -103,4 +103,4 @@ gen cit_spouse = (cond1 & cond2)
 ********************************
 
 save "(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace
-export delimited using "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace
+export delimited using "C:\Users\ecran\Documents\GitHub\Undocu Research Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace

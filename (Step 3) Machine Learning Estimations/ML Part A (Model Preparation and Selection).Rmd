@@ -14,14 +14,14 @@ data_path <- "G:/Shared drives/Undocu Research/Data"
 setwd(data_path)
 
 library(readr)
-SIPP_2008_Wave_2 <- read_csv(data_path)
-View(SIPP_2008_Wave_2)
+sipp08_2 <- read_csv("(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
+View(sipp08_2)
 ```
 
 
 ```{r Data preparation}
 library(dplyr)
-sipp08_2 <- SIPP_2008_Wave_2 %>%
+sipp08_2 <- sipp08_2 %>%
   mutate(
     undocu_entry = as.factor(ifelse(timstat=="Other", 1, 0)),
     undocu_likely = as.factor(ifelse(timstat=="Other" & eadjust=="No", 1, 0)),
@@ -129,11 +129,6 @@ variable_lists <- list(
            "household_size", "poverty", "asian", "black", "white", "other_race", 
            "employed", "years_us", "yrsed"),
   
-  education = c("undocu_likely", "medicaid", "central_latino", "bpl_asia", "age", "fem", 
-                "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", 
-                "household_size", "poverty", "asian", "black", "white", "other_race", 
-                "employed", "years_us"),
-  
   descriptive = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", 
                   "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", 
                   "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", 
@@ -146,25 +141,19 @@ create_datasets <- function(data, variables) {
   datasets <- list()
   
   # Filter for undocu_logical == 1
-  base_filter <- data[data$undocu_logical == 1, ]
+  undocu_filter <- data[data$undocu_logical == 1, ]
   
-  datasets$dTable <- undocu_filter[, variables$descriptive] %>%
+  datasets$dTable <- as.data.frame(undocu_filter[, variables$descriptive]) %>%
     mutate_at(vars(-undocu_likely), as.numeric) %>%
     na.omit()
   
-  datasets$logistic <- undocu_filter[, variables$base] %>%
+  datasets$sample <- as.data.frame(undocu_filter[, variables$base]) %>%
     na.omit()
   
-  datasets$knn <- undocu_filter[, variables$base] %>%
+  datasets$knn <- as.data.frame(undocu_filter[, variables$base]) %>%
     mutate_at(vars(-undocu_likely), as.numeric) %>%
     na.omit()
   
-  datasets$rf <- undocu_filter[, variables$base] %>%
-    na.omit()
-  
-  # Education subset (college graduates only)
-  datasets$education <- data[data$undocu_logical == 1 & data$college == 1, variables$education] %>%
-    na.omit()
   
   # Demographic subsets (college graduates only)
   datasets$noncit <- data[data$citizen == 0 & data$college == 1, ]
@@ -180,11 +169,6 @@ create_datasets <- function(data, variables) {
 all_data <- create_datasets(sipp08_2, variable_lists)
 
 
-sipp08_2_noncit <- sipp08_2[sipp08_2$citizen==0 & sipp08_2$college==1,]
-sipp08_2_central_latino <- sipp08_2[sipp08_2$central_latino==1 & sipp08_2$college==1,]
-sipp08_2_spanish_hispanic_latino <- sipp08_2[sipp08_2$spanish_hispanic_latino==1 & sipp08_2$college==1,]
-sipp08_2_top_states <- sipp08_2[sipp08_2$top_ten_states==1 & sipp08_2$college==1,]
-
 
 View(sipp08_2)
 
@@ -193,6 +177,15 @@ write.csv(sipp08_2, "SIPP08_2.csv", row.names = FALSE)
 ```
 
 
+# Extract dataframes from list to separate objects
+sipp08_2_dTable <- all_data$dTable
+sipp08_2_knn <- all_data$knn
+sipp08_2_sample <- all_data$rf
+sipp08_2_noncit <- all_data$noncit
+sipp08_2_central_latino <- all_data$central_latino
+sipp08_2_spanish_hispanic_latino <- all_data$spanish_hispanic_latino
+sipp08_2_top_states <- all_data$top_states
+
 
 ```{r Logistic Regression}
 library(stargazer)
@@ -200,13 +193,13 @@ library(caret)
 library(xtable)
 
 
-levels(sipp08_2_klogistic$undocu_likely) <- make.names(levels(sipp08_2_klogistic$undocu_likely))
+levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
 
 
 set.seed(1)
-train_index_klogistic <- createDataPartition(sipp08_2_klogistic$undocu_likely, p = 0.7, list = FALSE)
-train_klogistic <- sipp08_2_klogistic[train_index_klogistic, ]
-test_klogistic <- sipp08_2_klogistic[-train_index_klogistic, ]
+train_index_logistic <- createDataPartition(all_data$sample$undocu_likely, p = 0.7, list = FALSE)
+train_logistic <- all_data$sample[train_index_logistic, ]
+test_logistic <- all_data$sample[-train_index_logistic, ]
 
 ## Create trainControl object
 control <- trainControl(
@@ -218,18 +211,18 @@ control <- trainControl(
 )
 
 ## Train glm with custom trainControl
-logistic_kmodel <- train(undocu_likely ~ age + fem + married + cit_spouse + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_klogistic,
+logistic_model <- train(undocu_likely ~ age + fem + married + cit_spouse + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + medicaid + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, train_logistic,
                method = "glm",
                trControl = control,
                metric = 'ROC')
 
-p_klogistic <- predict(logistic_kmodel, test_klogistic)
+p_logistic <- predict(logistic_model, test_logistic)
 
 
 # Generate confusion matrix
-klogistic_matrix <- confusionMatrix(p_klogistic, test_klogistic$undocu_likely, positive = "X1")
-print(klogistic_matrix)
-summary_logistic<-summary(logistic_kmodel)$coefficients[,c(1,4)]
+logistic_matrix <- confusionMatrix(p_logistic, test_logistic$undocu_likely, positive = "X1")
+print(logistic_matrix)
+summary_logistic<-summary(logistic_model)$coefficients[,c(1,4)]
 summary_logistic
 xtable(summary_logistic, digits=4)
 ```
@@ -240,10 +233,10 @@ library(class)
 library(caTools)
 
 set.seed(1)
-levels(sipp08_2_knn$undocu_likely) <- make.names(levels(sipp08_2_knn$undocu_likely))
-train_index_knn <- createDataPartition(sipp08_2_knn$undocu_likely, p = 0.7, list = FALSE)
-train_knn <- sipp08_2_knn[train_index_knn, ]
-test_knn <- sipp08_2_knn[-train_index_knn, ]
+levels(all_data$knn$undocu_likely) <- make.names(levels(all_data$knn$undocu_likely))
+train_index_knn <- createDataPartition(all_data$knn$undocu_likely, p = 0.7, list = FALSE)
+train_knn <- all_data$knn[train_index_knn, ]
+test_knn <- all_data$knn[-train_index_knn, ]
 
 
 
@@ -256,7 +249,6 @@ knn_model <- train(undocu_likely ~., data = train_knn, method = "knn",
 knn_model
 
 predict_knn <- predict(knn_model, test_knn)
-
 
 knn_matrix <- confusionMatrix(predict_knn, test_knn$undocu_likely, positive = "X1")
 print(knn_matrix)
@@ -276,19 +268,13 @@ library(caTools)
 library(caret)
 library(rpart)  ## recursive partitioning
 
-levels(sipp08_2_rf$undocu_likely) <- make.names(levels(sipp08_2_rf$undocu_likely))
+levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
 
 
-train_index_rf <- createDataPartition(sipp08_2_rf$undocu_likely, p = 0.7, list = FALSE)
-train_rf <- sipp08_2_rf[train_index_rf, ]
-test_rf <- sipp08_2_rf[-train_index_rf, ]
+train_index_rf <- createDataPartition(all_data$sample$undocu_likely, p = 0.7, list = FALSE)
+train_rf <- all_data$sample[train_index_rf, ]
+test_rf <- all_data$sample[-train_index_rf, ]
 
-levels(sipp08_2_education$undocu_likely) <- make.names(levels(sipp08_2_education$undocu_likely))
-
-
-train_index_edu <- createDataPartition(sipp08_2_education$undocu_likely, p = 0.7, list = FALSE)
-train_edu <- sipp08_2_education[train_index_edu, ]
-test_edu <- sipp08_2_education[-train_index_edu, ]
 
 train_rf <- train_rf %>%
   select(-undocu_likely, undocu_likely)
@@ -303,7 +289,7 @@ tunegrid <- expand.grid(mtry = c(2,4,8,12),
                       splitrule = c("gini", "extratrees"),
                       min.node.size = 1)
 
-control_rf <- trainControl(
+control_up <- trainControl(
     method = "cv",
     number = 10,  
     summaryFunction = twoClassSummary,
@@ -316,7 +302,7 @@ set.seed(1)
 rf_model <- train(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed,
                data = train_rf,
                method = "ranger",
-               trControl = control_rf,
+               trControl = control_up,
                tuneLength = 5,
                importance = "impurity",
                metric = 'ROC')
@@ -328,42 +314,90 @@ p_rf <- predict(rf_model, test_rf)
 rf_matrix <- confusionMatrix(p_rf, test_rf$undocu_likely, positive="X1")
 rf_matrix
 
-set.seed(1)
-education_model <- train(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us,
-               data = train_edu,
-               method = "ranger",
-               trControl = control_rf,
-               tuneLength = 5,
-               importance = "impurity",
-               metric = 'ROC')
-print(education_model)
-plot(education_model)
-
-p_edu <- predict(education_model, test_edu)
-
-edu_matrix <- confusionMatrix(p_edu, test_edu$undocu_likely, positive="X1")
-edu_matrix
-
-
-
-feature_importance_stats<-varImp(education_model)
 
 library(vip)
 library(gridExtra)
-feature_importance <- vip(education_model, num_features = 19, bar = FALSE)
 
 grid.arrange(feature_importance, nrow = 1)
 
-sipp08_2_dTable$undocu_logit <- predict(logistic_kmodel, sipp08_2_klogistic)
-sipp08_2_dTable$undocu_knn <- predict(knn_model, sipp08_2_knn)
-sipp08_2_dTable$undocu_rf <- predict(rf_model, sipp08_2_rf)
-setwd("C:/Users/ecran/Documents/Undocu Research Data")
-write.csv(sipp08_2_dTable, "SIPP_dTable.csv", row.names = FALSE)
+all_data$dTable$undocu_logit <- predict(logistic_model, all_data$sample)
+all_data$dTable$undocu_knn <- predict(knn_model, all_data$knn)
+all_data$dTable$undocu_rf <- predict(rf_model, all_data$sample)
+setwd("G:/Shared drives/Undocu Research/Data")
+write.csv(all_data$dTable, "SIPP_dTable.csv", row.names = FALSE)
 
 
 rf_model$finalModel$num.trees
 
 ```
+
+# GBM first
+```{r Gradient-Boosting}
+gbmFit1 <- train( undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = training, 
+                 method = "gbm", 
+                 trControl = upcontrol,
+                 verbose = FALSE)
+gbmFit1
+
+```
+
+```{r SVM}
+library(e1071)    # For SVM
+library(gbm)      # For Gradient Boosting
+library(class)
+library(caTools)
+library(caret)
+library(rpart)  ## recursive partitioning
+
+levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
+
+
+train_index_svm <- createDataPartition(all_data$sample$undocu_likely, p = 0.7, list = FALSE)
+train_svm <- all_data$sample[train_index_svm, ]
+test_svm <- all_data$sample[-train_index_svm, ]
+
+
+
+# Linear SVM (svmLinear)
+svm_linear <- train(
+  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
+  data = train_svm,
+  method = "svmLinear",
+  trControl = control_up,
+  metric = "ROC",                   # Optimize for ROC
+  tuneGrid = expand.grid(C = c(1, 10))  # Cost parameter
+)
+
+# Polynomial SVM (svmPoly)
+svm_poly <- train(
+  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
+  data = train_svm,
+  method = "svmPoly",
+  trControl = control_up,
+  metric = "ROC",
+  tuneGrid = expand.grid(
+    degree = c(2, 3, 4),            # Polynomial degree
+    scale = c(0.01, 0.1, 1),        # Scale parameter
+    C = c(1, 10)               # Cost parameter
+  )
+)
+
+# RBF SVM (svmRadial)
+svm_rbf <- train(
+  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
+  data = train_svm,
+  method = "svmRadial",
+  trControl = control_up,
+  metric = "ROC",
+  tuneGrid = expand.grid(
+    sigma = c(0.001, 0.01, 0.1, 1), # Sigma (gamma) parameter
+    C = c(1, 10)          # Cost parameter
+  )
+)
+
+plot(svm_linear)
+```
+
 
 
 

@@ -1,6 +1,11 @@
+*log close
+clear
 log using sippl08puw2, text replace
 set mem 1000m
-global "G:\Shared drives\Undocu Research\Data"	
+global general "G:/Shared drives\Undocu Research"
+global data "G:/Shared drives/Undocu Research\Data"
+
+cd "$general" 	
 **------------------------------------------------;
 
 **  This program reads the 2008 SIPP Wave 2 Core Data File 
@@ -16,7 +21,7 @@ global "G:\Shared drives\Undocu Research\Data"
 **   the complete path and name of the raw data file.
 **   On a PC, use backslashes in paths as in C:\  
 
-local dat_name "SIPP 2008 Wave 2 data (Core Module).dat"
+local dat_name "Data/SIPP 2008 Wave 2 data (Core Module).dat"
 
 ** The following line should contain the path to your output '.dta' file 
 
@@ -24,7 +29,9 @@ local dat_name "SIPP 2008 Wave 2 data (Core Module).dat"
 
 ** The following line should contain the path to the data dictionary file 
 
-local dct_name "C:\Users\ecran\Documents\GitHub\Undocu_Mismatch_Wage_Research_2024\(Step 1) SIPP Data Preparation\SIPP 2008 Wave 2 dictionary.do"
+local dct_name "Code/(Step 1) SIPP Data Preparation\SIPP 2008 Wave 2 dictionary.do"
+
+
 
 ** The line below does NOT need to be changed 
 
@@ -34,7 +41,7 @@ quietly infile using "`dct_name'", using("`dat_name'") clear
 **  Stata resolves a missing value of -1 / # of decimal places as a missing value.
 
 **Everything below this point, aside from the final save, are value labels
-
+cd "$data" 
 #delimit ;
 
 ;
@@ -9421,9 +9428,9 @@ label define ahicvmth
 desc,short
 
 sort ssuid eentaid epppnum swave srotaton 
-cd "$data"
+
 save "(Step 1 output) SIPP 2008 Wave 2.dta", replace
-export delimited using "(Step 1 output) SIPP 2008 Wave 2.csv"
+*export delimited using "(Step 1 output) SIPP 2008 Wave 2.csv"
 
 
 ** Copyright 2010 shared by the National Bureau of Economic Research and Jean Roth ;
