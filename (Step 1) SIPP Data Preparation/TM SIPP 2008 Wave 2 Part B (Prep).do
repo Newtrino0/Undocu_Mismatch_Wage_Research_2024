@@ -2,8 +2,8 @@ log close
 clear
 log using sippp08putm2, text replace
 set mem 1000m
-global general "G:\Shared drives\Undocu Research"
-global data "G:\Shared drives\Undocu Research\Data"
+global general "G:/Shared drives/Undocu Research"
+global data "G:/Shared drives/Undocu Research/Data"
 
 cd "$general" 	
 **------------------------------------------------;
@@ -21,7 +21,7 @@ cd "$general"
 **   the complete path and name of the raw data file.
 **   On a PC, use backslashes in paths as in C:\  
 
-local dat_name "Data\SIPP 2008 Wave 2 data (Topical Module).dat"
+local dat_name "Data/SIPP 2008 Wave 2 data (Topical Module).dat"
 
 ** The following line should contain the path to your output '.dta' file 
 
@@ -29,7 +29,7 @@ local dat_name "Data\SIPP 2008 Wave 2 data (Topical Module).dat"
 
 ** The following line should contain the path to the data dictionary file 
 
-local dct_name "Code\(Step 1) SIPP Data Preparation\TM SIPP 2008 Wave 2 dictionary.do"
+local dct_name "Code/(Step 1) SIPP Data Preparation/TM SIPP 2008 Wave 2 dictionary.do"
 
 ** The line below does NOT need to be changed 
 

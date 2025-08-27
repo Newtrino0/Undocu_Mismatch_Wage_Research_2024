@@ -1,7 +1,6 @@
-clear
-global data "G:\Shared drives\Undocu Research\Data"
-global dofiles "G:\Shared drives\Undocu Research\Code"
-
+********************************************************************************
+********** Mismatch indicators and median mismatched wages *********************
+********************************************************************************
 
 cd "$data"
 import delimited "ACS_SIPP_rf.csv", clear 

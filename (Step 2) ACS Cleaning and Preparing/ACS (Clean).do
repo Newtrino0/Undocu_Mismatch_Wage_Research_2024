@@ -1,6 +1,6 @@
 *** SET DIRECTORIES 
-global data "G:\Shared drives\Undocu Research\Data"			// Set your data file path here
-global dofiles "G:\Shared drives\Undocu Research\Code"		// Set your do file path here	
+global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
+global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path here	
 
 *** SET CODE
 cap log close

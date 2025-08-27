@@ -8,10 +8,10 @@ ssc estout
 */
 
 // Set paths/directories here
-global data "G:\Shared drives\Undocu Research\Data"
-global dofiles "G:\Shared drives\Undocu Research\Code"
-global figures "G:\Shared drives\Undocu Research\Output\Figures"
-global tables "G:\Shared drives\Undocu Research\Output\Tables"
+global data "G:/Shared drives/Undocu Research/Data"
+global dofiles "G:/Shared drives/Undocu Research/Code"
+global figures "G:/Shared drives/Undocu Research/Output/Figures"
+global tables "G:/Shared drives/Undocu Research/Output/Tables"
 
 cd "$data"
 use "EO_Final", clear
