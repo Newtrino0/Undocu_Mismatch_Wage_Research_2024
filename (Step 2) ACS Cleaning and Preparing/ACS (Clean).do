@@ -31,7 +31,7 @@ drop if empstat !=1
 keep if school==1
 
 
-drop if year==2005 | year==2006 | year==2007 | year==2008 | year==2009 | year==2010 | year==2011 | year==2012 | year==2020 | year==2021 | year==2022
+keep if year >= 2009 & year <= 2019
 
 
 drop cbserial momloc poploc

@@ -28,7 +28,7 @@ keep if srefmon==1
 bys epppnum eentaid ssuid:gen count=_N
 tab count
 
-keep epppnum ehrefper errp efspouse shhadid ssuid eentaid eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 ecrmth rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin tfipsst ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06 eafnow eafever rcutyp01 rcutyp03
+keep epppnum ehrefper tpearn ehrsall epayhr1 errp tpmsum1 efspouse shhadid ssuid eentaid eadvncfd ebachfld egedtm eenlevel eeducate evocat rhpov thearn rhcalyr tbyear ebmnth tage tbrstate esex ems epnspous espeak tlang1 ehowwell rcutyp57 rcutyp58 ecrmth rcuown57 ecitizen enatcit timstat eadjust tadyear tmoveus rfnkids rmesr erace eorigin tfipsst ebornus ehhnumpp epayhr1 eslryb1 tpmsum1 tpmsum2 tjbocc1 tjbocc2 eclwrk1 eclwrk2 ejbind1 eunion1 ecntrc1 eocctim1 eenrlm easst06 eafnow eafever rcutyp01 rcutyp03
 
 
 
@@ -42,8 +42,10 @@ bysort ssuid (spouse cit): egen cond2 = max(cit)
 * Spouse is citizen (misclassifies citizens as having citizen spouse when not true)
 gen cit_spouse = (cond1 & cond2)
 
-
-
+* tpmsum1: Earnings from job received in this month What was ...'s gross pay before deductions in this month?
+* epayhr1: Does ... have a set annual salary, was ... paid by the hour or was ... paid some other way?
+* ehrsall: Usual hours worked at all jobs during the reference period
+* tpearn: Total person's earned income for the month
 * epppnum: Person number. This field differentiates persons within the sample unit. Person number is unique within the sample unit. 
 * ehrefper: number of household reference person
 * errp: Household relationship
