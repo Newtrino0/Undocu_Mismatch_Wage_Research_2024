@@ -318,6 +318,7 @@ rf_matrix
 library(vip)
 library(gridExtra)
 
+feature_importance <- vip(rf_model, num_features = 19, bar = FALSE)
 grid.arrange(feature_importance, nrow = 1)
 
 all_data$dTable$undocu_logit <- predict(logistic_model, all_data$sample)
@@ -387,63 +388,90 @@ cat("AUC-PR:", round(boost_auc_pr, 4), "\n")
 
 predicted_class <- ifelse(boost.preds2 > 0.5, 1, 0)
 table(Predicted = predicted_class, Actual = test_gbm$undocu_likely_num)
+
+
+# Feature Importance
+library(vip)
+library(gridExtra)
+
+feature_importance_gbm <- vip(gbm_model, num_features = 19, bar = FALSE)
+grid.arrange(feature_importance_gbm, nrow = 1)
 ```
-
-```{r SVM}
-library(e1071)    # For SVM
-library(gbm)      # For Gradient Boosting
-library(class)
-library(caTools)
-library(caret)
-library(rpart)  ## recursive partitioning
-
-levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
+```{r Demographic percentiles}
+library(dplyr)
+library(modelsummary)
 
 
-train_index_svm <- createDataPartition(all_data$sample$undocu_likely, p = 0.7, list = FALSE)
-train_svm <- all_data$sample[train_index_svm, ]
-test_svm <- all_data$sample[-train_index_svm, ]
+# --- Filter ---
+data <- data %>%
+  filter(earnwt > 0)
 
+# --- Create groups (deciles of boost_preds, reversed so 1 = most likely) ---
+data <- data %>%
+  mutate(groups = ntile(boost_preds, 10),
+         groups = 11 - groups)
 
-
-# Linear SVM (svmLinear)
-svm_linear <- train(
-  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
-  data = train_svm,
-  method = "svmLinear",
-  trControl = control_up,
-  metric = "ROC",                   # Optimize for ROC
-  tuneGrid = expand.grid(C = c(1, 10))  # Cost parameter
-)
-
-# Polynomial SVM (svmPoly)
-svm_poly <- train(
-  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
-  data = train_svm,
-  method = "svmPoly",
-  trControl = control_up,
-  metric = "ROC",
-  tuneGrid = expand.grid(
-    degree = c(2, 3, 4),            # Polynomial degree
-    scale = c(0.01, 0.1, 1),        # Scale parameter
-    C = c(1, 10)               # Cost parameter
+# --- Variables ---
+data <- data %>%
+  group_by(groups) %>%
+  mutate(lowest_pred = min(boost_preds)) %>%
+  ungroup() %>%
+  mutate(
+    female     = as.integer(sex == 0),
+    teen       = as.integer(age < 20),
+    youngadult = as.integer(age >= 20 & age < 30),
+    one        = 1,
+    hisp       = as.integer(hispanic == 1),
+    bsh        = as.integer(black == 1 | hispanic == 1),
+    white      = as.integer(race == 1),
+    hsg        = as.integer(hsl == 1 & hsd == 0)
   )
+
+# --- Variables of interest ---
+full_list <- c("teen", "youngadult", "hsd", "hsg", "female", "white", "bsh")
+
+# --- Compute stats by decile ---
+summary_list <- list()
+
+for (vv in c("one", "lowest_pred", full_list)) {
+  if (vv == "one") {
+    # count of obs per group
+    temp <- data %>%
+      group_by(groups) %>%
+      summarise(value = n(), .groups = "drop")
+    
+  } else if (vv == "lowest_pred") {
+    # min of boost_preds per group
+    temp <- data %>%
+      group_by(groups) %>%
+      summarise(value = min(boost_preds), .groups = "drop")
+    
+  } else {
+    # weighted mean of variable
+    temp <- data %>%
+      group_by(groups) %>%
+      summarise(value = weighted.mean(.data[[vv]], w = earnwt, na.rm = TRUE), .groups = "drop")
+  }
+  
+  summary_list[[vv]] <- temp$value
+}
+
+# --- Build table ---
+# Turn into data frame (rows = variables, cols = deciles)
+results_df <- do.call(rbind, summary_list)
+rownames(results_df) <- names(summary_list)
+colnames(results_df) <- paste0("Decile_", 1:10)
+
+results_df <- as.data.frame(results_df)
+
+# --- Export to LaTeX ---
+modelsummary(
+  list(results_df), 
+  output = paste0(Sys.getenv("tables"), "table_1.tex"),
+  escape = FALSE # allow LaTeX in labels if needed
 )
 
-# RBF SVM (svmRadial)
-svm_rbf <- train(
-  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, 
-  data = train_svm,
-  method = "svmRadial",
-  trControl = control_up,
-  metric = "ROC",
-  tuneGrid = expand.grid(
-    sigma = c(0.001, 0.01, 0.1, 1), # Sigma (gamma) parameter
-    C = c(1, 10)          # Cost parameter
-  )
-)
 
-plot(svm_linear)
 ```
 
 
@@ -457,7 +485,6 @@ rf_model_2 <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic
                metric = 'Accuracy',
                tuneGrid = tunegrid,
                trControl = control_rf)
-
 
 
 *undocu_likely
@@ -476,7 +503,6 @@ rf_model_2 <- train(undocu_likely ~ age + married + nonfluent + spanish_hispanic
 *employed
 *years_us
 *yrsed
-
 
 
 ```{r Logical edits performance}
@@ -515,10 +541,10 @@ accuracy_logical_noncit <- (TP_logical_noncit+TN_logical_noncit)/(TP_logical_non
 #accuracy_logical_top_states <- (TP_logical_top_states+TN_logical_top_states)/(TP_logical_top_states+TN_logical_top_states+FP_logical_top_states+FN_logical_top_states)  
 
 ## Hispanic, latino, spanish
-FN_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==0 & sipp08_2_spanish_hispanic_latino$undocu_likely==1))
-TN_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==0 & sipp08_2_spanish_hispanic_latino$undocu_likely==0))
-FP_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==1 & sipp08_2_spanish_hispanic_latino$undocu_likely==0))
-TP_logical_spanish_hispanic_latino <- length(which(sipp08_2_spanish_hispanic_latino$undocu_logical==1 & sipp08_2_spanish_hispanic_latino$undocu_likely==1))
+FN_logical_spanish_hispanic_latino <- length(which(all_data$spanish_hispanic_latino$undocu_logical==0 & all_data$spanish_hispanic_latino$undocu_likely==1))
+TN_logical_spanish_hispanic_latino <- length(which(all_data$spanish_hispanic_latino$undocu_logical==0 & all_data$spanish_hispanic_latino$undocu_likely==0))
+FP_logical_spanish_hispanic_latino <- length(which(all_data$spanish_hispanic_latino$undocu_logical==1 & all_data$spanish_hispanic_latino$undocu_likely==0))
+TP_logical_spanish_hispanic_latino <- length(which(all_data$spanish_hispanic_latino$undocu_logical==1 & all_data$spanish_hispanic_latino$undocu_likely==1))
 
 specificity_logical_spanish_hispanic_latino<- TN_logical_spanish_hispanic_latino/(TN_logical_spanish_hispanic_latino+FP_logical_spanish_hispanic_latino)
 sensitivity_logical_spanish_hispanic_latino<- TP_logical_spanish_hispanic_latino/(TP_logical_spanish_hispanic_latino+FN_logical_spanish_hispanic_latino)
@@ -526,10 +552,10 @@ ppv_logical_spanish_hispanic_latino <- TP_logical_spanish_hispanic_latino/(TP_lo
 accuracy_logical_spanish_hispanic_latino <- (TP_logical_spanish_hispanic_latino+TN_logical_spanish_hispanic_latino)/(TP_logical_spanish_hispanic_latino+TN_logical_spanish_hispanic_latino+FP_logical_spanish_hispanic_latino+FN_logical_spanish_hispanic_latino)  
 
 ## Central America and Latino (Central America + Mexico)
-FN_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==0 & sipp08_2_central_latino$undocu_likely==1))
-TN_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==0 & sipp08_2_central_latino$undocu_likely==0))
-FP_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==1 & sipp08_2_central_latino$undocu_likely==0))
-TP_logical_central_latino <- length(which(sipp08_2_central_latino$undocu_logical==1 & sipp08_2_central_latino$undocu_likely==1))
+FN_logical_central_latino <- length(which(all_data$central_latino$undocu_logical==0 & all_data$central_latino$undocu_likely==1))
+TN_logical_central_latino <- length(which(all_data$central_latino$undocu_logical==0 & all_data$central_latino$undocu_likely==0))
+FP_logical_central_latino <- length(which(all_data$central_latino$undocu_logical==1 & all_data$central_latino$undocu_likely==0))
+TP_logical_central_latino <- length(which(all_data$central_latino$undocu_logical==1 & all_data$central_latino$undocu_likely==1))
 
 
 specificity_logical_central_latino<- TN_logical_central_latino/(TN_logical_central_latino+FP_logical_central_latino)
@@ -539,13 +565,13 @@ accuracy_logical_central_latino <- (TP_logical_central_latino+TN_logical_central
 
 
 
-logical_sensitivity <- c(sensitivity_logical, sensitivity_logical_noncit, sensitivity_logical_top_states, sensitivity_logical_spanish_hispanic_latino, sensitivity_logical_central_latino)
+logical_sensitivity <- c(sensitivity_logical, sensitivity_logical_noncit, sensitivity_logical_spanish_hispanic_latino, sensitivity_logical_central_latino)
 
-logical_specificity <- c(specificity_logical, specificity_logical_noncit, specificity_logical_top_states, specificity_logical_spanish_hispanic_latino, specificity_logical_central_latino)
+logical_specificity <- c(specificity_logical, specificity_logical_noncit, specificity_logical_spanish_hispanic_latino, specificity_logical_central_latino)
 
-logical_ppv <- c(ppv_logical, ppv_logical_noncit, ppv_logical_top_states, ppv_logical_spanish_hispanic_latino, ppv_logical_central_latino)
+logical_ppv <- c(ppv_logical, ppv_logical_noncit, ppv_logical_spanish_hispanic_latino, ppv_logical_central_latino)
 
-logical_accuracy <- c(accuracy_logical, accuracy_logical_noncit, accuracy_logical_top_states, accuracy_logical_spanish_hispanic_latino, accuracy_logical_central_latino)
+logical_accuracy <- c(accuracy_logical, accuracy_logical_noncit, accuracy_logical_spanish_hispanic_latino, accuracy_logical_central_latino)
 
 
 logical_edits_table <- data.frame(logical_sensitivity, logical_specificity, logical_ppv, logical_accuracy)
@@ -590,10 +616,103 @@ print(ml_comparison)
 
 ```{r Loading ACS data}
 library(readr)
+library(haven)
 setwd(data_path)
-ACS <- read_csv("ACS.csv")
+ACS <- read_dta("EO_A.dta")
+#ACS <- read_csv("ACS.csv")
 View(ACS)
 
+```
+
+```{r Prep ACS .dta data}
+# Convert labeled variables to character first, then process
+ACS <- ACS %>%
+  mutate(
+    # Convert any labeled variables to character
+    hisp = as.numeric(as.character(hisp)),
+    spanish = as.numeric(as.character(spanish)),
+    race = as.character(race),
+    bpld = as.character(bpld),
+    empstat = as.numeric(as.character(empstat)),
+    poverty = as.numeric(as.character(poverty)),
+    married = as.numeric(as.character(married)),
+    cit_spouse = as.numeric(as.character(cit_spouse)),
+    nonfluent = as.numeric(as.character(nonfluent)),
+    bpl_asia = as.numeric(as.character(bpl_asia)),
+    asian = as.numeric(as.character(asian)),
+    fem = as.numeric(as.character(fem)),
+    numprec = as.numeric(as.character(numprec)),
+    yrsusa1 = as.character(yrsusa1),  # Keep as character for string matching
+    hinscare = as.character(hinscare),
+    hinscaid = as.character(hinscaid),
+    undocu = as.numeric(as.character(undocu)),
+    bpl_usa = as.numeric(as.character(bpl_usa)),
+    age = as.numeric(as.character(age)),
+    yrsed = as.numeric(as.character(yrsed))
+  )
+
+# ==============================================================================
+# MAIN PROCESSING WITH ERROR HANDLING
+# ==============================================================================
+
+ACS_sipp <- ACS %>%
+  mutate(
+    spanish_hispanic_latino = as.factor(ifelse(hisp == 1 | spanish == 1, 1, 0)),
+    
+    # Handle case-insensitive string matching for bpld
+    central_latino = as.factor(ifelse(
+      (hisp == 1) & (tolower(bpld) %in% c("belize/british honduras", "costa rica", 
+                                         "el salvador", "guatemala", "honduras", 
+                                         "nicaragua", "panama", "mexico")), 1, 0)),
+    
+    # Handle case-insensitive race matching
+    black = as.factor(ifelse(tolower(race) == "black/african america" | 
+                            tolower(race) == "black/african american", 1, 0)),
+    white = as.factor(ifelse(tolower(race) == "white", 1, 0)),
+    
+    employed = as.factor(ifelse(empstat == 1, 1, 0)),
+    poverty = as.factor(ifelse(poverty < 100, 1, 0)),
+    married = as.factor(married),
+    cit_spouse = as.factor(cit_spouse),
+    nonfluent = as.factor(nonfluent),
+    bpl_asia = as.factor(bpl_asia),
+    asian = as.factor(asian),
+    fem = as.factor(fem),
+    household_size = numprec,
+    
+    # Handle years_us with proper string matching
+    years_us = case_when(
+      tolower(yrsusa1) == "n/a or less than one year" & bpl_usa == 1 ~ NA_real_,
+      tolower(yrsusa1) == "n/a or less than one year" & bpl_usa == 0 ~ 0,
+      TRUE ~ as.numeric(yrsusa1)
+    ),
+    
+    # Handle case-insensitive insurance matching
+    medicare = as.factor(ifelse(tolower(hinscare) == "yes", 1, 0)),
+    medicaid = as.factor(ifelse(tolower(hinscaid) == "has insurance through medicaid", 1, 0))
+  )
+
+# Fix other_race calculation (use ACS_sipp instead of ACS)
+ACS_sipp$other_race <- as.factor(ifelse(
+  as.numeric(as.character(ACS_sipp$black)) != 1 & 
+  as.numeric(as.character(ACS_sipp$white)) != 1 & 
+  as.numeric(as.character(ACS_sipp$asian)) != 1, 1, 0))
+
+
+
+# Own code
+ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==1, NA)
+ACS_sipp$years_us <- replace(ACS_sipp$years_us, ACS_sipp$yrsusa1=="n/a or less than one year" & ACS_sipp$bpl_usa==0, 0)
+ACS_sipp$years_us <- as.numeric(ACS_sipp$years_us)
+
+ACS_sipp$other_race <- as.factor(ifelse(ACS$black!=1 & ACS$white!=1 & ACS$asian!=1, 1, 0))
+ACS_sipp_na <- ACS_sipp  %>%
+  filter(undocu==1, !is.na(years_us),!is.na(medicaid), !is.na(age),!is.na(fem), !is.na(married),!is.na(cit_spouse), !is.na(nonfluent),  !is.na(spanish_hispanic_latino), !is.na(central_latino), !is.na(bpl_asia), !is.na(household_size), !is.na(poverty), !is.na(asian), !is.na(black), !is.na(white), !is.na(other_race), !is.na(employed),  !is.na(yrsed))
+
+ACS_cols_numeric <- c("central_latino", "bpl_asia", "medicaid", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us","yrsed")
+
+ACS_sipp_knn <- ACS_sipp_na %>%
+  mutate_at(ACS_cols_numeric, as.numeric)
 ```
 
 ```{r Preparing ACS data}
@@ -632,7 +751,92 @@ ACS_sipp_knn <- ACS_sipp_na %>%
   mutate_at(ACS_cols_numeric, as.numeric)
 ```
 
+```{r Figure 2}
+# ==============================================================================
+# PREPARE PRECISION-RECALL DATA FOR ALL MODELS
+# ==============================================================================
+
+# Start with boosted trees as baseline
+boost_pr_data <- data.frame(
+  recall = unlist(boost.perf2@x.values), 
+  precision = unlist(boost.perf2@y.values)
+)
+
+# Interpolate other models to match boosted trees recall values
+rf_pr_data <- data.frame(
+  recall = approx(unlist(rf.perf2@x.values), unlist(rf.perf2@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(rf.perf2@x.values), unlist(rf.perf2@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
+
+logistic_pr_data <- data.frame(
+  recall = approx(unlist(logistic.perf2@x.values), unlist(logistic.perf2@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(logistic.perf2@x.values), unlist(logistic.perf2@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
+
+knn_pr_data <- data.frame(
+  recall = approx(unlist(knn.perf2@x.values), unlist(knn.perf2@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(knn.perf2@x.values), unlist(knn.perf2@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
+
+# ==============================================================================
+# COMBINE ALL DATA
+# ==============================================================================
+
+all_pr_data <- boost_pr_data
+
+# Add precision values for other models
+all_pr_data$rf_precision <- rf_pr_data$precision
+all_pr_data$logistic_precision <- logistic_pr_data$precision
+all_pr_data$knn_precision <- knn_pr_data$precision
+
+# Calculate precision differences relative to boosted trees
+all_pr_data$rf_precision_difference <- rf_pr_data$precision - all_pr_data$precision
+all_pr_data$logistic_precision_difference <- logistic_pr_data$precision - all_pr_data$precision
+all_pr_data$knn_precision_difference <- knn_pr_data$precision - all_pr_data$precision
+
+# ==============================================================================
+# PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS
+# ==============================================================================
+
+pdf("undocumented_pr_curves.pdf", family="Times", width=9)
+
+op <- par(family = "serif")
+
+plot(all_pr_data$recall, all_pr_data$precision, type = "l", pch = 19,
+     col = "black", xlab = "Recall", ylab = "Precision",
+     lwd = 3, ylim=c(0, 1), xlim = c(0,1), lty = 1, cex.lab=1.5, cex.axis=1)
+
+lines(all_pr_data$recall, all_pr_data$rf_precision, type = "l", 
+      col = "blue", lwd = 3, lty = 2)
+lines(all_pr_data$recall, all_pr_data$logistic_precision, type = "l",
+      col = "red", lwd = 3, lty = 3)
+lines(all_pr_data$recall, all_pr_data$knn_precision, type = "l",
+      col = "green", lwd = 3, lty = 4)
+
+legend(x = 0.5, y = 1, 
+       col = c("white", "black", "blue", "red", "green"),
+       lwd = c(3, 3, 3, 3, 3), 
+       lty = c(0, 1, 2, 3, 4),
+       legend = c("Model:", "Boosted Trees", "Random Forest", "Logistic", "KNN"),
+       bty = 'n', cex = 1.25, ncol = 1, seg.len = 5)
+
+# Add random baseline
+random_baseline <- total_undocu / nrow(test_gbm)
+abline(h = random_baseline, lty = 2, col = "gray")
+
+dev.off()
+
+
+```
+
 ```{r Undocu imputation}
+setwd(data_path)
 ## Imputation method 1: Logistic regression 
 ACS_sipp_na$undocu_logistic <- predict(logistic_model, ACS_sipp_na)
 write.csv(ACS_sipp_na, "ACS_SIPP_logistic.csv", row.names = FALSE)
@@ -641,9 +845,13 @@ write.csv(ACS_sipp_na, "ACS_SIPP_logistic.csv", row.names = FALSE)
 ACS_sipp_na$knn_undocu <- predict(knn_model, ACS_sipp_knn)
 write.csv(ACS_sipp_na, "ACS_SIPP_knn.csv", row.names = FALSE)
 
-## Imputation method 2: RF 
+## Imputation method 3: RF 
 ACS_sipp_na$rf_undocu <- predict(rf_model, ACS_sipp_na)
 write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
+
+## Imputation method 4: GBM
+ACS_sipp_na$gbm_undocu_p <- predict(gbm_model, ACS_sipp_na)
+write.csv(ACS_sipp_na, "ACS_SIPP_gbm.csv", row.names = FALSE)
 ```
 
 
