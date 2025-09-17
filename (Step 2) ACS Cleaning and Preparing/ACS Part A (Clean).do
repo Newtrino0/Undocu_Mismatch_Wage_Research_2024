@@ -873,4 +873,4 @@ replace twentytwo_by_2012 = 0 if (2012-birthyr)<22
 drop educd grad*
 
 save "EO_A.dta", replace
-export delimited using "ACS.csv", replace
+
