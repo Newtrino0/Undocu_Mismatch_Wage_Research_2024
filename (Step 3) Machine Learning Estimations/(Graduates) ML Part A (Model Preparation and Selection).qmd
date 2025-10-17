@@ -507,6 +507,8 @@ test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
 test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75, 1, 0)
 ```
 
+## $Precision=\frac{TP}{TP+FP}=\frac{correctly \ undocumented}{classified \ undocumented}$ $Recall=\frac{TP}{TP+FN}=\frac{correctly \ undocumented}{actually \ undocumented}$ 
+
 ## Figure 2 (Precision-Recall Curves)
 
 ```{r}
@@ -573,8 +575,8 @@ all_pr_data$knn_precision_difference <- knn_pr_data$precision - all_pr_data$prec
 # PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS
 # ==============================================================================
 
-#pdf("undocumented_pr_curves.pdf", family="Times", width=9)
-png("(graduates) undocumented_pr_curves.png", width = 22*100, height = 16*100, res = 300, family = "Times")
+pdf("undocumented_pr_curves.pdf", family="Times", width=9)
+#png("(graduates) undocumented_pr_curves.png", width = 22*100, height = 16*100, res = 300, family = "Times")
 
 op <- par(family = "serif")
 

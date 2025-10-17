@@ -492,6 +492,8 @@ gbm.prediction = prediction(gbm.preds, test_gbm_num$undocu_likely)
 gbm.pr = performance(gbm.prediction,"prec","rec") # Precision-Recall curve
 ```
 
+#  P Quartiles and Thresholds
+
 ```{r}
 test_gbm$p = predict(caret_gbm_model, newdata = test_gbm, type = "prob", n.trees = optimal_trees_gbm)[, 2]
 test_gbm_num$p = predict(gbm_model, newdata = test_gbm_num, type = "response", n.trees = optimal_trees_gbm_two)
@@ -522,7 +524,7 @@ quartiles_table <- test_gbm %>%
 quartiles_table_gbm <- test_gbm_num %>%
   group_by(p_quartiles) %>%
   summarise(
-    count = sum(undocu_likely == "X1"),
+    count = sum(undocu_likely == 1),
     n = n(),
     actual_proportion = (count / n)
     )
@@ -544,9 +546,25 @@ top_75_sample <- test_gbm %>%
   filter(top_75==TRUE)
 threshold_75 <- min(top_75_sample$p)
 
+top_75_sample_num <- test_gbm_num %>%
+  filter(undocu_likely == 1) %>%
+  arrange(desc(p)) %>%
+  mutate(
+    rank = row_number(),
+    cumulative_p = rank / n(),
+    top_75 = cumulative_p <= 0.75
+  ) %>%
+  filter(top_75==TRUE)
+threshold_75_num <- min(top_75_sample_num$p)
 
+# Create GBM high recall (p>threshold), high probability (75% of actual), low probability (Q1)
 test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
-test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75, 1, 0)
+test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75_num, 1, 0)
+
+# ==============================================================================
+# PREPARE PRECISION-RECALL DATA FOR ALL MODELS
+# ==============================================================================
+
 ```
 
 # Figure 2
@@ -766,6 +784,8 @@ xtable(ml_comparison, digits=4)
 print(ml_comparison)
 ```
 
+# ACS
+
 ```{r Loading ACS data}
 library(readr)
 setwd(data_path)
@@ -830,4 +850,6 @@ write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
 ## Imputation method 4: GBM
 ACS_sipp_na$gbm_undocu_p <- predict(caret_gbm_model, type = "prob", ACS_sipp_na)
 write.csv(ACS_sipp_na, "ACS_SIPP_gbm.csv", row.names = FALSE)
+
+
 ```
