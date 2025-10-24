@@ -507,7 +507,7 @@ test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
 test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75, 1, 0)
 ```
 
-## $Precision=\frac{TP}{TP+FP}=\frac{correctly \ undocumented}{classified \ undocumented}$ $Recall=\frac{TP}{TP+FN}=\frac{correctly \ undocumented}{actually \ undocumented}$ 
+## $Precision=\frac{TP}{TP+FP}=\frac{correctly \ undocumented}{classified \ undocumented}$ $Recall=\frac{TP}{TP+FN}=\frac{correctly \ undocumented}{actually \ undocumented}$
 
 ## Figure 2 (Precision-Recall Curves)
 

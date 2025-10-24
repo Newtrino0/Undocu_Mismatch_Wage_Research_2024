@@ -492,7 +492,7 @@ gbm.prediction = prediction(gbm.preds, test_gbm_num$undocu_likely)
 gbm.pr = performance(gbm.prediction,"prec","rec") # Precision-Recall curve
 ```
 
-#  P Quartiles and Thresholds
+# P Quartiles and Thresholds
 
 ```{r}
 test_gbm$p = predict(caret_gbm_model, newdata = test_gbm, type = "prob", n.trees = optimal_trees_gbm)[, 2]
@@ -793,7 +793,7 @@ setwd(data_path)
 ACS_variables <- c("hisp", "spanish", "race", "bpld", "empstat", "poverty", "married", "cit_spouse", "nonfluent", "bpl_asia", "asian", "black", "white", "fem", "numprec", "yrsusa1", "hinscare", "hinscaid", "undocu", "bpl_usa", "age", "yrsed")  
 
 
-ACS <- read_csv("ML Training Sample.csv", col_select = ACS_variables)
+ACS <- read_csv("ML Training Sample.csv")
 View(ACS)
 ```
 
@@ -833,6 +833,8 @@ ACS_sipp_knn <- ACS_sipp_na %>%
   mutate_at(ACS_cols_numeric, as.numeric)
 ```
 
+\
+
 ```{r Undocu imputation}
 setwd(data_path)
 ## Imputation method 1: Logistic regression 
@@ -848,8 +850,43 @@ ACS_sipp_na$rf_undocu <- predict(rf_model, ACS_sipp_na)
 write.csv(ACS_sipp_na, "ACS_SIPP_rf.csv", row.names = FALSE)
 
 ## Imputation method 4: GBM
-ACS_sipp_na$gbm_undocu_p <- predict(caret_gbm_model, type = "prob", ACS_sipp_na)
+setwd(data_path)
+ACS_sipp_na <- ACS_sipp_na %>%
+  mutate(
+    caret_undocu_p = predict(caret_gbm_model, type = "prob", n.trees = optimal_trees_gbm, ACS_sipp_na)[, 2],
+    
+    caret_undocu_q = case_when(
+      caret_undocu_p < quartile_thresholds_caret[2] ~ "Q1",
+      caret_undocu_p > quartile_thresholds_caret[2] & caret_undocu_p < quartile_thresholds_caret[3] ~ "Q2",
+      caret_undocu_p > quartile_thresholds_caret[3] & caret_undocu_p < quartile_thresholds_caret[4] ~ "Q3",
+      caret_undocu_p > quartile_thresholds_caret[4] ~ "Q4",
+      TRUE ~ "Unknown"
+      ),
+    caret_high_prob = ifelse(caret_undocu_q=="Q4", 1, 0),
+    caret_low_prob = ifelse(caret_undocu_q=="Q1", 1, 0),
+    caret_high_recall = ifelse(caret_undocu_p > threshold_75, 1, 0)
+  )
+
+
+ACS_sipp_na <- ACS_sipp_na %>%
+  mutate(
+    gbm_undocu_p = predict(gbm_model, type = "response", ACS_sipp_na, n.trees = optimal_trees_gbm_two),
+    
+    gbm_undocu_q = case_when(
+      gbm_undocu_p < quartile_thresholds_gbm[2] ~ "Q1",
+      gbm_undocu_p > quartile_thresholds_gbm[2] & gbm_undocu_p < quartile_thresholds_gbm[3] ~ "Q2",
+      gbm_undocu_p > quartile_thresholds_gbm[3] & gbm_undocu_p < quartile_thresholds_gbm[4] ~ "Q3",
+      gbm_undocu_p > quartile_thresholds_gbm[4] ~ "Q4",
+      TRUE ~ "Unknown"
+      ),
+    gbm_high_prob = ifelse(gbm_undocu_q=="Q4", 1, 0),
+    gbm_low_prob = ifelse(gbm_undocu_q=="Q1", 1, 0),
+    gbm_high_recall = ifelse(gbm_undocu_p > threshold_75_num, 1, 0)
+  )
+
 write.csv(ACS_sipp_na, "ACS_SIPP_gbm.csv", row.names = FALSE)
+
+
 
 
 ```

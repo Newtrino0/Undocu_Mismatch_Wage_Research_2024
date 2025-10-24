@@ -6,7 +6,7 @@ global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path
 ********** Mismatch indicators and median mismatched wages *********************
 ********************************************************************************
 cd "$data"
-import delimited "ACS_SIPP_rf.csv", clear 
+import delimited "ACS_SIPP_gbm.csv", clear 
 
 gen undocu_logit=0 if undocu_logistic=="X0"
 replace undocu_logit=1 if undocu_logistic=="X1"

@@ -175,7 +175,7 @@ setwd("G:/Shared drives/Undocu Research/Data")
 write.csv(sipp08_2, "SIPP08_2.csv", row.names = FALSE)
 ```
 
-## GBM Library 
+## GBM Library
 
 ```{r}
 library(gbm)      # For Gradient Boosting
@@ -288,7 +288,7 @@ cat("AUC-ROC:", round(boost.auc, 4), "\n")
 cat("AUC-PR:", round(boost_auc_pr, 4), "\n")
 
 caret_predicted_class <- ifelse(boost.pred > 0.5, 1, 0)
-table(Predicted = predicted_class, Actual = test_gbm$undocu_likely)
+table(Predicted = caret_predicted_class, Actual = test_gbm$undocu_likely)
 plot(caret_gbm_model)
 
 
@@ -300,7 +300,7 @@ plot(caret_gbm_model)
 # Make predictions on test set
 gbm.pred = predict(gbm_model, newdata = test_gbm_num, type = "response", n.trees = optimal_trees_gbm_two)
 # Create prediction object for ROCR
-gbm.prediction = prediction(gbm.preds, test_gbm_num$undocu_likely)
+gbm.prediction = prediction(gbm.pred, test_gbm_num$undocu_likely)
 # Get raw predictions (class labels)
 gbm.predict = predict(gbm_model, newdata = test_gbm_num, n.trees=optimal_trees_gbm_two)  # Class predictions
 
@@ -396,6 +396,13 @@ threshold_75_num <- min(top_75_sample_num$p)
 # Create GBM high recall (p>threshold), high probability (75% of actual), low probability (Q1)
 test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
 test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75_num, 1, 0)
+
+
+quartile_thresholds_caret <- quantile(top_75_sample$p, probs = c(0, 0.25, 0.5, 0.75, 1))
+print(quartile_thresholds_caret)
+
+quartile_thresholds_gbm <- quantile(top_75_sample_num$p, probs = c(0, 0.25, 0.5, 0.75, 1))
+print(quartile_thresholds_gbm)
 
 # ==============================================================================
 # PREPARE PRECISION-RECALL DATA FOR ALL MODELS
