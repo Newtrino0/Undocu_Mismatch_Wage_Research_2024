@@ -581,7 +581,7 @@ print(quartile_thresholds_gbm)
 # Figure 2
 
 ```{r Figure 2}
-setwd(figures_path)
+setwd("G:/Shared drives/Undocu Research/Output/Figures")
 # ==============================================================================
 # PREPARE PRECISION-RECALL DATA FOR ALL MODELS
 # ==============================================================================
@@ -600,7 +600,27 @@ gbm_pr_data <- data.frame(
                     xout = boost_pr_data$recall)$y
 )
 
+# Interpolate other models to match boosted trees recall values
+rf_pr_data <- data.frame(
+  recall = approx(unlist(rf.pr@x.values), unlist(rf.pr@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(rf.pr@x.values), unlist(rf.pr@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
 
+logistic_pr_data <- data.frame(
+  recall = approx(unlist(logistic.pr@x.values), unlist(logistic.pr@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(logistic.pr@x.values), unlist(logistic.pr@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
+
+knn_pr_data <- data.frame(
+  recall = approx(unlist(knn.pr@x.values), unlist(knn.pr@y.values), 
+                 xout = boost_pr_data$recall)$x,
+  precision = approx(unlist(knn.pr@x.values), unlist(knn.pr@y.values), 
+                    xout = boost_pr_data$recall)$y
+)
 
 # ==============================================================================
 # COMBINE ALL DATA
@@ -609,12 +629,16 @@ gbm_pr_data <- data.frame(
 all_pr_data <- boost_pr_data
 
 # Add precision values for other models
-all_pr_data$gbm_recall <- gbm_pr_data$recall
 all_pr_data$gbm_precision <- gbm_pr_data$precision
-
+all_pr_data$rf_precision <- rf_pr_data$precision
+all_pr_data$logistic_precision <- logistic_pr_data$precision
+all_pr_data$knn_precision <- knn_pr_data$precision
 
 # Calculate precision differences relative to boosted trees
 all_pr_data$gbm_precision_difference <- gbm_pr_data$precision - all_pr_data$precision
+all_pr_data$rf_precision_difference <- rf_pr_data$precision - all_pr_data$precision
+all_pr_data$logistic_precision_difference <- logistic_pr_data$precision - all_pr_data$precision
+all_pr_data$knn_precision_difference <- knn_pr_data$precision - all_pr_data$precision
 
 # ==============================================================================
 # PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS

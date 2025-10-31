@@ -125,7 +125,10 @@ sipp08_2$id <- seq_len(nrow(sipp08_2))
 variable_lists <- list(
   base = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "top_ten_states", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed", "college"),
   
-  descriptive = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "top_ten_states", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed", "college")
+  descriptive = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", 
+                  "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", 
+                  "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", 
+                  "asian", "black", "white", "other_race", "employed", "years_us", "yrsed")
 
 )
 
@@ -162,8 +165,13 @@ create_datasets <- function(data, variables) {
 all_data <- create_datasets(sipp08_2, variable_lists)
 # Create all analysis datasets
 all_data_college <- lapply(all_data, function(x) {
-  x %>% filter(college == 1)
+  if (is.data.frame(x) && "college" %in% names(x)) {
+    x %>% filter(college == 1)
+  } else {
+    x  
+  }
 })
+
 
 
 View(sipp08_2)
@@ -218,7 +226,7 @@ ggsave("caret_feature_importance.png", feature_importance_caret, width = 22, hei
 grid.arrange(feature_importance_caret, nrow = 1)
 ```
 
-## GBM Library
+## GBM Library (Full Sample)
 
 ```{r}
 ## Data partitioning for gbm library
@@ -231,7 +239,7 @@ gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + n
                  verbose = FALSE,
                  cv.folds = 10,
                  n.trees = 1766,
-                 shrinkage = 0.005, #Optimimal
+                 shrinkage = 0.005,
                  interaction.depth = 6)
 
 
@@ -247,6 +255,37 @@ feature_importance_gbm <- vip(gbm_model, num_features = 19, bar = FALSE)
 ggsave("gbm_feature_importance.png", feature_importance_gbm, width = 22, height = 16, units = "cm", dpi = 300)
 grid.arrange(feature_importance_gbm, nrow = 1)
 
+```
+
+## GBM Library (College Sample)
+
+```{r}
+## Data partitioning for gbm library
+all_data_college$sample$undocu_likely <- as.numeric(all_data_college$sample$undocu_likely) - 1
+
+train_index_college <- createDataPartition(all_data_college$sample$undocu_likely, p = 0.7, list = FALSE)
+train_college <- all_data_college$sample[train_index_college, ]
+test_college <- all_data_college$sample[-train_index_college, ]
+
+college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed + years_us + yrsed, data = train_college, 
+                 verbose = FALSE,
+                 cv.folds = 10,
+                 n.trees = 1766,
+                 shrinkage = 0.005, 
+                 interaction.depth = 6)
+
+
+## Model summary and optimal number of trees
+college_gbm_model
+print(college_gbm_model$bestTune)
+optimal_trees_college <- college_gbm_model$bestTune$n.trees
+
+
+setwd(figures_path)
+## Feature importance
+college_gbm_feature_importance <- vip(college_gbm_model, num_features = 19, bar = FALSE)
+ggsave("college_gbm_feature_importance.png", college_gbm_feature_importance, width = 22, height = 16, units = "cm", dpi = 300)
+grid.arrange(college_gbm_feature_importance, nrow = 1)
 ```
 
 ## GBM Performance
@@ -287,7 +326,7 @@ plot(caret_gbm_model)
 
 
 # ==============================================================================
-# GBM Library Performance
+# GBM (FUll to Full) Library Performance
 # ==============================================================================
 
 ## Metrics for Figure 2 comparison (gbm library model)
@@ -319,6 +358,76 @@ cat("AUC-PR:", round(gbm_auc_pr, 4), "\n")
 
 gbm_predicted_class <- ifelse(gbm.pred > 0.5, 1, 0)
 table(Predicted = gbm_predicted_class, Actual = test_gbm_num$undocu_likely)
+#plot(gbm_model) # Not same as plot for caret
+
+# ==============================================================================
+# GBM (FUll to College) Library Performance
+# ==============================================================================
+
+## Metrics for Figure 2 comparison (gbm library model)
+# Make predictions on test set
+gbm.pred_fc = predict(gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_gbm_two)
+# Create prediction object for ROCR
+gbm.prediction_fc = prediction(gbm.pred_fc, test_college$undocu_likely)
+# Get raw predictions (class labels)
+gbm.predict_fc = predict(gbm_model, newdata = test_college, n.trees=optimal_trees_gbm_two)  # Class predictions
+
+gbm.roc_fc = performance(gbm.prediction_fc,"tpr","fpr")   # ROC curve 
+gbm.pr_fc = performance(gbm.prediction_fc,"prec","rec") # Precision-Recall curve
+gbm.auc_fc <- performance(gbm.prediction_fc,"auc")@y.values[[1]] # AUC value
+
+gbm_auc_pr_fc <- trapz(
+  as.vector(gbm.pr_fc@x.values)[[1]][-1], 
+  as.vector(gbm.pr_fc@y.values)[[1]][-1]
+)
+
+gbm_performance_fc <- gbm.pr_fc
+plot(gbm.roc_fc, main = "ROC Curve", col = "blue", lwd = 2) #PLOT EACH ON A SINGLE GRAPH FOR ROC
+abline(a = 0, b = 1, lty = 2, col = "red")
+plot(gbm.pr_fc) # plot Precision-Recall curve
+
+
+cat("Optimal number of trees:", optimal_trees_gbm_two, "\n")
+cat("AUC-ROC:", round(gbm.auc_fc, 4), "\n")
+cat("AUC-PR:", round(gbm_auc_pr_fc, 4), "\n")
+
+gbm_predicted_class_fc <- ifelse(gbm.pred_fc > 0.5, 1, 0)
+table(Predicted = gbm_predicted_class_fc, Actual = test_college$undocu_likely)
+#plot(gbm_model) # Not same as plot for caret
+
+# ==============================================================================
+# GBM (College to College) Library Performance
+# ==============================================================================
+
+## Metrics for Figure 2 comparison (gbm library model)
+# Make predictions on test set
+gbm.pred_cc = predict(college_gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_college)
+# Create prediction object for ROCR
+gbm.prediction_cc = prediction(gbm.pred_cc, test_college$undocu_likely)
+# Get raw predictions (class labels)
+gbm.predict_cc = predict(college_gbm_model, newdata = test_college, n.trees=optimal_trees_college)  # Class predictions
+
+gbm.roc_cc = performance(gbm.prediction_cc,"tpr","fpr")   # ROC curve 
+gbm.pr_cc = performance(gbm.prediction_cc,"prec","rec") # Precision-Recall curve
+gbm.auc_cc <- performance(gbm.prediction_cc,"auc")@y.values[[1]] # AUC value
+
+gbm_auc_pr_cc <- trapz(
+  as.vector(gbm.pr_cc@x.values)[[1]][-1], 
+  as.vector(gbm.pr_cc@y.values)[[1]][-1]
+)
+
+gbm_performance_cc <- gbm.pr_cc
+plot(gbm.roc_cc, main = "ROC Curve", col = "blue", lwd = 2) #PLOT EACH ON A SINGLE GRAPH FOR ROC
+abline(a = 0, b = 1, lty = 2, col = "red")
+plot(gbm.pr_cc) # plot Precision-Recall curve
+
+
+cat("Optimal number of trees:", optimal_trees_college, "\n")
+cat("AUC-ROC:", round(gbm.auc_cc, 4), "\n")
+cat("AUC-PR:", round(gbm_auc_pr_cc, 4), "\n")
+
+gbm_predicted_class_cc <- ifelse(gbm.pred_cc > 0.5, 1, 0)
+table(Predicted = gbm_predicted_class_cc, Actual = test_college$undocu_likely)
 #plot(gbm_model) # Not same as plot for caret
 ```
 
@@ -406,14 +515,9 @@ print(quartile_thresholds_caret)
 
 quartile_thresholds_gbm <- quantile(undocu_test_num$p, probs = c(0, 0.25, 0.5, 0.75, 1))
 print(quartile_thresholds_gbm)
-
-# ==============================================================================
-# PREPARE PRECISION-RECALL DATA FOR ALL MODELS
-# ==============================================================================
-
 ```
 
-## Precision-Recall Curves
+## Precision-Recall Curves (Full to Full, Full to College, College to College)
 
 ```{r}
 setwd(figures_path)
@@ -421,42 +525,48 @@ setwd(figures_path)
 # PREPARE PRECISION-RECALL DATA FOR ALL MODELS
 # ==============================================================================
 
-# Start with boosted trees as baseline
-boost_pr_data <- data.frame(
-  recall = unlist(boost.pr@x.values), 
-  precision = unlist(boost.pr@y.values)
+# Start with Full to Full predictions as baseline
+gbm_pr_data_ff <- data.frame(
+  recall = unlist(gbm.pr@x.values), 
+  precision = unlist(gbm.pr@y.values)
 )
 
 # Interpolate other models to match boosted trees recall values
-gbm_pr_data <- data.frame(
-  recall = approx(unlist(gbm.pr@x.values), unlist(gbm.pr@y.values), 
-                 xout = boost_pr_data$recall)$x,
-  precision = approx(unlist(gbm.pr@x.values), unlist(gbm.pr@y.values), 
-                    xout = boost_pr_data$recall)$y
+gbm_pr_data_fc <- data.frame(
+  recall = approx(unlist(gbm.pr_fc@x.values), unlist(gbm.pr_fc@y.values), 
+                 xout = gbm_pr_data_ff$recall)$x,
+  precision = approx(unlist(gbm.pr_fc@x.values), unlist(gbm.pr_fc@y.values), 
+                    xout = gbm_pr_data_ff$recall)$y
 )
 
-
+# Interpolate other models to match boosted trees recall values
+gbm_pr_data_cc <- data.frame(
+  recall = approx(unlist(gbm.pr_cc@x.values), unlist(gbm.pr_cc@y.values), 
+                 xout = gbm_pr_data_ff$recall)$x,
+  precision = approx(unlist(gbm.pr_cc@x.values), unlist(gbm.pr_cc@y.values), 
+                    xout = gbm_pr_data_ff$recall)$y
+)
 
 # ==============================================================================
 # COMBINE ALL DATA
 # ==============================================================================
 
-all_pr_data <- boost_pr_data
+all_pr_data <- gbm_pr_data_ff
 
 # Add precision values for other models
-all_pr_data$gbm_recall <- gbm_pr_data$recall
-all_pr_data$gbm_precision <- gbm_pr_data$precision
-
+all_pr_data$gbm_precision_fc <- gbm_pr_data_fc$precision
+all_pr_data$gbm_precision_cc <- gbm_pr_data_cc$precision
 
 # Calculate precision differences relative to boosted trees
-all_pr_data$gbm_precision_difference <- gbm_pr_data$precision - all_pr_data$precision
+all_pr_data$fc_precision_difference <- gbm_pr_data_fc$precision - all_pr_data$precision
+all_pr_data$cc_precision_difference <- gbm_pr_data_cc$precision - all_pr_data$precision
 
 # ==============================================================================
 # PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS
 # ==============================================================================
 
 #pdf("undocumented_pr_curves.pdf", family="Times", width=9)
-png("undocumented_pr_curves.png", width = 22*100, height = 16*100, res = 300, family = "Times")
+png("fffccc_pr_curves.png", width = 22*100, height = 16*100, res = 300, family = "Times")
 
 op <- par(family = "serif")
 
@@ -464,24 +574,20 @@ plot(all_pr_data$recall, all_pr_data$precision, type = "l", pch = 19,
      col = "black", xlab = "Recall", ylab = "Precision",
      lwd = 3, ylim=c(0, 1), xlim = c(0,1), lty = 1, cex.lab=1.5, cex.axis=1)
 
-lines(all_pr_data$recall, all_pr_data$gbm_precision, type = "l", 
+lines(all_pr_data$recall, all_pr_data$gbm_precision_fc, type = "l", 
       col = "yellow", lwd = 3, lty = 2)
-lines(all_pr_data$recall, all_pr_data$rf_precision, type = "l", 
+lines(all_pr_data$recall, all_pr_data$gbm_precision_cc, type = "l", 
       col = "blue", lwd = 3, lty = 3)
-lines(all_pr_data$recall, all_pr_data$logistic_precision, type = "l",
-      col = "red", lwd = 3, lty = 4)
-lines(all_pr_data$recall, all_pr_data$knn_precision, type = "l",
-      col = "green", lwd = 3, lty = 5)
 
 legend(x = 0.5, y = 1, 
-       col = c("white", "black", "yellow", "blue", "red", "green"),
+       col = c("white", "black", "yellow", "blue"),
        lwd = c(3, 3, 3, 3, 3, 3), 
        lty = c(0, 1, 2, 3, 4, 5),
-       legend = c("Model:", "Boosted Trees", "GBM Library", "Random Forest", "Logistic", "KNN"),
+       legend = c("Model:", "Full to Full", "Full to College", "College to College"),
        bty = 'n', cex = 1.25, ncol = 1, seg.len = 6)
 
 # Add random baseline
-total_undocu <- sum(test_gbm$undocu_likely == "X1")
+total_undocu <- sum(test_gbm_num$undocu_likely == "X1")
 random_baseline <- total_undocu / nrow(test_gbm)
 abline(h = random_baseline, lty = 2, col = "gray")
 
