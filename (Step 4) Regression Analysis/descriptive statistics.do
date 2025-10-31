@@ -35,7 +35,8 @@ eststo clear
 eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q== "Q1", statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_high_recall== 1, statistics(mean sd) columns(statistics) 
 eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q=="Q4", statistics(mean sd) columns(statistics) 
-esttab est* using dTable_placebo.tex, replace label main(mean) aux(sd) title("ACS Low probability, High probability, and High recall groups Summary Statistics  \label{tab:sum}") unstack mlabels("Q1 (Low)" "High Recall" "Q4 (High)") note("Note: Probability Quartiles and 75% of positive cases thresholds were defined based on SIPP thresholds. The high recall group was defined by taking the minimum predicted probability, output from the ML model, of 75% of truly undocumented workers.")
+esttab est* using dTable_placebo.tex, replace label main(mean) aux(sd) title("ACS Low probability, High probability, and High recall groups Summary Statistics  \label{tab:sum}") unstack mlabels("Q1 (Low)" "High Recall" "Q4 (High)") note("Note: Probability Quartiles and 75 percent of positive cases thresholds were defined based on SIPP thresholds.\\
+The high recall group was defined by taking the minimum predicted probability, output from the ML model, of 75 percent of truly undocumented workers.")
 
 
 ********************************************************************************
