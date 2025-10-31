@@ -1,6 +1,7 @@
 *** SET DIRECTORIES 
-global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
-global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path here	
+*global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
+global data "G:/Shared drives/Undocu Research/Data"		
+global dofiles "G:/Shared drives/Undocu Research/Code"			
 
 ********************************************************************************
 ********** Mismatch indicators and median mismatched wages *********************
@@ -17,7 +18,7 @@ replace undocu_knn=1 if knn_undocu=="X1"
 gen undocu_rf=0 if rf_undocu=="X0"
 replace undocu_rf=1 if rf_undocu=="X1"
 
-keep undocu_logit undocu_knn undocu_rf undocu year serial pernum
+keep caret_undocu_p-undocu_rf undocu year serial pernum
 
 
 
@@ -26,6 +27,10 @@ merge 1:1 year serial pernum using "EO_C.dta"
 replace undocu_logit=0 if undocu_logit==.
 replace undocu_knn=0 if undocu_knn==.
 replace undocu_rf=0 if undocu_rf==.
+replace gbm_high_prob=0 if gbm_high_prob==.
+replace gbm_low_prob=0 if gbm_low_prob==.
+replace gbm_high_recall=0 if gbm_high_recall==.
+
 
 
 ********************************

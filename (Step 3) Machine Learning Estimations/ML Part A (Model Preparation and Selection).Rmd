@@ -495,6 +495,7 @@ gbm.pr = performance(gbm.prediction,"prec","rec") # Precision-Recall curve
 # P Quartiles and Thresholds
 
 ```{r}
+library(xtable)
 test_gbm$p = predict(caret_gbm_model, newdata = test_gbm, type = "prob", n.trees = optimal_trees_gbm)[, 2]
 test_gbm_num$p = predict(gbm_model, newdata = test_gbm_num, type = "response", n.trees = optimal_trees_gbm_two)
 
@@ -557,20 +558,30 @@ top_75_sample_num <- test_gbm_num %>%
   filter(top_75==TRUE)
 threshold_75_num <- min(top_75_sample_num$p)
 
+undocu_test <- test_gbm %>%
+  filter(undocu_likely == "X1") %>%
+  arrange(desc(p))
+
+undocu_test_num <- test_gbm_num %>%
+  filter(undocu_likely == 1) %>%
+  arrange(desc(p))
+
 # Create GBM high recall (p>threshold), high probability (75% of actual), low probability (Q1)
 test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
 test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75_num, 1, 0)
 
-# ==============================================================================
-# PREPARE PRECISION-RECALL DATA FOR ALL MODELS
-# ==============================================================================
+## Thersholds on undocu likely sample
+quartile_thresholds_caret <- quantile(undocu_test$p, probs = c(0, 0.25, 0.5, 0.75, 1))
+print(quartile_thresholds_caret)
 
+quartile_thresholds_gbm <- quantile(undocu_test_num$p, probs = c(0, 0.25, 0.5, 0.75, 1))
+print(quartile_thresholds_gbm)
 ```
 
 # Figure 2
 
 ```{r Figure 2}
-setwd("G:/Shared drives/Undocu Research/Output/Figures")
+setwd(figures_path)
 # ==============================================================================
 # PREPARE PRECISION-RECALL DATA FOR ALL MODELS
 # ==============================================================================
@@ -589,27 +600,7 @@ gbm_pr_data <- data.frame(
                     xout = boost_pr_data$recall)$y
 )
 
-# Interpolate other models to match boosted trees recall values
-rf_pr_data <- data.frame(
-  recall = approx(unlist(rf.pr@x.values), unlist(rf.pr@y.values), 
-                 xout = boost_pr_data$recall)$x,
-  precision = approx(unlist(rf.pr@x.values), unlist(rf.pr@y.values), 
-                    xout = boost_pr_data$recall)$y
-)
 
-logistic_pr_data <- data.frame(
-  recall = approx(unlist(logistic.pr@x.values), unlist(logistic.pr@y.values), 
-                 xout = boost_pr_data$recall)$x,
-  precision = approx(unlist(logistic.pr@x.values), unlist(logistic.pr@y.values), 
-                    xout = boost_pr_data$recall)$y
-)
-
-knn_pr_data <- data.frame(
-  recall = approx(unlist(knn.pr@x.values), unlist(knn.pr@y.values), 
-                 xout = boost_pr_data$recall)$x,
-  precision = approx(unlist(knn.pr@x.values), unlist(knn.pr@y.values), 
-                    xout = boost_pr_data$recall)$y
-)
 
 # ==============================================================================
 # COMBINE ALL DATA
@@ -618,16 +609,12 @@ knn_pr_data <- data.frame(
 all_pr_data <- boost_pr_data
 
 # Add precision values for other models
+all_pr_data$gbm_recall <- gbm_pr_data$recall
 all_pr_data$gbm_precision <- gbm_pr_data$precision
-all_pr_data$rf_precision <- rf_pr_data$precision
-all_pr_data$logistic_precision <- logistic_pr_data$precision
-all_pr_data$knn_precision <- knn_pr_data$precision
+
 
 # Calculate precision differences relative to boosted trees
 all_pr_data$gbm_precision_difference <- gbm_pr_data$precision - all_pr_data$precision
-all_pr_data$rf_precision_difference <- rf_pr_data$precision - all_pr_data$precision
-all_pr_data$logistic_precision_difference <- logistic_pr_data$precision - all_pr_data$precision
-all_pr_data$knn_precision_difference <- knn_pr_data$precision - all_pr_data$precision
 
 # ==============================================================================
 # PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS
@@ -659,6 +646,7 @@ legend(x = 0.5, y = 1,
        bty = 'n', cex = 1.25, ncol = 1, seg.len = 6)
 
 # Add random baseline
+total_undocu <- sum(test_gbm$undocu_likely == "X1")
 random_baseline <- total_undocu / nrow(test_gbm)
 abline(h = random_baseline, lty = 2, col = "gray")
 
