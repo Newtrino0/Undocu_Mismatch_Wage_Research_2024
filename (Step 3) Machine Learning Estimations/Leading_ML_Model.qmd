@@ -183,6 +183,7 @@ write.csv(sipp08_2, "SIPP08_2.csv", row.names = FALSE)
 ## Caret Library
 
 ```{r}
+set.seed(1)
 library(gbm)      # For Gradient Boosting
 library(class)
 library(caTools)
@@ -226,9 +227,10 @@ ggsave("caret_feature_importance.png", feature_importance_caret, width = 22, hei
 grid.arrange(feature_importance_caret, nrow = 1)
 ```
 
-## GBM Library (Full Sample)
+## GBM Library (Full Training Sample)
 
 ```{r}
+set.seed(1)
 ## Data partitioning for gbm library
 train_gbm_num <-  train_gbm
 train_gbm_num$undocu_likely <- as.numeric(train_gbm$undocu_likely) - 1      
@@ -245,8 +247,9 @@ gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + n
 
 ## Model summary and optimal number of trees
 gbm_model
-print(gbm_model$bestTune)
-optimal_trees_gbm_two <- gbm_model$bestTune$n.trees
+
+optimal_trees_gbm_two <- gbm.perf(gbm_model, method = "cv", plot.it = FALSE)
+cat("Optimal number of trees:", optimal_trees_gbm_two, "\n")
 
 
 setwd(figures_path)
@@ -257,9 +260,10 @@ grid.arrange(feature_importance_gbm, nrow = 1)
 
 ```
 
-## GBM Library (College Sample)
+## GBM Library (College Training Sample)
 
 ```{r}
+set.seed(1)
 ## Data partitioning for gbm library
 all_data_college$sample$undocu_likely <- as.numeric(all_data_college$sample$undocu_likely) - 1
 
@@ -277,8 +281,9 @@ college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medi
 
 ## Model summary and optimal number of trees
 college_gbm_model
-print(college_gbm_model$bestTune)
-optimal_trees_college <- college_gbm_model$bestTune$n.trees
+
+optimal_trees_college <- gbm.perf(college_gbm_model, method = "cv", plot.it = FALSE)
+cat("Optimal number of trees:", optimal_trees_college, "\n")
 
 
 setwd(figures_path)
@@ -437,6 +442,7 @@ table(Predicted = gbm_predicted_class_cc, Actual = test_college$undocu_likely)
 library(xtable)
 test_gbm$p = predict(caret_gbm_model, newdata = test_gbm, type = "prob", n.trees = optimal_trees_gbm)[, 2]
 test_gbm_num$p = predict(gbm_model, newdata = test_gbm_num, type = "response", n.trees = optimal_trees_gbm_two)
+test_college$p = predict(gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_gbm_two)
 
 
 # Create quartiles based on probability magnitude
@@ -449,9 +455,14 @@ test_gbm_num$p_quartiles <- cut(test_gbm_num$p,
                                    breaks = quantile(test_gbm_num$p, probs = c(0, 0.25, 0.5, 0.75, 1)), 
                                    labels = c("Q1", "Q2", "Q3", "Q4"), 
                                    include.lowest = TRUE)
+test_college$p_quartiles <- cut(test_college$p, 
+                                   breaks = quantile(test_college$p, probs = c(0, 0.25, 0.5, 0.75, 1)), 
+                                   labels = c("Q1", "Q2", "Q3", "Q4"), 
+                                   include.lowest = TRUE)
 # Check the distributions
 table(test_gbm$p_quartiles)
 table(test_gbm_num$p_quartiles)
+table(test_college$p_quartiles)
 
 # Proportion of undocu_likely in each quartiles
 quartiles_table <- test_gbm %>%
@@ -468,11 +479,20 @@ quartiles_table_gbm <- test_gbm_num %>%
     n = n(),
     actual_proportion = (count / n)
     )
+quartiles_table_college <- test_college %>%
+  group_by(p_quartiles) %>%
+  summarise(
+    count = sum(undocu_likely == 1),
+    n = n(),
+    actual_proportion = (count / n)
+    )
 
 xtable(quartiles_table, digits=4)
 print(quartiles_table)
 xtable(quartiles_table_gbm, digits=4)
 print(quartiles_table_gbm)
+xtable(quartiles_table_college, digits=4)
+print(quartiles_table_college)
 
 
 top_75_sample <- test_gbm %>%
@@ -509,7 +529,7 @@ undocu_test_num <- test_gbm_num %>%
 test_gbm$prediction <- ifelse(test_gbm$p >= threshold_75, 1, 0)
 test_gbm_num$predicted_class <- ifelse(test_gbm_num$p >= threshold_75_num, 1, 0)
 
-## Thersholds on undocu likely sample
+## Thersholds on undocu likely sample (BUG????)
 quartile_thresholds_caret <- quantile(undocu_test$p, probs = c(0, 0.25, 0.5, 0.75, 1))
 print(quartile_thresholds_caret)
 
@@ -571,27 +591,32 @@ png("fffccc_pr_curves.png", width = 22*100, height = 16*100, res = 300, family =
 op <- par(family = "serif")
 
 plot(all_pr_data$recall, all_pr_data$precision, type = "l", pch = 19,
-     col = "black", xlab = "Recall", ylab = "Precision",
+     col = "yellow", xlab = "Recall", ylab = "Precision",
      lwd = 3, ylim=c(0, 1), xlim = c(0,1), lty = 1, cex.lab=1.5, cex.axis=1)
 
 lines(all_pr_data$recall, all_pr_data$gbm_precision_fc, type = "l", 
-      col = "yellow", lwd = 3, lty = 2)
+      col = "purple", lwd = 3, lty = 2)
 lines(all_pr_data$recall, all_pr_data$gbm_precision_cc, type = "l", 
-      col = "blue", lwd = 3, lty = 3)
+      col = "pink", lwd = 3, lty = 3)
 
 legend(x = 0.5, y = 1, 
-       col = c("white", "black", "yellow", "blue"),
+       col = c("white", "yellow", "purple", "pink"),
        lwd = c(3, 3, 3, 3, 3, 3), 
        lty = c(0, 1, 2, 3, 4, 5),
        legend = c("Model:", "Full to Full", "Full to College", "College to College"),
-       bty = 'n', cex = 1.25, ncol = 1, seg.len = 6)
+       bty = 'n', cex = 1, ncol = 1, seg.len = 6)
 
 # Add random baseline
-total_undocu <- sum(test_gbm_num$undocu_likely == "X1")
-random_baseline <- total_undocu / nrow(test_gbm)
+total_undocu <- sum(test_gbm_num$undocu_likely == 1)
+random_baseline <- total_undocu / nrow(test_gbm_num)
 abline(h = random_baseline, lty = 2, col = "gray")
+# Add text label for random baseline
+text(0.5, random_baseline + 0.05, 
+     paste("Random baseline:", round(random_baseline, 3)), 
+     cex = 0.9, col = "gray30")
 
 dev.off()
+
 ```
 
 ## Demographic Precision-Recall Curve (Caret library, Figure 3)
@@ -778,7 +803,7 @@ png("undocumented_demographic__gbm_pr_curve.png", width = 2700, height = 2100, r
 op <- par(family = "serif")
 
 # Main precision-recall curve
-plot(gbm_pr_data$recall, gbm_pr_data$precision, type = "l", pch = 19,
+plot(gbm_pr_data_ff$recall, gbm_pr_data_ff$precision, type = "l", pch = 19,
      col = "black", xlab = "Recall", ylab = "Precision",
      lwd = 3,
      ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
@@ -841,7 +866,7 @@ create_demographic_plot_gbm <- function(filename_base) {
   # Function to create the plot (reusable)
   make_plot <- function() {
     par(family = "serif")
-    plot(gbm_pr_data$recall, gbm_pr_data$precision, type = "l", pch = 19,
+    plot(gbm_pr_data_ff$recall, gbm_pr_data_ff$precision, type = "l", pch = 19,
          col = "black", xlab = "Recall", ylab = "Precision",
          lwd = 3, ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
          cex.lab = 1.5, cex.axis = 1)

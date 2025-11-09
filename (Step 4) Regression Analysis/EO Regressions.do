@@ -13,7 +13,9 @@ mata: mata set matafavor speed
 
 // Set paths/directories here
 
-global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your drive
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //Sovero drive
+
+
 global main "$drive/Shared drives/Undocu Research"
 cd "$main"
 
@@ -34,32 +36,40 @@ set more off
 ***Logical edits V. mismatch model***
 reghdfe vmismatched hundermatched hovermatched undocu   $covars  [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo logical_vmismatch
 
 reghdfe vmismatched hundermatched hovermatched gbm_high_prob   $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmhigh_vmismatch
 
 reghdfe vmismatched hundermatched hovermatched gbm_high_recall  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmrecall_vmismatch
 
 reghdfe vmismatched hundermatched hovermatched gbm_low_prob  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmlow_vmismatch
 
-esttab using "Output/Tables/vmismatch_regressions_ml.tex", replace label booktabs keep(hundermatched hovermatched $undocu_vars ) ///
-order(hundermatched hovermatched $undocu_vars ) ///
-stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on Vmismatch") ///
-mlabel("Logical edits" "High Prob" "High Recall" "Low Prob") ///
-r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include:") ///
-addn("dummy age indicators, gender, Medicaid receipt, race/ethnicity, metropolitan residence," /// 
-	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
-	"Broad degree category indicators, years of schooling, state and year interaction fixed effects." ///
-	"Robust standard errors are all clustered by state.")		
-	
+esttab logical_vmismatch gbmhigh_vmismatch gbmrecall_vmismatch gbmlow_vmismatch ///
+    using "Output/Tables/vmismatch_regressions_ml.tex", replace ///
+    label booktabs ///
+    drop($covars _cons) ///
+    rename(hundermatched "Horizontal Undermatch" ///
+           hovermatched "Horizontal Overmatch" ///
+           undocu "Undocumented" ///
+           gbm_high_prob "Undocumented" ///
+           gbm_high_recall "Undocumented" ///
+           gbm_low_prob "Undocumented") ///
+    stats(ymean r2 N, labels("Mean of Dep. Var." "R-squared" "N") fmt(%9.2f %9.2f %9.0fc)) ///
+    title("Regressions of Undocumented Status on Vertical Mismatch") ///
+    mlabel("Logical Edits" "High Prob" "High Recall" "Low Prob") ///
+    r2(4) b(4) se(4) brackets star(* .1 ** .05 *** .01) ///
+    note("Additional controls include:") ///
+    addn("dummy age indicators, gender, Medicaid receipt, race/ethnicity, metropolitan residence," ///
+         " government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+         " broad degree category indicators, years of schooling, and state×year interaction fixed effects." ///
+         " Robust standard errors are clustered by state.")
+
 
 	
 
@@ -70,32 +80,40 @@ eststo clear
 
 reghdfe hundermatched vmismatched  undocu   $covars  [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo logical_hunder
 
 reghdfe hundermatched vmismatched  gbm_high_prob   $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmhigh_hunder
 
 reghdfe hundermatched vmismatched  gbm_high_recall  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmrecall_hunder
 
 reghdfe hundermatched vmismatched  gbm_low_prob  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmlow_hunder
 
+esttab logical_hunder gbmhigh_hunder gbmrecall_hunder gbmlow_hunder ///
+    using "Output/Tables/hundermatch_regressions_ml.tex", replace ///
+    label booktabs ///
+     drop($covars _cons ) ///
+    rename(hundermatched "Horizontal Undermatch" ///
+           hovermatched "Horizontal Overmatch" ///
+           undocu "Undocumented" ///
+           gbm_high_prob "Undocumented" ///
+           gbm_high_recall "Undocumented" ///
+           gbm_low_prob "Undocumented") ///
+    stats(ymean r2 N, labels("Mean of Dep. Var." "R-squared" "N") fmt(%9.2f %9.2f %9.0fc)) ///
+    title("Regressions of Undocumented Status on Horizontal Undermatch") ///
+    mlabel("Logical Edits" "High Prob" "High Recall" "Low Prob") ///
+    r2(4) b(4) se(4) brackets star(* .1 ** .05 *** .01) ///
+    note("Additional controls include:") ///
+    addn("dummy age indicators, gender, Medicaid receipt, race/ethnicity, metropolitan residence," ///
+         " government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+         " broad degree category indicators, years of schooling, and state×year interaction fixed effects." ///
+         " Robust standard errors are clustered by state.")
 
-esttab using "Output/Tables/hundermatch_regressions_ml.tex", replace label booktabs keep(vmismatched  $undocu_vars) ///
-order(vmismatched $undocu_vars ) ///
-stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on H. undermatch") ///
-mlabel("Logical edits" "High Prob" "High Recall" "Low Prob") ///
-r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include:") ///
-addn("dummy age indicators, gender, Medicaid reception, race/ethnicity, metropolitan residence," /// 
-	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
-	"Broad degree category indicators, years of schooling, state and year interaction fixed effects." ///
-	"Robust standard errors are all clustered by state.")				
 	
 
 
@@ -108,33 +126,39 @@ eststo clear
 
 reghdfe ln_adj vmismatched hundermatched hovermatched undocu   $covars  [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo logical_wage 
 
 reghdfe ln_adj vmismatched hundermatched hovermatched gbm_high_prob   $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmhigh_wage 
 
 reghdfe ln_adj vmismatched hundermatched hovermatched gbm_high_recall  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmrecall_wage
 
 reghdfe ln_adj vmismatched hundermatched hovermatched gbm_low_prob  $covars    [pweight=perwt] , absorb(statefip##year age  degfield_broader) vce(cluster statefip)
 estadd ysumm
-eststo
+eststo gbmlow_wage
 
-
-esttab using "Output/Tables/wage_regressions_ml.tex", replace label booktabs keep(vmismatched hundermatched hovermatched $undocu_vars ) ///
-order(vmismatched hundermatched hovermatched $undocu_vars ) ///
-stats( ymean r2 N  , labels(  "Mean of Dep. Var." "R-squared" N ) fmt(    %9.2f %9.2f %9.0fc ) ) ///
-title("Regressions of Undocumented Status on Log-Wage") ///
-mlabel("Logical edits" "High Prob" "High Recall" "Low Prob") ///
-r2(4) b(4) se(4) brackets star(* .1 ** 0.05 *** 0.01) ///
-note("Additional controls include:") ///
-addn("dummy age indicators, gender, Medicaid reception, race/ethnicity, metropolitan residence," /// 
-	"government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
-	"Broad degree category indicators, years of schooling, state and year interaction fixed effects." ///
-	"Robust standard errors are all clustered by state.")			
-	
+esttab logical_wage gbmhigh_wage gbmrecall_wage gbmlow_wage ///
+    using "Output/Tables/wage_regressions_ml.tex", replace ///
+    label booktabs ///
+      drop($covars _cons) ///
+    rename(hundermatched "Horizontal Undermatch" ///
+           hovermatched "Horizontal Overmatch" ///
+           undocu "Undocumented" ///
+           gbm_high_prob "Undocumented" ///
+           gbm_high_recall "Undocumented" ///
+           gbm_low_prob "Undocumented") ///
+ stats(ymean r2 N, labels("Mean of Dep. Var." "R-squared" "N") fmt(%9.2f %9.2f %9.0fc)) ///
+    title("Regressions of Undocumented Status on Log Wages") ///
+    mlabel("Logical Edits" "High Prob" "High Recall" "Low Prob") ///
+    r2(4) b(4) se(4) brackets star(* .1 ** .05 *** .01) ///
+    note("Additional controls include:") ///
+    addn("dummy age indicators, gender, Medicaid receipt, race/ethnicity, metropolitan residence," ///
+         " government occupation, English-speaking fluency, foreign born, immigration by age 10," ///
+         " broad degree category indicators, years of schooling, and state×year interaction fixed effects." ///
+         " Robust standard errors are clustered by state.")
 
 	
 **Coefficient Plots****

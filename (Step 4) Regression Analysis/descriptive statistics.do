@@ -1,47 +1,73 @@
 clear
 eststo clear
-global tables "G:/Shared drives/Undocu Research/Output/Tables"
-global data "G:/Shared drives/Undocu Research/Data"
-cd "$data"
-use "EO_Final", clear
-
-cd "$tables"
 
 
-********************************************************************************
-*********************** (ACS) Descriptive Table *******************************
-********************************************************************************
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if elig==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu_knn==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if undocu_rf==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
-esttab est* using dTable_status_ml.tex, replace label main(mean) aux(sd) title("ACS U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented (Logical edits)" "DACA-eligible" "Undocumented (KNN)" "Undocumented (RF)") note("Note: Log wage is adjusted for inflation with CPI values starting January 2009, every year in January until January 2019.")
+
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
+
+cd "$drive/Shared drives/Undocu Research"
+use "Data/EO_final.dta", clear
+
+gen degree=degfield_broader
+tab degfield_broader, gen(deg_cat)
+
+label var deg_cat1 "STEM Major"
+label var deg_cat2 "STEM Related Major"
+label var deg_cat3 "Business Major"
+label var deg_cat4 "Education Major"
+label var deg_cat5 "Other Major"
+
+global vars hisp white black asian  fem age   married nonfluent yrsusa1 deg_cat*
 
 ********************************************************************************
 *********************** (ACS) P Quartiles Descriptive Table *******************************
 ********************************************************************************
 eststo clear
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q== "Q1", statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q== "Q2", statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q== "Q3", statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q=="Q4", statistics(mean sd) columns(statistics) 
-esttab est* using dTable_pquartiles.tex, replace label main(mean) aux(sd) title("ACS Probability [of being undocumented] Quartiles Summary Statistics  \label{tab:sum}") unstack mlabels("Q1 (Low)" "Q2" "Q3" "Q4 (High)") note("Note: Probability Quartile thresholds were defined based on SIPP quartile thresholds.")
+eststo: estpost tabstat $vars if gbm_undocu_q== "Q1", statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_undocu_q== "Q2", statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_undocu_q== "Q3", statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_undocu_q=="Q4", statistics(mean sd) columns(statistics) 
+esttab est* using "Output/Tables/dTable_pquartiles.tex", replace label main(mean) aux(sd) title("ACS Summary Statistics by Probability Quartiles  \label{tab:sum}") unstack mlabels("Q1 (Low)" "Q2" "Q3" "Q4 (High)") note("Note: Probability Quartile thresholds were defined based on SIPP quartile thresholds.")
 
 ********************************************************************************
 *********************** (ACS) Probability Placebo Descriptive Table *******************************
 ********************************************************************************
+global vars   hisp white  asian black fem age nonfluent deg_cat* vmismatched hmismatched hundermatched hovermatched  adj_hourly 
+
+
 eststo clear
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q== "Q1", statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_high_recall== 1, statistics(mean sd) columns(statistics) 
-eststo: estpost tabstat age fem vmismatched hmismatched hundermatched hovermatched nonfluent stem_deg adj_hourly ln_adj white black asian hisp if gbm_undocu_q=="Q4", statistics(mean sd) columns(statistics) 
-esttab est* using dTable_placebo.tex, replace label main(mean) aux(sd) title("ACS Low probability, High probability, and High recall groups Summary Statistics  \label{tab:sum}") unstack mlabels("Q1 (Low)" "High Recall" "Q4 (High)") note("Note: Probability Quartiles and 75 percent of positive cases thresholds were defined based on SIPP thresholds.\\
-The high recall group was defined by taking the minimum predicted probability, output from the ML model, of 75 percent of truly undocumented workers.")
+eststo: estpost tabstat $vars , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if undocu==1 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_high_recall== 1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_undocu_q=="Q4", statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if gbm_undocu_q== "Q1", statistics(mean sd) columns(statistics) 
+
+esttab est* using "Output/Tables/dTable_placebo.tex", replace label main(mean) aux(sd) ///
+ title("ACS Summary Statistics  \label{tab:sum}") unstack mlabels("All" "Logical Edits"  "High Recall" "High Prob" "Low Prob") ///
+note("Note: Probability Quartiles and 75 percent of positive cases thresholds were defined based on SIPP thresholds.")      ///
+addnote("The high recall group was defined by taking the predicted probability threshold " ///
+ "that captured 75 percent of truly undocumented workers.")
+
+/*
+
+
+********************************************************************************
+*********************** (ACS) Descriptive Table *******************************
+********************************************************************************
+eststo: estpost tabstat $vars if bpl_foreign==1 , statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if undocu==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if elig==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $vars if undocu_knn==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+eststo: estpost tabstat $varsif undocu_rf==1 & bpl_foreign==1, statistics(mean sd) columns(statistics) 
+esttab est* using "Output/Tables/dTable_status_ml.tex", replace label main(mean) aux(sd) title("ACS U.S. born workers and Undocumented immigrants Summary Statistics \label{tab:sum}") unstack mlabels("Foreign-born" "Undocumented (Logical edits)" "DACA-eligible" "Undocumented (KNN)" "Undocumented (RF)") note("Note: Log wage is adjusted for inflation with CPI values starting January 2009, every year in January until January 2019.")
+
+
 
 
 ********************************************************************************
 *********************** (SIPP) Descriptive Table *******************************
 ********************************************************************************
+
 
 
 clear

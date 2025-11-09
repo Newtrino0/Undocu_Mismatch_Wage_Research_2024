@@ -1,7 +1,7 @@
 *** SET DIRECTORIES 
-*global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
-global data "G:/Shared drives/Undocu Research/Data"		
-global dofiles "G:/Shared drives/Undocu Research/Code"			
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
+global data "$drive/Shared drives/Undocu Research/Data"		
+global dofiles "$drive/Shared drives/Undocu Research/Code"			
 
 ********************************************************************************
 ********** Mismatch indicators and median mismatched wages *********************
@@ -99,14 +99,42 @@ gen inclusive = 1 if annual_total>0
 replace inclusive = 0 if annual_total<=0
 
 
-gen everify_inclusive=(e_verify==2)
+gen everify_inclusive=(e_verify==1)
+
+replace drivers_license=0 if drivers_license==-1
+
 gen undocu_everify=undocu*everify_inclusive
 gen undocu_knn_everify=undocu_knn*everify_inclusive
 gen undocu_rf_everify=undocu_rf*everify_inclusive
-gen license_inclusive=(professional_licensure==2)
+
+
+gen license_inclusive=(professional_licensure==1)
 gen undocu_license=undocu*license_inclusive
 gen undocu_knn_license=undocu_knn*license_inclusive
 gen undocu_rf_license=undocu_rf*license_inclusive
+
+
+gen undocu_inclusive=undocu*inclusive
+gen undocu_drive=undocu*drivers_license
+
+gen gbm_high_prob_inclusive=gbm_high_prob*inclusive
+gen gbm_high_recall_inclusive=gbm_high_recall*inclusive
+gen gbm_low_prob_inclusive=gbm_low_prob*inclusive
+
+
+gen gbm_high_prob_everify=gbm_high_prob*everify_inclusive
+gen gbm_high_prob_license=gbm_high_prob*license
+gen gbm_high_prob_drive=gbm_high_prob*drivers_license
+
+gen gbm_high_recall_everify=gbm_high_recall*everify_inclusive
+gen gbm_high_recall_license=gbm_high_recall*license
+gen gbm_high_recall_drive=gbm_high_recall*drivers_license
+
+gen gbm_low_prob_everify=gbm_low_prob*everify_inclusive
+gen gbm_low_prob_license=gbm_low_prob*license
+gen gbm_low_prob_drive=gbm_low_prob*drivers_license
+
+
 
 
 gen elig_knn = (elig==1 & undocu_knn==1)
@@ -119,5 +147,36 @@ label var undocu_rf "Undocumented (RF)"
 label var elig "DACA-eligible"
 label var elig_knn "DACA-eligible (KNN)"
 label var elig_rf "DACA-eligible (RF)"
+
+
+
+*--- Create manual interactions for degree fields (reference: Other)
+foreach d in 1 2 3 4 {
+    gen undocu_deg`d'             = (degfield_broader == `d') * undocu
+    gen gbm_high_prob_deg`d'      = (degfield_broader == `d') * gbm_high_prob
+    gen gbm_high_recall_deg`d'    = (degfield_broader == `d') * gbm_high_recall
+    gen gbm_low_prob_deg`d'       = (degfield_broader == `d') * gbm_low_prob
+}
+
+label var undocu_deg1          "Undocumented × STEM"
+label var undocu_deg2          "Undocumented × STEM Related"
+label var undocu_deg3          "Undocumented × Business"
+label var undocu_deg4          "Undocumented × Education"
+
+label var gbm_high_prob_deg1   "High Prob × STEM"
+label var gbm_high_prob_deg2   "High Prob × STEM Related"
+label var gbm_high_prob_deg3   "High Prob × Business"
+label var gbm_high_prob_deg4   "High Prob × Education"
+
+label var gbm_high_recall_deg1 "High Recall × STEM"
+label var gbm_high_recall_deg2 "High Recall × STEM Related"
+label var gbm_high_recall_deg3 "High Recall × Business"
+label var gbm_high_recall_deg4 "High Recall × Education"
+
+label var gbm_low_prob_deg1    "Low Prob × STEM"
+label var gbm_low_prob_deg2    "Low Prob × STEM Related"
+label var gbm_low_prob_deg3    "Low Prob × Business"
+label var gbm_low_prob_deg4    "Low Prob × Education"
+
 
 save "EO_Final", replace
