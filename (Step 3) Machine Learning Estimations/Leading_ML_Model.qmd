@@ -617,147 +617,33 @@ text(0.5, random_baseline + 0.05,
 
 dev.off()
 
-```
 
-## Demographic Precision-Recall Curve (Caret library, Figure 3)
+### Relative Pr-Re curves ###
 
-```{r}
-# Total undocumented cases in test set
-total_undocu <- sum(test_gbm$undocu_likely == "X1")
+png("undocumented_sample_differences.png", width = 22*100, height = 16*100, res = 300, family = "Times")
 
-# Group 1: Top 10 states
-recall_top_ten <- sum(test_gbm$undocu_likely == "X1" & test_gbm$top_ten_states == 1) / total_undocu
-precis_top_ten <- sum(test_gbm$undocu_likely == "X1" & test_gbm$top_ten_states == 1) / 
-                sum(test_gbm$top_ten_states == 1)
-
-# Group 2: Hispanic/Latino
-recall_hispanic <- sum(test_gbm$undocu_likely == "X1" & test_gbm$spanish_hispanic_latino == 1) / total_undocu
-precis_hispanic <- sum(test_gbm$undocu_likely == "X1" & test_gbm$spanish_hispanic_latino == 1) / 
-                   sum(test_gbm$spanish_hispanic_latino == 1)
-
-# Group 3: Central American Latino
-recall_central <- sum(test_gbm$undocu_likely == "X1" & 
-                           test_gbm$central_latino ==   1) / total_undocu
-precis_central <- sum(test_gbm$undocu_likely == "X1" & 
-                           test_gbm$central_latino == 1) / 
-                        sum(test_gbm$central_latino == 1)
-
-# Group 4: Asian-born
-recall_asia <- sum(test_gbm$undocu_likely == "X1" & test_gbm$bpl_asia == 1) / total_undocu
-precis_asia <- sum(test_gbm$undocu_likely == "X1" & test_gbm$bpl_asia == 1) / 
-               sum(test_gbm$bpl_asia == 1)
-
-# Group 5: Non-fluent English speakers
-recall_nonfluent <- sum(test_gbm$undocu_likely == "X1" & test_gbm$nonfluent == 1) / total_undocu
-precis_nonfluent <- sum(test_gbm$undocu_likely == "X1" & test_gbm$nonfluent == 1) / 
-                    sum(test_gbm$nonfluent == 1)
-
-
-# Set output file
-setwd(figures_path)
-png("undocumented_demographic_pr_curve.png", width = 2700, height = 2100, res = 300, family = "Times")
-# Or use: pdf("undocumented_demographic_pr_curve.pdf", family="Times", width=9)
-
-# Set up plot parameters
 op <- par(family = "serif")
 
-# Main precision-recall curve
-plot(boost_pr_data$recall, boost_pr_data$precision, type = "l", pch = 19,
-     col = "black", xlab = "Recall", ylab = "Precision",
-     lwd = 3,
-     ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
-     cex.lab = 1.5, cex.axis = 1,
-     main = "")  # Add title if desired
+plot(all_pr_data$recall, all_pr_data$fc_precision_difference, type = "l", pch = 19, 
+     col = "purple", xlab = "Recall Relative to Full-to-Full mapping", ylab = "Precision", 
+     lwd = 3, ylim = c(-0.3, 0.1), xlim = c(0,1), lty = 2, cex.lab=1.5, cex.axis=1)
 
-# Add demographic group points
-points(recall_top_ten, precis_top_ten, pch = 17, col = 1, cex = 1.5)
-points(recall_hispanic, precis_hispanic, pch = 19, col = 1, cex = 1.5)
-points(recall_central, precis_central, pch = 19, col = "gray", cex = 1.5)
-points(recall_asia, precis_asia, pch = 17, col = "gray", cex = 1.5)
-points(recall_nonfluent, precis_nonfluent, pch = 15, col = "darkgray", cex = 1.5)
+lines(all_pr_data$recall, all_pr_data$cc_precision_difference, type = "l", 
+      col = "pink", lwd = 3, lty = 3)
 
+legend(x = 0.5, y = -0.1, 
+       col = c("white", "purple", "pink"),
+       lwd = c(3, 3, 3), 
+       lty = c(0, 2, 3),
+       legend = c("Model:", "Full-to-College", "College-to-College"),
+       bty = 'n', cex = 1, ncol = 1, seg.len = 5)
 
-# Demographic groups legend
-legend(0.25, 1, 
-       col = c("white", 1, 1, "gray", "gray", "darkgray"), 
-       pch = c(19, 17, 19, 19, 17, 15),
-       pt.cex = 1.5,
-       legend = c("Demographic Groups:", 
-                 "Top 10 states", 
-                 "Hispanic/Latino",
-                 "Central Latino", 
-                 "Asian Born",
-                 "Non-fluent English"),
-       bty = 'n', 
-       cex = 1.25, 
-       ncol = 1, 
-       bg = "white")
-
-# Add random baseline
-random_baseline <- sum(test_gbm$undocu_likely == 1) / nrow(test_gbm)
-abline(h = random_baseline, lty = 2, col = "gray50")
-
+abline(h = 0, lty = 2, col = "gray")
 # Add text label for random baseline
-text(0.5, random_baseline + 0.05, 
-     paste("Random Baseline:", round(random_baseline, 3)), 
+text(0.5, 0.05, 
+     paste("Full-to-Full baseline:", round(0, 3)), 
      cex = 0.9, col = "gray30")
-
 dev.off()
-
-
-
-cat("\n=== DEMOGRAPHIC GROUP PERFORMANCE ===\n")
-cat("Random Baseline Precision:", round(random_baseline, 4), "\n\n")
-
-summary_df <- data.frame(
-  Group = c("Top 10 states", "Hispanic/Latino", "Central Latino", 
-            "Asian Born", "Non-fluent English"),
-  Recall = c(recall_top_ten, recall_hispanic, recall_central, 
-            recall_asia, recall_nonfluent),
-  Precision = c(precis_top_ten, precis_hispanic, precis_central, 
-               precis_asia, precis_nonfluent)
-)
-
-print(summary_df)
-
-# Save as both PDF and PNG
-create_demographic_plot <- function(filename_base) {
-  # Function to create the plot (reusable)
-  make_plot <- function() {
-    par(family = "serif")
-    plot(boost_pr_data$recall, boost_pr_data$precision, type = "l", pch = 19,
-         col = "black", xlab = "Recall", ylab = "Precision",
-         lwd = 3, ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
-         cex.lab = 1.5, cex.axis = 1)
-    
-    points(recall_top_ten, precis_top_ten, pch = 17, col = 1, cex = 1.5)
-    points(recall_hispanic, precis_hispanic, pch = 19, col = 1, cex = 1.5)
-    points(recall_central, precis_central, pch = 19, col = "gray", cex = 1.5)
-    points(recall_asia, precis_asia, pch = 17, col = "gray", cex = 1.5)
-    
-    legend(0.63, 1, col = c("white", 1), lwd = 2, lty = c(0, 1),
-           legend = c("Learning Method:", "Boosted Trees"),
-           bty = 'n', cex = 1.25, ncol = 1)
-    
-    legend(0.30, 1, col = c("white", 1, 1, "gray", "gray"), 
-           pch = c(19, 17, 19, 19, 17), pt.cex = 1.5,
-           legend = c("Groups:", "Top 10 states", "Hispanic/Latino",
-                     "Central Latino", "Asian Born"),
-           bty = 'n', cex = 1.25, ncol = 1, bg = "white")
-    
-    abline(h = random_baseline, lty = 2, col = "gray50")
-  }
-  
-  # Save as PDF
-  pdf(paste0(filename_base, ".pdf"), family = "Times", width = 9)
-  make_plot()
-  dev.off()
-  
-  # Save as PNG
-  png(paste0(filename_base, ".png"), width = 2700, height = 2100, res = 300, family = "Times")
-  make_plot()
-  dev.off()
-}
 ```
 
 ## Demographic Precision-Recall Curve (GBM Library; Figure 3)

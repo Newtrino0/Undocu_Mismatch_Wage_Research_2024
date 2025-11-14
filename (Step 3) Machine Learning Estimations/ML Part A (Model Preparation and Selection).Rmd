@@ -566,7 +566,7 @@ legend(x = 0.5, y = 1,
        col = c("white", "yellow", "blue", "red", "green"),
        lwd = c(3, 3, 3, 3, 3, 3), 
        lty = c(0, 1, 2, 3, 4, 5),
-       legend = c("Model:", "Gradient Boosting Trees", "Random Forest", "Logistic", "KNN"),
+       legend = c("Model:", "Gradient-Boosting Trees", "Random Forest", "Logistic", "KNN"),
        bty = 'n', cex = 1.25, ncol = 1, seg.len = 6)
 
 # Add random baseline
@@ -597,7 +597,7 @@ lines(all_pr_data$recall, all_pr_data$logistic_precision_difference, type = "l",
 lines(all_pr_data$recall, all_pr_data$knn_precision_difference, type = "l",
       col = "green", lwd = 3, lty = 4)
 
-legend(x = 0.5, y = 0, 
+legend(x = 0.5, y = -0.1, 
        col = c("white", "blue", "red", "green"),
        lwd = c(3, 3, 3, 3), 
        lty = c(0, 2, 3, 4),
