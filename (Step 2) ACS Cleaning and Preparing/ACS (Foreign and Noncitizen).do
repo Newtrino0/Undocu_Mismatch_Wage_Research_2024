@@ -15,7 +15,7 @@ set more off, perm
 ********************************
 *"G:\Shared drives\Undocu Research\Data"
 cd "$data"
-use "usa_00041.dta", clear
+use "usa_00044.dta", clear
 describe
 
 ********* Clean data ***********
@@ -876,5 +876,5 @@ replace twentytwo_by_2012 = 0 if (2012-birthyr)<22
 
 drop educd grad*
 
-export delimited using "G:\Shared drives\Undocu Research\Data\ACS_foreign_noncit_age.csv"
+export delimited using "G:\Shared drives\Undocu Research\Data\ACS_foreign_noncit_age.csv", replace
 

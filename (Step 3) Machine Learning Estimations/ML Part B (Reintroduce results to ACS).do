@@ -1,32 +1,40 @@
 *** SET DIRECTORIES 
-global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
-global data "$drive/Shared drives/Undocu Research/Data"		
-global dofiles "$drive/Shared drives/Undocu Research/Code"			
+*global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu" //update this line with your folder 
+global drive "G:\Shared drives\Undocu Research" // Mario drive
+global data "Shared drives/Undocu Research/Data"		
+*global dofiles "Shared drives/Undocu Research/Code"			
 
 ********************************************************************************
 ********** Mismatch indicators and median mismatched wages *********************
 ********************************************************************************
-cd "$data"
-import delimited "ACS_SIPP_gbm.csv", clear 
-
-gen undocu_logit=0 if undocu_logistic=="X0"
-replace undocu_logit=1 if undocu_logistic=="X1"
-
-gen undocu_knn=0 if knn_undocu=="X0"
-replace undocu_knn=1 if knn_undocu=="X1"
-
-gen undocu_rf=0 if rf_undocu=="X0"
-replace undocu_rf=1 if rf_undocu=="X1"
-
-keep caret_undocu_p-undocu_rf undocu year serial pernum
+cd "$drive"
+import delimited "Data\ACS_SIPP_gbm.csv", clear 
 
 
+keep year serial pernum undocu gbm_high_prob gbm_low_prob gbm_high_recall  vmismatched hundermatched hovermatched age male hisp asian black bpl_foreign nonfluent yrsed degfield_broader stem_deg statefip metropolitan gov_worker ln_adj elig post annual_total e_verify drivers_license professional_licensure medicaid perwt
+** Add back:gbm_high_prob_college gbm_low_prob_college gbm_high_recall_college
 
-merge 1:1 year serial pernum using "EO_C.dta"
+drop if degfield_broader == "NA" 
+drop if hundermatched == "NA"
+drop if hovermatched == "NA"
 
-replace undocu_logit=0 if undocu_logit==.
-replace undocu_knn=0 if undocu_knn==.
-replace undocu_rf=0 if undocu_rf==.
+destring hundermatched, replace
+destring hovermatched, replace
+destring degfield_broader, gen(degfield_broader_temp)
+drop degfield_broader
+rename degfield_broader_temp degfield_broader
+
+label define degfield_broader_lbl 1 "Science and Engineering Group" ///
+                                2 "Science and Engineering Related Fields" ///
+                                3 "Business" ///
+                                4 "Education" ///
+                                5 "Arts, Humanities, and Other"
+
+label values degfield_broader degfield_broader_lbl
+
+merge 1:1 year serial pernum using "Data\EO_C.dta"
+
+
 replace gbm_high_prob=0 if gbm_high_prob==.
 replace gbm_low_prob=0 if gbm_low_prob==.
 replace gbm_high_recall=0 if gbm_high_recall==.
@@ -45,8 +53,6 @@ replace gbm_high_recall=0 if gbm_high_recall==.
 */
 
 
-egen undocu_rf_occ_count=count(occ) if undocu_rf==1, by(occ)
-egen undocu_rf_deg_count=count(degfield) if undocu_rf==1, by(degfield)
 
 
 ********************************************************************************
@@ -63,10 +69,6 @@ forvalues y=2013(1)2019 {
 }
 drop elig_year2016
 
-forvalues y=2013(1)2019 {
-	gen undocu_year`y' = undocu_logit*(eventyear==`y')
-}
-drop undocu_year2016
 
 ***Mismatch and other regression covariate modifications/labeling***
 gen hmatch = 1 if hundermatched==1
@@ -104,14 +106,10 @@ gen everify_inclusive=(e_verify==1)
 replace drivers_license=0 if drivers_license==-1
 
 gen undocu_everify=undocu*everify_inclusive
-gen undocu_knn_everify=undocu_knn*everify_inclusive
-gen undocu_rf_everify=undocu_rf*everify_inclusive
 
 
 gen license_inclusive=(professional_licensure==1)
 gen undocu_license=undocu*license_inclusive
-gen undocu_knn_license=undocu_knn*license_inclusive
-gen undocu_rf_license=undocu_rf*license_inclusive
 
 
 gen undocu_inclusive=undocu*inclusive
@@ -137,16 +135,11 @@ gen gbm_low_prob_drive=gbm_low_prob*drivers_license
 
 
 
-gen elig_knn = (elig==1 & undocu_knn==1)
-gen elig_rf = (elig==1 & undocu_rf==1)
+
 
 label var undocu "Undocumented"
-label var undocu_knn "Undocumented (KNN)"
-label var undocu_rf "Undocumented (RF)"
 
 label var elig "DACA-eligible"
-label var elig_knn "DACA-eligible (KNN)"
-label var elig_rf "DACA-eligible (RF)"
 
 
 
@@ -179,4 +172,4 @@ label var gbm_low_prob_deg3    "Low Prob × Business"
 label var gbm_low_prob_deg4    "Low Prob × Education"
 
 
-save "EO_Final", replace
+save "Data\EO_Final", replace

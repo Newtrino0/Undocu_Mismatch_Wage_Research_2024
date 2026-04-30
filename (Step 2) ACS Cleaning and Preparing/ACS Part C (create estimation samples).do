@@ -71,15 +71,15 @@ drop med_wage_hmatched_by_degfield
 
 **For vmatched by degfield
 sort degfield
-by degfield: egen med_wage_vmatched_by_degfield_temp = median(adj_hourly) if vmatched_att==1
-egen vmatched_med_wage_by_degfield = mean(med_wage_vmatched_by_degfield_temp), by (degfield)
-drop med_wage_vmatched_by_degfield_temp
+by degfield: egen med_wage_vmatch_degfield_temp = median(adj_hourly) if vmatched_att==1
+egen vmatched_med_wage_by_degfield = mean(med_wage_vmatch_degfield_temp), by (degfield)
+drop med_wage_vmatch_degfield_temp
 
 *Create med_wage for vmatched people within occupation (by attaintment)
 sort occ
-by occ: egen med_wage_vmatched_by_occ_temp = median(adj_hourly) if vmatched_att==1
-egen vmatched_med_wage_by_occ = mean(med_wage_vmatched_by_occ_temp), by (occ)
-drop med_wage_vmatched_by_occ_temp
+by occ: egen med_wage_vmatched_occ_temp = median(adj_hourly) if vmatched_att==1
+egen vmatched_med_wage_by_occ = mean(med_wage_vmatched_occ_temp), by (occ)
+drop med_wage_vmatched_occ_temp
 
 
 ***HORIZONTAL UNDERMATCH AND OVERMATCH binary variable creation***
@@ -143,4 +143,4 @@ save "EO_C.dta", replace
 
 // Creates ML Training sample after creating mismatch indicators
 keep if undocu==1
-export delimited using "ML Training Sample.csv", replace
+export delimited using "ML Training Sample.csv", replace nolabel
