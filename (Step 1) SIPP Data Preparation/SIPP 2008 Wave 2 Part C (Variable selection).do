@@ -140,14 +140,14 @@ replace education = "Master's" if eeducate == 45
 replace education = "PhD/Professional" if inlist(eeducate, 46, 47)
 
 gen yrsed = .
-replace yrsed = 10   if eeducate == 36
-replace yrsed = 11   if eeducate == 37
-replace yrsed = 12   if inlist(eeducate, 38, 39, 40, 41)
+replace yrsed = 0    if eeducate == 31
 replace yrsed = 2.5  if eeducate == 32
 replace yrsed = 5.5  if eeducate == 33
 replace yrsed = 7.5  if eeducate == 34
 replace yrsed = 9    if eeducate == 35
-replace yrsed = 0    if eeducate == 31
+replace yrsed = 10   if eeducate == 36
+replace yrsed = 11   if eeducate == 37
+replace yrsed = 12   if inlist(eeducate, 38, 39, 40, 41)
 replace yrsed = 14   if inlist(eeducate, 42, 43)
 replace yrsed = 16   if inlist(eeducate, 44, 46)
 replace yrsed = 17.5 if eeducate == 45
@@ -188,6 +188,7 @@ gen english_difficult = inlist(ehowwell, 3, 4)
 gen nonfluent = inlist(ehowwell, 3, 4)
 gen english_home = (tlang1 == -1)
 
+
 * 5. GEOGRAPHY & CITIZENSHIP
 gen top_ten_states = inlist(tfipsst, 4, 6, 12, 13, 17, 34, 36, 37, 48, 53)
 gen bpl_usa = (ebornus == 1)
@@ -227,7 +228,20 @@ gen undocu_logical = (citizen == 0 & (armed_forces == 0 | medicare == 0 | social
 gen id = _n
 
 * Export the master dataset (requires Stata 18+ for parquet, otherwise use export delimited)
-export parquet "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
+*export parquet "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
+
+keep if undocu_logical == 1	 
+				
+				
+* Keep with the ID variable included
+keep id undocu_likely age fem married cit_spouse medicaid nonfluent ///
+     spanish_hispanic_latino central_latino bpl_asia household_size ///
+     poverty asian black white other_race employed years_us yrsed ///
+	 race college
+	 
 
 
-save "(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace
+*pq save "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
+export delimited using "G:\Shared drives\Undocu Research\Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace nolabel
+
+*save "(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace

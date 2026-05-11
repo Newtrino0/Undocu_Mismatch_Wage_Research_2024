@@ -4,12 +4,8 @@ format: html
 editor: visual
 ---
 
-## Read data
-
 ```{r}
 library(here)
-library(dplyr)
-library(tidyr)
 
 if (Sys.info()["sysname"] == "Windows") {
   base_dir <- "G:/Shared drives/Undocu Research"
@@ -22,26 +18,241 @@ data_path <- file.path(base_dir, "Data")
 figures_path <- file.path(base_dir, "Output", "Figures")
 
 library(arrow)
-library(readr)
-#sipp08_2 <- read_parquet(file.path(data_path, "Stata_cleaned_SIPP.parquet"))
-
-sipp08_2_wmissing <- read_csv(file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv"))
-
-# 1. Create your vector (list) of variables
-features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed")
-
-# 2. Use all_of() to tell drop_na to look at that list
-sipp08_2 <- sipp08_2_wmissing %>%
-  drop_na(all_of(features))
-
-sipp08_2_college <- sipp08_2 %>%
-  filter(college == 1)
-  
-
-write_parquet(sipp08_2, file.path(data_path,"temp_new_SIPP.parquet"))
+sipp08_2 <- read_parquet(file.path(data_path, "sipp_2008_w2_merged.parquet"))
 ```
 
-## Training and Test datasets
+## Data Preparation
+
+```{r}
+library(dplyr)
+
+# Define the list of raw variables that need to be numeric
+numeric_vars <- c(
+  "TIMSTAT", "EADJUST", "EEDUCATE", "TMOVEUS", "RHCALYR", "EMS", 
+  "ESEX", "ERACE", "EORIGIN", "TBRSTATE", "EHOWWELL", "TLANG1", 
+  "TFIPSST", "EBORNUS", "ECITIZEN", "cit_spouse", "RMESR", 
+  "THEARN", "RHPOV", "EHHNUMPP", "RCUTYP57", "RCUTYP58", 
+  "ECRMTH", "RCUTYP01", "RCUTYP03", "EAFNOW", "EAFEVER", "TAGE", "TPEARN", "EHRSALL"
+)
+
+sipp08_2$id_2 <- seq_len(nrow(sipp08_2))
+
+sipp08_2 <- sipp08_2 %>%
+  # STEP 1: Pre-clean edge cases and convert everything to numeric
+  mutate(
+    # Fix the baby age string before converting to numeric
+    TAGE = ifelse(TAGE == "Less than 1 full year old", "0", TAGE),
+    # Convert all listed variables to numeric at once
+    across(all_of(numeric_vars), as.numeric)
+  ) %>%
+  
+  # STEP 2: The clean logic block (no more as.numeric() needed here!)
+  mutate(
+    # 1. IMMIGRATION & LEGAL STATUS
+    undocu_entry = ifelse(TIMSTAT == 2, 1, 0), 
+    undocu_likely = as.factor(ifelse(TIMSTAT == 2 & EADJUST == 2, 1, 0)),
+    
+    # 2. EDUCATION 
+    education = case_when(
+      EEDUCATE %in% 31:38 ~ "No HS diploma",          
+      EEDUCATE %in% c(39, 41) ~ "HS diploma",         
+      EEDUCATE == 40 ~ "Some college",                
+      EEDUCATE %in% 42:43 ~ "Associate's",            
+      EEDUCATE == 44 ~ "Bachelor's",                  
+      EEDUCATE == 45 ~ "Master's",                    
+      EEDUCATE %in% 46:47 ~ "PhD/Professional",       
+      TRUE ~ "Unknown" 
+    ),
+    yrsed = case_when(
+      EEDUCATE == 31 ~ 0,
+      EEDUCATE == 32 ~ 2.5,                           
+      EEDUCATE == 33 ~ 5.5,                           
+      EEDUCATE == 34 ~ 7.5,
+      EEDUCATE == 35 ~ 9,
+      EEDUCATE == 36 ~ 10,                            
+      EEDUCATE == 37 ~ 11,                            
+      EEDUCATE %in% c(38, 39, 40, 41) ~ 12,           
+                                 
+                                   
+                                   
+      EEDUCATE %in% 42:43 ~ 14,                       
+      EEDUCATE %in% c(44, 46) ~ 16,                   
+      EEDUCATE == 45 ~ 17.5,                          
+      EEDUCATE == 47 ~ 22,                            
+      TRUE ~ NA_real_
+    ),
+    college = ifelse(EEDUCATE %in% 44:47, 1, 0),
+    hs_only = ifelse(EEDUCATE %in% 39:43, 1, 0),
+    
+    # 3. DEMOGRAPHICS
+    # Encoding: All immig_year encoding is an approximation
+    immig_yr = case_when(
+      TMOVEUS == 1~1961, ## Technically
+      TMOVEUS == 2~1966,
+      TMOVEUS == 3~1971,
+      TMOVEUS == 4~1976,
+      TMOVEUS == 5~1980,
+      TMOVEUS == 6~1982,
+      TMOVEUS == 7~1984,
+      TMOVEUS == 8~1987,
+      TMOVEUS == 9~1989,
+      TMOVEUS == 10~1991,
+      TMOVEUS == 11~1993,
+      TMOVEUS == 12~1995,
+      TMOVEUS == 13~1998,
+      TMOVEUS == 14~1999,
+      TMOVEUS == 15~2000,
+      TMOVEUS == 16~2001,
+      TMOVEUS == 17~2002,
+      TMOVEUS == 18~2004,
+      TMOVEUS == 19~2005,
+      TMOVEUS == 20~2006,
+      TMOVEUS == 21~2007,
+      TMOVEUS == 22~2009,
+      TRUE ~ 0 # Default case
+    ),
+    years_us = RHCALYR - immig_yr,
+    
+    married = ifelse(EMS %in% c(1, 2), 1, 0),
+    fem = ifelse(ESEX == 2, 1, 0),
+    
+    race = case_when(
+      ERACE == 3 ~ "Asian",
+      ERACE == 2 ~ "Black",
+      ERACE == 1 ~ "White",
+      ERACE == 4 ~ "Other",
+      TRUE ~ "Unknown"
+    ),
+    asian = ifelse(ERACE == 3, 1, 0),
+    black = ifelse(ERACE == 2, 1, 0),
+    white = ifelse(ERACE == 1, 1, 0),
+    other_race = ifelse(ERACE == 4, 1, 0),
+    
+    spanish_hispanic_latino = ifelse(EORIGIN == 1, 1, 0),
+    central_latino = ifelse(TBRSTATE == 570 & EORIGIN == 1, 1, 0), # Update 570 to your codebook value
+    bpl_asia = ifelse(TBRSTATE %in% c(565:567), 1, 0), # Update to your codebook values
+    
+    # 4. LANGUAGE 
+    english_difficult = ifelse(EHOWWELL %in% c(3, 4), 1, 0),
+    nonfluent = ifelse(EHOWWELL %in% c(3, 4), 1, 0),
+    english_home = ifelse(TLANG1 == -1, 1, 0),
+    
+    # 5. GEOGRAPHY & CITIZENSHIP
+    top_ten_states = ifelse(TFIPSST %in% c(4, 6, 12, 13, 17, 34, 36, 37, 48, 53), 1, 0),
+    bpl_usa = ifelse(EBORNUS == 1, 1, 0),
+    citizen = ifelse(ECITIZEN == 1, 1, 0),
+    cit_spouse = ifelse(cit_spouse == 1, 1, 0),
+    
+    # 6. EMPLOYMENT & INCOME 
+    employed = ifelse(RMESR %in% c(1, 2, 3), 1, 0),
+    poverty = ifelse(THEARN < RHPOV, 1, 0),
+    household_size = EHHNUMPP,
+    
+    # --- INFLATION ADJUSTMENT (2008 to 2026 Dollars) ---)
+    adj_income = TPEARN * (326.588 / 211.080),
+    # Average income per month divided by average hours per week
+    ## 4.34524 constant used to convert month to week
+    # WAGE & HOUR CLEANING
+    # Monthly Income / (Weekly Hours * 4.34524 weeks per month)
+    adj_hourly = ifelse(adj_income <= 0 | EHRSALL <= 0, 
+                        NA_real_, 
+                        adj_income / (EHRSALL * 4.34524)),
+    
+    ln_adj = log(adj_hourly),
+    
+    # 7. BENEFITS
+    medicaid = ifelse(RCUTYP57 == 1, 1, 0),
+    health_ins = ifelse(RCUTYP57 == 1 | RCUTYP58 == 1, 1, 0),
+    medicare = ifelse(ECRMTH == 1, 1, 0),
+    social_security = ifelse(RCUTYP01 == 1 | RCUTYP03 == 1, 1, 0),
+    armed_forces = ifelse(EAFNOW == 1 | EAFEVER == 1, 1, 0)
+  ) #%>%
+  #filter(TAGE >= 18 & TAGE <= 55 &  TPEARN >=0)
+
+
+# Add this AFTER your main mutate block, before you train or predict!
+sipp08_2 <- sipp08_2 %>%
+  mutate(
+    # Explicitly define the levels so empty categories are preserved as 0-counts
+    education = factor(education, levels = c("No HS diploma", "HS diploma", 
+                                             "Some college", "Associate's", 
+                                             "Bachelor's", "Master's", 
+                                             "PhD/Professional", "Unknown")),
+    
+    race = factor(race, levels = c("Asian", "Black", "White", "Other", "Unknown"))
+  )
+
+# --- POST-MUTATE LOGICAL CORRECTIONS ---
+sipp08_2$bpl_foreign <- ifelse(sipp08_2$bpl_usa == 1, 0, 1)
+
+# Because undocu_likely is a factor, we must replace with the string "0"
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$immig_yr <= 1961, "0")
+sipp08_2$undocu_likely <- replace(sipp08_2$undocu_likely, sipp08_2$armed_forces == 1 | sipp08_2$social_security == 1, "0")
+
+sipp08_2$years_us <- ifelse(sipp08_2$years_us %in% c(2008, 2009, -1), NA, sipp08_2$years_us)
+sipp08_2$age <- sipp08_2$TAGE
+
+sipp08_2$undocu_logical <- ifelse(sipp08_2$citizen == 0 & (sipp08_2$armed_forces == 0 | sipp08_2$medicare == 0 | sipp08_2$social_security == 0), 1, 0)
+sipp08_2$id <- seq_len(nrow(sipp08_2))
+
+# 3. VARIABLE LISTS
+variable_lists <- list(
+  base = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", "household_size", "top_ten_states", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed", "college", "EEDUCATE"),
+  
+  descriptive = c("undocu_likely", "undocu_logical", "bpl_foreign", "medicaid", 
+                  "central_latino", "bpl_asia", "age", "fem", "married", "cit_spouse", 
+                  "nonfluent", "spanish_hispanic_latino", "household_size", "poverty", 
+                  "asian", "black", "white", "other_race", "employed", "years_us", "yrsed", "EEDUCATE")
+)
+
+# 4. DATASET CREATOR
+create_datasets <- function(data, variables) {
+  datasets <- list()
+  
+  # Filter now works perfectly because undocu_logical is a true numeric
+  undocu_filter <- data[data$undocu_logical == 1, ]
+  
+  # Using modern dplyr 'across()' instead of deprecated 'mutate_at'
+  datasets$dTable <- as.data.frame(undocu_filter[, variables$descriptive]) %>%
+    mutate(across(c(everything(), -undocu_likely), as.numeric)) %>%
+    na.omit()
+  
+  datasets$sample <- as.data.frame(undocu_filter[, variables$base]) %>%
+    na.omit()
+  
+  datasets$knn <- as.data.frame(undocu_filter[, variables$base]) %>%
+    mutate(across(c(everything(), -undocu_likely), as.numeric)) %>%
+    na.omit()
+  
+  # Demographic subsets now work flawlessly with == 0 or == 1
+  datasets$noncit <- data[data$citizen == 0, ]
+  datasets$central_latino <- data[data$central_latino == 1, ]
+  datasets$spanish_hispanic_latino <- data[data$spanish_hispanic_latino == 1, ]
+  datasets$top_states <- data[data$top_ten_states == 1, ]
+  
+  return(datasets)
+}
+
+# Execute
+all_data <- create_datasets(sipp08_2, variable_lists)
+
+all_data_college <- lapply(all_data, function(x) {
+  if (is.data.frame(x) && "college" %in% names(x)) {
+    x %>% filter(college == 1)
+  } else {
+    x  
+  }
+})
+
+### Save cleaned data ###
+setwd("G:/Shared drives/Undocu Research/Data")
+write_parquet(all_data$sample, file.path(data_path,"temp_cleaned_SIPP.parquet"))
+# Save output
+# 
+# write.csv(sipp08_2, "SIPP08_2.csv", row.names = FALSE)
+```
+
+\
 
 ```{r}
 set.seed(1)
@@ -55,10 +266,10 @@ library(gridExtra)
 
 set.seed(1)
 ## Data partitioning for caret library
-#levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
-train_index_gbm <- createDataPartition(sipp08_2$undocu_likely, p = 0.7, list = FALSE)
-train_gbm <- sipp08_2[train_index_gbm, ]
-test_gbm <- sipp08_2[-train_index_gbm, ]
+levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
+train_index_gbm <- createDataPartition(all_data$sample$undocu_likely, p = 0.7, list = FALSE)
+train_gbm <- all_data$sample[train_index_gbm, ]
+test_gbm <- all_data$sample[-train_index_gbm, ]
 
 ```
 
@@ -100,13 +311,13 @@ summary(gbm_model)
 ```{r}
 set.seed(1)
 ## Data partitioning for gbm library
-sipp08_2_college$undocu_likely <- ifelse(sipp08_2_college$undocu_likely %in% c("X1", "1", 1), 1, 0)
+all_data_college$sample$undocu_likely <- as.numeric(all_data_college$sample$undocu_likely) - 1
 
 
 
-train_index_college <- createDataPartition(sipp08_2_college$undocu_likely, p = 0.7, list = FALSE)
-train_college <- sipp08_2_college[train_index_college, ]
-test_college <- sipp08_2_college[-train_index_college, ]
+train_index_college <- createDataPartition(all_data_college$sample$undocu_likely, p = 0.7, list = FALSE)
+train_college <- all_data_college$sample[train_index_college, ]
+test_college <- all_data_college$sample[-train_index_college, ]
 
 college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us + yrsed, data = train_college, 
                  verbose = FALSE,
