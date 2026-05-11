@@ -227,7 +227,7 @@ gen undocu_logical = (citizen == 0 & (armed_forces == 0 | medicare == 0 | social
 gen id = _n
 
 * Export the master dataset (requires Stata 18+ for parquet, otherwise use export delimited)
-export parquet "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
+*export parquet "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
 
-
+pq save "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
 save "(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace
