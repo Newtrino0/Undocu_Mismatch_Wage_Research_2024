@@ -25,8 +25,17 @@ library(readr)
 #sipp08_2 <- read_parquet(file.path(data_path, "Stata_cleaned_SIPP.parquet"))
 
 sipp08_2_wmissing <- read_csv(file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv"))
+sipp08_2_wmissing <- sipp08_2_wmissing %>%
+  mutate(
+    years_us = ifelse(years_us == 0, NA, years_us),
+    race = factor(race, levels = c("Asian", "Black", "Other", "White")
+  )
+  )
 
-sipp08_2_wmissing$years_us <- ifelse(sipp08_2_wmissing$years_us == 0, NA, sipp08_2_wmissing$years_us)
+
+#sipp08_2_wmissing$years_us <- ifelse(sipp08_2_wmissing$years_us == 0, NA, sipp08_2_wmissing$years_us)
+
+
 
 # 1. Create your vector (list) of variables
 features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed")
@@ -66,6 +75,72 @@ test_gbm <- sipp08_2_wmissing[-train_index_gbm, ]
 
 ```
 
+```{r}
+# Create the grid
+my_grid <- expand.grid(
+  shrinkage = c(0.01, 0.005),
+  interaction.depth = c(4, 6, 8)
+)
+
+# Empty vector to store results
+cv_errors <- numeric(nrow(my_grid))
+optimal_trees <- numeric(nrow(my_grid))
+
+set.seed(1)
+for(i in 1:nrow(my_grid)) {
+  
+  # Train a temporary model with the grid's current row settings
+  temp_model <- gbm(
+    undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + race + employed + years_us + yrsed, 
+    data = train_gbm,
+    distribution = "bernoulli",
+    verbose = FALSE,
+    cv.folds = 10,
+    n.trees = 5000, # Set a high ceiling, cv will find the optimum
+    shrinkage = my_grid$shrinkage[i],
+    interaction.depth = my_grid$interaction.depth[i]
+  )
+  
+  # Find the optimal trees for this specific combination
+  opt_t <- gbm.perf(temp_model, method = "cv", plot.it = FALSE)
+  
+  # Store the lowest CV error achieved and the number of trees it took
+  cv_errors[i] <- temp_model$cv.error[opt_t]
+  optimal_trees[i] <- opt_t
+  
+  cat("Finished grid row", i, "of", nrow(my_grid), "\n")
+}
+
+# Bind results and find the winner
+my_grid$min_cv_error <- cv_errors
+my_grid$optimal_trees <- optimal_trees
+best_params <- my_grid[which.min(my_grid$min_cv_error), ]
+print(best_params)
+```
+
+```{r}
+# Assuming you just ran the loop and have this object:
+# best_params <- my_grid[which.min(my_grid$min_cv_error), ]
+
+set.seed(1)
+best_model <- gbm(
+  undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + race + employed + years_us + yrsed, 
+  data = train_gbm,
+  distribution = "bernoulli", # Assuming binary classification
+  verbose = FALSE,
+  
+  # --- Injecting the optimized parameters here ---
+  n.trees = best_params$optimal_trees, 
+  shrinkage = best_params$shrinkage, 
+  interaction.depth = best_params$interaction.depth
+)
+
+# Check the final model summary
+print(best_model)
+```
+
+\
+
 ## GBM Library (Full Training Sample)
 
 ```{r}
@@ -74,7 +149,7 @@ set.seed(1)
 train_gbm$undocu_likely <- ifelse(train_gbm$undocu_likely %in% c("X1", "1", 1), 1, 0)
 test_gbm$undocu_likely <- ifelse(test_gbm$undocu_likely %in% c("X1", "1", 1), 1, 0)
 
-gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us  + yrsed, data = train_gbm, 
+gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + race + employed  + years_us  + yrsed, data = train_gbm, 
                  verbose = FALSE,
                  cv.folds = 10,
                  n.trees = 3500,
@@ -111,139 +186,312 @@ sipp08_2_college_wmissing$undocu_likely <- ifelse(sipp08_2_college_wmissing$undo
 train_index_college <- createDataPartition(sipp08_2_college_wmissing$undocu_likely, p = 0.7, list = FALSE)
 train_college <- sipp08_2_college_wmissing[train_index_college, ]
 test_college <- sipp08_2_college_wmissing[-train_index_college, ]
-
-college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us  + yrsed, data = train_college, 
-                 verbose = FALSE,
-                 cv.folds = 10,
-                 n.trees = 3500,
-                 shrinkage = 0.005, 
-                 interaction.depth = 6)
-
-
-## Model summary and optimal number of trees
-college_gbm_model
-
-optimal_trees_college <- gbm.perf(college_gbm_model, method = "cv", plot.it = FALSE)
-cat("Optimal number of trees:", optimal_trees_college, "\n")
-
-
-setwd(figures_path)
-## Feature importance
-college_gbm_feature_importance <- vip(college_gbm_model, num_features = 22, bar = FALSE)
-ggsave("college_gbm_feature_importance.png", college_gbm_feature_importance, width = 22, height = 16, units = "cm", dpi = 300)
-grid.arrange(college_gbm_feature_importance, nrow = 1)
-
-### Save model for future use ###
-#saveRDS(college_gbm_model, file = "college_gbm_model.rds")
 ```
 
-## GBM Performance
+##  XGBoost
+
+```{r}
+# Install if necessary: install.packages(c("xgboost", "Matrix"))
+library(xgboost)
+library(Matrix)
+library(dplyr)
+
+# ==============================================================================
+# 1. Data Preparation (The Bulletproof XGBoost Way)
+# ==============================================================================
+
+# 1. Extract and force labels to numeric vectors
+train_y <- as.numeric(train_gbm$undocu_likely)
+test_y <- as.numeric(test_gbm$undocu_likely)
+
+# 2. Extract features, force all to numeric, and convert straight to matrix
+train_matrix <- train_gbm %>% 
+  select(age, fem, married, cit_spouse, medicaid, nonfluent, 
+         spanish_hispanic_latino, central_latino, bpl_asia, household_size, 
+         poverty, asian, black, white, other_race, employed, years_us, yrsed) %>%
+  mutate(across(everything(), as.numeric)) %>% 
+  as.matrix()
+
+test_matrix <- test_gbm %>% 
+  select(age, fem, married, cit_spouse, medicaid, nonfluent, 
+         spanish_hispanic_latino, central_latino, bpl_asia, household_size, 
+         poverty, asian, black, white, other_race, employed, years_us, yrsed) %>%
+  mutate(across(everything(), as.numeric)) %>% 
+  as.matrix()
+
+# 3. Create XGBoost DMatrix objects
+# Because as.matrix() never drops rows, nrow(train_matrix) == length(train_y) 
+# is now guaranteed to be TRUE.
+dtrain <- xgb.DMatrix(data = train_matrix, label = train_y)
+dtest <- xgb.DMatrix(data = test_matrix, label = test_y)
+
+
+# ==============================================================================
+# 2. Define the Grid Search
+# ==============================================================================
+
+# XGBoost uses different names: eta = shrinkage, max_depth = interaction.depth
+xgb_grid <- expand.grid(
+  eta = c(0.01, 0.05, 0.1),            # Learning rate
+  max_depth = c(4, 6, 8),              # Tree complexity
+  subsample = c(0.8, 1.0),             # % of rows used per tree (prevents overfitting)
+  colsample_bytree = c(0.8, 1.0)       # % of columns used per tree (prevents overfitting)
+)
+
+# Placeholders for results
+xgb_grid$optimal_trees <- 0
+xgb_grid$max_cv_auc <- 0
+
+cat("Starting XGBoost Grid Search (", nrow(xgb_grid), " combinations)...\n")
+
+
+# ==============================================================================
+# 3. Grid Search via Cross-Validation (Updated)
+# ==============================================================================
+
+set.seed(1)
+for(i in 1:nrow(xgb_grid)) {
+  
+  params <- list(
+    objective = "binary:logistic",
+    eval_metric = "auc",
+    eta = xgb_grid$eta[i],
+    max_depth = xgb_grid$max_depth[i],
+    subsample = xgb_grid$subsample[i],
+    colsample_bytree = xgb_grid$colsample_bytree[i]
+  )
+  
+  cv_results <- xgb.cv(
+    params = params,
+    data = dtrain,
+    nrounds = 5000,                    
+    nfold = 5,                         
+    early_stopping_rounds = 50,  
+    maximize = TRUE,                   # EXPLICITLY tell XGBoost that higher AUC is better
+    verbose = 0                        
+  )
+  
+  # Extract the evaluation log
+  eval_log <- cv_results$evaluation_log
+  
+  # THE FIX: Find the maximum AUC and the exact row (iteration) it occurred on
+  xgb_grid$max_cv_auc[i] <- max(eval_log$test_auc_mean)
+  xgb_grid$optimal_trees[i] <- which.max(eval_log$test_auc_mean) 
+  
+  cat("Finished row", i, "| Optimal Trees:", xgb_grid$optimal_trees[i], 
+      "| Best CV AUC:", round(xgb_grid$max_cv_auc[i], 4), "\n")
+}
+
+
+# ==============================================================================
+# 4. Extract Winner and Train Final Model
+# ==============================================================================
+
+# Find the row with the highest AUC
+best_xgb_params <- xgb_grid[which.max(xgb_grid$max_cv_auc), ]
+
+cat("\n=== Best XGBoost Parameters ===\n")
+print(best_xgb_params)
+
+# Define the final parameter list using the winning values
+final_xgb_params <- list(
+  objective = "binary:logistic",
+  eval_metric = "auc",
+  eta = best_xgb_params$eta,
+  max_depth = best_xgb_params$max_depth,
+  subsample = best_xgb_params$subsample,
+  colsample_bytree = best_xgb_params$colsample_bytree
+)
+
+# Train the final model on 100% of the training data
+set.seed(1)
+xgb_model <- xgb.train(
+  params = final_xgb_params,
+  data = dtrain,
+  nrounds = best_xgb_params$optimal_trees, # Exact optimal stopping point
+  verbose = 0
+)
+
+
+# ==============================================================================
+# 5. Make Predictions
+# ==============================================================================
+
+# predict() in xgboost automatically returns a clean, flat vector of probabilities
+# so it won't trigger the matrix/array errors you saw in ROCR earlier.
+xgb_pred_probs <- predict(xgb_model, newdata = dtest)
+
+# You can now immediately drop this into your existing ROCR evaluation block:
+# rocr_pred_xgb <- prediction(xgb_pred_probs, test_y)
+```
+
+\
+
+## Performance
 
 ```{r}
 # ==============================================================================
-# GBM (FUll to Full) Library Performance
+# 0. XGBoost Test Data Prep (College Sample)
 # ==============================================================================
+# We need to create a DMatrix for the college test set before predicting
+test_college_matrix <- test_college %>% 
+  select(age, fem, married, cit_spouse, medicaid, nonfluent, 
+         spanish_hispanic_latino, central_latino, bpl_asia, household_size, 
+         poverty, asian, black, white, other_race, employed, years_us, yrsed) %>%
+  mutate(across(everything(), as.numeric)) %>% 
+  as.matrix()
 
-## Metrics for Figure 2 comparison (gbm library model)
-# Make predictions on test set
-gbm.pred = predict(gbm_model, newdata = test_gbm, type = "response", n.trees = optimal_trees_gbm)
-# Create prediction object for ROCR
-gbm.prediction = prediction(gbm.pred, test_gbm$undocu_likely)
-# Get raw predictions (class labels)
-gbm.predict = predict(gbm_model, newdata = test_gbm, n.trees=optimal_trees_gbm)  # Class predictions
+dtest_college <- xgb.DMatrix(data = test_college_matrix, label = as.numeric(test_college$undocu_likely))
 
-gbm.roc = performance(gbm.prediction,"tpr","fpr")   # ROC curve 
-gbm.pr = performance(gbm.prediction,"prec","rec") # Precision-Recall curve
-gbm.auc <- performance(gbm.prediction,"auc")@y.values[[1]] # AUC value
+# ==============================================================================
+# Model Comparisons: ROC, Precision-Recall, and F1 Score (3 Models)
+# ==============================================================================
+library(ROCR)
 
-gbm_auc_pr <- trapz(
-  as.vector(gbm.pr@x.values)[[1]][-1], 
-  as.vector(gbm.pr@y.values)[[1]][-1]
+# --- 1. Calculate Probabilities & ROCR Prediction Objects ---
+
+# Base Model
+pred_probs_ff <- predict(gbm_model, newdata = test_gbm, 
+                         n.trees = optimal_trees_gbm, type = "response")
+rocr_pred_ff <- prediction(pred_probs_ff, test_gbm$undocu_likely)
+
+pred_probs_fc <- predict(gbm_model, newdata = test_college, 
+                         n.trees = optimal_trees_gbm, type = "response")
+rocr_pred_fc <- prediction(pred_probs_fc, test_college$undocu_likely)
+
+# Contending Model (Best GBM)
+pred_probs_best_ff <- predict(best_model, newdata = test_gbm, 
+                              n.trees = best_params$optimal_trees, type = "response")
+rocr_pred_best_ff <- prediction(pred_probs_best_ff, test_gbm$undocu_likely)
+
+pred_probs_best_fc <- predict(best_model, newdata = test_college, 
+                              n.trees = best_params$optimal_trees, type = "response")
+rocr_pred_best_fc <- prediction(pred_probs_best_fc, test_college$undocu_likely)
+
+# XGBoost Model
+pred_probs_xgb_ff <- predict(xgb_model, newdata = dtest)
+rocr_pred_xgb_ff <- prediction(pred_probs_xgb_ff, test_gbm$undocu_likely)
+
+pred_probs_xgb_fc <- predict(xgb_model, newdata = dtest_college)
+rocr_pred_xgb_fc <- prediction(pred_probs_xgb_fc, test_college$undocu_likely)
+
+
+# --- 2. Calculate Performance Metrics ---
+
+# ROC (True Positive Rate vs False Positive Rate)
+roc_ff <- performance(rocr_pred_ff, "tpr", "fpr")
+roc_fc <- performance(rocr_pred_fc, "tpr", "fpr")
+roc_best_ff <- performance(rocr_pred_best_ff, "tpr", "fpr")
+roc_best_fc <- performance(rocr_pred_best_fc, "tpr", "fpr")
+roc_xgb_ff <- performance(rocr_pred_xgb_ff, "tpr", "fpr")
+roc_xgb_fc <- performance(rocr_pred_xgb_fc, "tpr", "fpr")
+
+# Precision-Recall
+pr_ff <- performance(rocr_pred_ff, "prec", "rec")
+pr_fc <- performance(rocr_pred_fc, "prec", "rec")
+pr_best_ff <- performance(rocr_pred_best_ff, "prec", "rec")
+pr_best_fc <- performance(rocr_pred_best_fc, "prec", "rec")
+pr_xgb_ff <- performance(rocr_pred_xgb_ff, "prec", "rec")
+pr_xgb_fc <- performance(rocr_pred_xgb_fc, "prec", "rec")
+
+# F1 Score (F-measure across all classification cutoffs)
+f1_ff <- performance(rocr_pred_ff, "f")
+f1_fc <- performance(rocr_pred_fc, "f")
+f1_best_ff <- performance(rocr_pred_best_ff, "f")
+f1_best_fc <- performance(rocr_pred_best_fc, "f")
+f1_xgb_ff <- performance(rocr_pred_xgb_ff, "f")
+f1_xgb_fc <- performance(rocr_pred_xgb_fc, "f")
+
+
+# --- 3. Generate Average Metrics Summary Table ---
+
+calc_f1_05 <- function(pred_probs, actuals) {
+  preds <- ifelse(pred_probs > 0.5, 1, 0)
+  tp <- sum(preds == 1 & actuals == 1)
+  fp <- sum(preds == 1 & actuals == 0)
+  fn <- sum(preds == 0 & actuals == 1)
+  precision <- tp / (tp + fp)
+  recall <- tp / (tp + fn)
+  2 * (precision * recall) / (precision + recall)
+}
+
+calc_auc_pr <- function(pr_obj) {
+  x <- as.numeric(pr_obj@x.values[[1]])
+  y <- as.numeric(pr_obj@y.values[[1]])
+  valid <- !is.na(x) & !is.na(y)
+  x <- x[valid]; y <- y[valid]
+  sum(diff(x) * (y[-1] + y[-length(y)]) / 2) 
+}
+
+metrics_table <- data.frame(
+  Model_Context = c("Base GBM (Full to Full)", "Base GBM (Full to College)", 
+                    "Best GBM (Full to Full)", "Best GBM (Full to College)",
+                    "XGBoost (Full to Full)", "XGBoost (Full to College)"),
+  AUC_ROC = c(
+    performance(rocr_pred_ff, "auc")@y.values[[1]],
+    performance(rocr_pred_fc, "auc")@y.values[[1]],
+    performance(rocr_pred_best_ff, "auc")@y.values[[1]],
+    performance(rocr_pred_best_fc, "auc")@y.values[[1]],
+    performance(rocr_pred_xgb_ff, "auc")@y.values[[1]],
+    performance(rocr_pred_xgb_fc, "auc")@y.values[[1]]
+  ),
+  AUC_PR = c(
+    calc_auc_pr(pr_ff), calc_auc_pr(pr_fc),
+    calc_auc_pr(pr_best_ff), calc_auc_pr(pr_best_fc),
+    calc_auc_pr(pr_xgb_ff), calc_auc_pr(pr_xgb_fc)
+  ),
+  F1_at_0.5 = c(
+    calc_f1_05(pred_probs_ff, test_gbm$undocu_likely),
+    calc_f1_05(pred_probs_fc, test_college$undocu_likely),
+    calc_f1_05(pred_probs_best_ff, test_gbm$undocu_likely),
+    calc_f1_05(pred_probs_best_fc, test_college$undocu_likely),
+    calc_f1_05(pred_probs_xgb_ff, test_gbm$undocu_likely),
+    calc_f1_05(pred_probs_xgb_fc, test_college$undocu_likely)
+  )
 )
 
-gbm_performance <- gbm.pr
-plot(gbm.roc, main = "ROC Curve", col = "blue", lwd = 2) #PLOT EACH ON A SINGLE GRAPH FOR ROC
-abline(a = 0, b = 1, lty = 2, col = "red")
-plot(gbm.pr) # plot Precision-Recall curve
+print("=== Metric Comparison Table ===")
+metrics_table[, 2:4] <- round(metrics_table[, 2:4], 4)
+print(metrics_table)
 
 
-cat("Optimal number of trees:", optimal_trees_gbm, "\n")
-cat("AUC-ROC:", round(gbm.auc, 4), "\n")
-cat("AUC-PR:", round(gbm_auc_pr, 4), "\n")
+# --- 4. Plotting (Each Metric on its Own Plot) ---
 
-gbm_predicted_class <- ifelse(gbm.pred > 0.5, 1, 0)
-table(Predicted = gbm_predicted_class, Actual = test_gbm$undocu_likely)
-#plot(gbm_model) # Not same as plot for caret
+# Using color families to distinguish models: Base=Blues, Best=Greens, XGB=Reds
+plot_colors <- c("blue", "dodgerblue", "darkgreen", "limegreen", "darkred", "orange")
+plot_legends <- c("Base: Full-Full", "Base: Full-College", 
+                  "Best GBM: Full-Full", "Best GBM: Full-College",
+                  "XGBoost: Full-Full", "XGBoost: Full-College")
+plot_lines <- rep(1, 6) # All solid lines
 
-# ==============================================================================
-# GBM (FUll to College) Library Performance
-# ==============================================================================
+# Plot 1: ROC Curves
+plot(roc_ff, col = plot_colors[1], lwd = 2, lty = plot_lines[1], main = "ROC Curves")
+plot(roc_fc, col = plot_colors[2], lwd = 2, lty = plot_lines[2], add = TRUE)
+plot(roc_best_ff, col = plot_colors[3], lwd = 2, lty = plot_lines[3], add = TRUE)
+plot(roc_best_fc, col = plot_colors[4], lwd = 2, lty = plot_lines[4], add = TRUE)
+plot(roc_xgb_ff, col = plot_colors[5], lwd = 2, lty = plot_lines[5], add = TRUE)
+plot(roc_xgb_fc, col = plot_colors[6], lwd = 2, lty = plot_lines[6], add = TRUE)
+abline(a = 0, b = 1, lty = 2, col = "gray") 
+legend("bottomright", legend = plot_legends, col = plot_colors, lwd = 2, lty = plot_lines, cex = 0.7)
 
-## Metrics for Figure 2 comparison (gbm library model)
-# Make predictions on test set
-gbm.pred_fc = predict(gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_gbm)
-# Create prediction object for ROCR
-gbm.prediction_fc = prediction(gbm.pred_fc, test_college$undocu_likely)
-# Get raw predictions (class labels)
-gbm.predict_fc = predict(gbm_model, newdata = test_college, n.trees=optimal_trees_gbm)  # Class predictions
+# Plot 2: Precision-Recall Curves
+plot(pr_ff, col = plot_colors[1], lwd = 2, lty = plot_lines[1], main = "Precision-Recall Curves")
+plot(pr_fc, col = plot_colors[2], lwd = 2, lty = plot_lines[2], add = TRUE)
+plot(pr_best_ff, col = plot_colors[3], lwd = 2, lty = plot_lines[3], add = TRUE)
+plot(pr_best_fc, col = plot_colors[4], lwd = 2, lty = plot_lines[4], add = TRUE)
+plot(pr_xgb_ff, col = plot_colors[5], lwd = 2, lty = plot_lines[5], add = TRUE)
+plot(pr_xgb_fc, col = plot_colors[6], lwd = 2, lty = plot_lines[6], add = TRUE)
+legend("bottomleft", legend = plot_legends, col = plot_colors, lwd = 2, lty = plot_lines, cex = 0.7)
 
-gbm.roc_fc = performance(gbm.prediction_fc,"tpr","fpr")   # ROC curve 
-gbm.pr_fc = performance(gbm.prediction_fc,"prec","rec") # Precision-Recall curve
-gbm.auc_fc <- performance(gbm.prediction_fc,"auc")@y.values[[1]] # AUC value
-
-gbm_auc_pr_fc <- trapz(
-  as.vector(gbm.pr_fc@x.values)[[1]][-1], 
-  as.vector(gbm.pr_fc@y.values)[[1]][-1]
-)
-
-gbm_performance_fc <- gbm.pr_fc
-plot(gbm.roc_fc, main = "ROC Curve", col = "blue", lwd = 2) #PLOT EACH ON A SINGLE GRAPH FOR ROC
-abline(a = 0, b = 1, lty = 2, col = "red")
-plot(gbm.pr_fc) # plot Precision-Recall curve
-
-
-cat("Optimal number of trees:", optimal_trees_gbm, "\n")
-cat("AUC-ROC:", round(gbm.auc_fc, 4), "\n")
-cat("AUC-PR:", round(gbm_auc_pr_fc, 4), "\n")
-
-gbm_predicted_class_fc <- ifelse(gbm.pred_fc > 0.5, 1, 0)
-table(Predicted = gbm_predicted_class_fc, Actual = test_college$undocu_likely)
-#plot(gbm_model) # Not same as plot for caret
-
-# ==============================================================================
-# GBM (College to College) Library Performance
-# ==============================================================================
-
-## Metrics for Figure 2 comparison (gbm library model)
-# Make predictions on test set
-gbm.pred_cc = predict(college_gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_college)
-# Create prediction object for ROCR
-gbm.prediction_cc = prediction(gbm.pred_cc, test_college$undocu_likely)
-# Get raw predictions (class labels)
-gbm.predict_cc = predict(college_gbm_model, newdata = test_college, n.trees=optimal_trees_college)  # Class predictions
-
-gbm.roc_cc = performance(gbm.prediction_cc,"tpr","fpr")   # ROC curve 
-gbm.pr_cc = performance(gbm.prediction_cc,"prec","rec") # Precision-Recall curve
-gbm.auc_cc <- performance(gbm.prediction_cc,"auc")@y.values[[1]] # AUC value
-
-gbm_auc_pr_cc <- trapz(
-  as.vector(gbm.pr_cc@x.values)[[1]][-1], 
-  as.vector(gbm.pr_cc@y.values)[[1]][-1]
-)
-
-gbm_performance_cc <- gbm.pr_cc
-plot(gbm.roc_cc, main = "ROC Curve", col = "blue", lwd = 2) #PLOT EACH ON A SINGLE GRAPH FOR ROC
-abline(a = 0, b = 1, lty = 2, col = "red")
-plot(gbm.pr_cc) # plot Precision-Recall curve
-
-
-cat("Optimal number of trees:", optimal_trees_college, "\n")
-cat("AUC-ROC:", round(gbm.auc_cc, 4), "\n")
-cat("AUC-PR:", round(gbm_auc_pr_cc, 4), "\n")
-
-gbm_predicted_class_cc <- ifelse(gbm.pred_cc > 0.5, 1, 0)
-table(Predicted = gbm_predicted_class_cc, Actual = test_college$undocu_likely)
-#plot(gbm_model) # Not same as plot for caret
+# Plot 3: F1 Score vs. Cutoff Threshold
+plot(f1_ff, col = plot_colors[1], lwd = 2, lty = plot_lines[1], main = "F1 Score vs. Cutoff Threshold",
+     ylim = c(0, 1), ylab = "F1 Score", xlab = "Probability Threshold")
+plot(f1_fc, col = plot_colors[2], lwd = 2, lty = plot_lines[2], add = TRUE)
+plot(f1_best_ff, col = plot_colors[3], lwd = 2, lty = plot_lines[3], add = TRUE)
+plot(f1_best_fc, col = plot_colors[4], lwd = 2, lty = plot_lines[4], add = TRUE)
+plot(f1_xgb_ff, col = plot_colors[5], lwd = 2, lty = plot_lines[5], add = TRUE)
+plot(f1_xgb_fc, col = plot_colors[6], lwd = 2, lty = plot_lines[6], add = TRUE)
+legend("bottomleft", legend = plot_legends, col = plot_colors, lwd = 2, lty = plot_lines, cex = 0.7)
 ```
 
 ## P Quartiles and Thresholds
@@ -332,255 +580,6 @@ quartile_thresholds_college <- quantile(undocu_test_college$p, probs = c(0, 0.25
 print(quartile_thresholds_college)
 ```
 
-## Precision-Recall Curves (Full to Full, Full to College, College to College)
-
-```{r}
-setwd(figures_path)
-# ==============================================================================
-# PREPARE PRECISION-RECALL DATA FOR ALL MODELS
-# ==============================================================================
-
-# Start with Full to Full predictions as baseline
-gbm_pr_data_ff <- data.frame(
-  recall = unlist(gbm.pr@x.values), 
-  precision = unlist(gbm.pr@y.values)
-)
-
-# Interpolate other models to match boosted trees recall values
-gbm_pr_data_fc <- data.frame(
-  recall = approx(unlist(gbm.pr_fc@x.values), unlist(gbm.pr_fc@y.values), 
-                 xout = gbm_pr_data_ff$recall)$x,
-  precision = approx(unlist(gbm.pr_fc@x.values), unlist(gbm.pr_fc@y.values), 
-                    xout = gbm_pr_data_ff$recall)$y
-)
-
-# Interpolate other models to match boosted trees recall values
-gbm_pr_data_cc <- data.frame(
-  recall = approx(unlist(gbm.pr_cc@x.values), unlist(gbm.pr_cc@y.values), 
-                 xout = gbm_pr_data_ff$recall)$x,
-  precision = approx(unlist(gbm.pr_cc@x.values), unlist(gbm.pr_cc@y.values), 
-                    xout = gbm_pr_data_ff$recall)$y
-)
-
-# ==============================================================================
-# COMBINE ALL DATA
-# ==============================================================================
-
-all_pr_data <- gbm_pr_data_ff
-
-# Add precision values for other models
-all_pr_data$gbm_precision_fc <- gbm_pr_data_fc$precision
-all_pr_data$gbm_precision_cc <- gbm_pr_data_cc$precision
-
-# Calculate precision differences relative to boosted trees
-all_pr_data$fc_precision_difference <- gbm_pr_data_fc$precision - all_pr_data$precision
-all_pr_data$cc_precision_difference <- gbm_pr_data_cc$precision - all_pr_data$precision
-
-# ==============================================================================
-# PLOT 1: PRECISION-RECALL CURVES FOR ALL MODELS
-# ==============================================================================
-
-#pdf("undocumented_pr_curves.pdf", family="Times", width=9)
-png("fffccc_pr_curves.png", width = 22*100, height = 16*100, res = 300, family = "Times")
-
-op <- par(family = "serif")
-
-plot(all_pr_data$recall, all_pr_data$precision, type = "l", pch = 19,
-     col = "yellow", xlab = "Recall", ylab = "Precision",
-     lwd = 3, ylim=c(0, 1), xlim = c(0,1), lty = 1, cex.lab=1.5, cex.axis=1)
-
-lines(all_pr_data$recall, all_pr_data$gbm_precision_fc, type = "l", 
-      col = "purple", lwd = 3, lty = 2)
-lines(all_pr_data$recall, all_pr_data$gbm_precision_cc, type = "l", 
-      col = "pink", lwd = 3, lty = 3)
-
-legend(x = 0.5, y = 1, 
-       col = c("white", "yellow", "purple", "pink"),
-       lwd = c(3, 3, 3, 3, 3, 3), 
-       lty = c(0, 1, 2, 3, 4, 5),
-       legend = c("Model:", "Full to Full", "Full to College", "College to College"),
-       bty = 'n', cex = 1, ncol = 1, seg.len = 6)
-
-# Add random baseline
-total_undocu <- sum(test_gbm$undocu_likely == 1)
-random_baseline <- total_undocu / nrow(test_gbm)
-abline(h = random_baseline, lty = 2, col = "gray")
-# Add text label for random baseline
-text(0.5, random_baseline + 0.05, 
-     paste("Random baseline:", round(random_baseline, 3)), 
-     cex = 0.9, col = "gray30")
-
-dev.off()
-
-### Relative Pr-Re curves ###
-
-png("undocumented_sample_differences.png", width = 22*100, height = 16*100, res = 300, family = "Times")
-
-op <- par(family = "serif")
-
-plot(all_pr_data$recall, all_pr_data$fc_precision_difference, type = "l", pch = 19, 
-     col = "purple", xlab = "Recall Relative to Full-to-Full mapping", ylab = "Precision", 
-     lwd = 3, ylim = c(-0.3, 0.1), xlim = c(0,1), lty = 2, cex.lab=1.5, cex.axis=1)
-
-lines(all_pr_data$recall, all_pr_data$cc_precision_difference, type = "l", 
-      col = "pink", lwd = 3, lty = 3)
-
-legend(x = 0.5, y = -0.1, 
-       col = c("white", "purple", "pink"),
-       lwd = c(3, 3, 3), 
-       lty = c(0, 2, 3),
-       legend = c("Model:", "Full-to-College", "College-to-College"),
-       bty = 'n', cex = 1, ncol = 1, seg.len = 5)
-
-abline(h = 0, lty = 2, col = "gray")
-# Add text label for random baseline
-text(0.5, 0.05, 
-     paste("Full-to-Full baseline:", round(0, 3)), 
-     cex = 0.9, col = "gray30")
-dev.off()
-```
-
-## Demographic Precision-Recall Curve (GBM Library; Figure 3)
-
-```{r}
-# Total undocumented cases in test set
-total_undocu_gbm <- sum(test_gbm$undocu_likely == 1)
-
-# Group 1: Top 10 states
-recall_top_ten_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$top_ten_states == 1) / total_undocu_gbm
-precis_top_ten_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$top_ten_states == 1) / 
-                sum(test_gbm$top_ten_states == 1)
-
-# Group 2: Hispanic/Latino
-recall_hispanic_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$spanish_hispanic_latino == 1) / total_undocu_gbm
-precis_hispanic_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$spanish_hispanic_latino == 1) / 
-                   sum(test_gbm$spanish_hispanic_latino == 1)
-
-# Group 3: Central American Latino
-recall_central_gbm <- sum(test_gbm$undocu_likely == 1 & 
-                           test_gbm$central_latino ==   1) / total_undocu_gbm
-precis_central_gbm <- sum(test_gbm$undocu_likely == 1 & 
-                           test_gbm$central_latino == 1) / 
-                        sum(test_gbm$central_latino == 1)
-
-# Group 4: Asian-born
-recall_asia_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$bpl_asia == 1) / total_undocu_gbm
-precis_asia_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$bpl_asia == 1) / 
-               sum(test_gbm$bpl_asia == 1)
-
-# Group 5: Non-fluent English speakers
-recall_nonfluent_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$nonfluent == 1) / total_undocu_gbm
-precis_nonfluent_gbm <- sum(test_gbm$undocu_likely == 1 & test_gbm$nonfluent == 1) / 
-                    sum(test_gbm$nonfluent == 1)
-
-
-# Set output file
-setwd(figures_path)
-png("undocumented_demographic__gbm_pr_curve.png", width = 2700, height = 2100, res = 300, family = "Times")
-# Or use: pdf("undocumented_demographic_pr_curve.pdf", family="Times", width=9)
-
-# Set up plot parameters
-op <- par(family = "serif")
-
-# Main precision-recall curve
-plot(gbm_pr_data_ff$recall, gbm_pr_data_ff$precision, type = "l", pch = 19,
-     col = "black", xlab = "Recall", ylab = "Precision",
-     lwd = 3,
-     ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
-     cex.lab = 1.5, cex.axis = 1,
-     main = "")  # Add title if desired
-
-# Add demographic group points
-points(recall_top_ten_gbm, precis_top_ten_gbm, pch = 17, col = 1, cex = 1.5)
-points(recall_hispanic_gbm, precis_hispanic_gbm, pch = 19, col = 1, cex = 1.5)
-points(recall_central_gbm, precis_central_gbm, pch = 19, col = "gray", cex = 1.5)
-points(recall_asia_gbm, precis_asia_gbm, pch = 17, col = "gray", cex = 1.5)
-points(recall_nonfluent_gbm, precis_nonfluent_gbm, pch = 15, col = "darkgray", cex = 1.5)
-
-
-# Demographic groups legend
-legend(0.25, 1, 
-       col = c("white", 1, 1, "gray", "gray", "darkgray"), 
-       pch = c(19, 17, 19, 19, 17, 15),
-       pt.cex = 1.5,
-       legend = c("Demographic Groups:", 
-                 "Top 10 states", 
-                 "Hispanic/Latino",
-                 "Central Latino", 
-                 "Asian Born",
-                 "Non-fluent English"),
-       bty = 'n', 
-       cex = 1.25, 
-       ncol = 1, 
-       bg = "white")
-
-# Add random baseline
-random_baseline_gbm <- sum(test_gbm$undocu_likely == 1) / nrow(test_gbm)
-abline(h = random_baseline_gbm, lty = 2, col = "gray50")
-
-# Add text label for random baseline
-text(0.5, random_baseline_gbm + 0.05, 
-     paste("Random Baseline:", round(random_baseline_gbm, 3)), 
-     cex = 0.9, col = "gray30")
-
-dev.off()
-
-
-
-cat("\n=== DEMOGRAPHIC GROUP PERFORMANCE ===\n")
-cat("Random Baseline Precision:", round(random_baseline_gbm, 4), "\n\n")
-
-summary_df_gbm <- data.frame(
-  Group = c("Top 10 states", "Hispanic/Latino", "Central Latino", 
-            "Asian Born", "Non-fluent English"),
-  Recall = c(recall_top_ten_gbm, recall_hispanic_gbm, recall_central_gbm, 
-            recall_asia_gbm, recall_nonfluent_gbm),
-  Precision = c(precis_top_ten_gbm, precis_hispanic_gbm, precis_central_gbm, 
-               precis_asia_gbm, precis_nonfluent_gbm)
-)
-
-print(summary_df_gbm)
-
-# Save as both PDF and PNG
-create_demographic_plot_gbm <- function(filename_base) {
-  # Function to create the plot (reusable)
-  make_plot <- function() {
-    par(family = "serif")
-    plot(gbm_pr_data_ff$recall, gbm_pr_data_ff$precision, type = "l", pch = 19,
-         col = "black", xlab = "Recall", ylab = "Precision",
-         lwd = 3, ylim = c(0, 1), xlim = c(0, 1), lty = 1, 
-         cex.lab = 1.5, cex.axis = 1)
-    
-    points(recall_top_ten, precis_top_ten, pch = 17, col = 1, cex = 1.5)
-    points(recall_hispanic, precis_hispanic, pch = 19, col = 1, cex = 1.5)
-    points(recall_central, precis_central, pch = 19, col = "gray", cex = 1.5)
-    points(recall_asia, precis_asia, pch = 17, col = "gray", cex = 1.5)
-    
-    legend(0.63, 1, col = c("white", 1), lwd = 2, lty = c(0, 1),
-           legend = c("Learning Method:", "Boosted Trees"),
-           bty = 'n', cex = 1.25, ncol = 1)
-    
-    legend(0.30, 1, col = c("white", 1, 1, "gray", "gray"), 
-           pch = c(19, 17, 19, 19, 17), pt.cex = 1.5,
-           legend = c("Groups:", "Top 10 states", "Hispanic/Latino",
-                     "Central Latino", "Asian Born"),
-           bty = 'n', cex = 1.25, ncol = 1, bg = "white")
-    
-    abline(h = random_baseline_gbm, lty = 2, col = "gray50")
-  }
-  
-  # Save as PDF
-  pdf(paste0(filename_base, ".pdf"), family = "Times", width = 9)
-  make_plot()
-  dev.off()
-  
-  # Save as PNG
-  png(paste0(filename_base, ".png"), width = 2700, height = 2100, res = 300, family = "Times")
-  make_plot()
-  dev.off()
-}
-```
-
 # Imputing ACS
 
 ```{r Loading ACS data}
@@ -588,6 +587,23 @@ library(readr)
 setwd(data_path)
 
 ACS <- read_csv("ACS Target Sample.csv")
+
+ACS <- ACS %>%
+  mutate(
+    race_temp = case_when(
+      race == 1 ~ "White",
+      race == 2 ~ "Black",
+      race ==  4 | race ==  5 | race ==   6 ~ "Asian",
+      TRUE ~ "Other"
+    )
+  ) %>%
+  select(-race) %>% 
+  rename(race = race_temp)
+
+
+
+
+
 #View(ACS)
 ```
 
@@ -698,27 +714,6 @@ table(ACS$college_undocu_q)
 # Diagnostics
 
 ```{r}
-# Get the variable importance from the trained model
-importance_matrix <- summary(gbm_model, n.trees = optimal_trees_gbm, plotit = FALSE)
-
-# Extract the names of the top 5 most important predictors
-top_5_vars <- as.character(head(importance_matrix$var, 5))
-
-# Get the variable importance from the trained model
-importance_matrix_college <- summary(college_gbm_model, n.trees = optimal_trees_college, plotit = FALSE)
-
-# Extract the names of the top 5 most important predictors
-top_15_vars <- as.character(head(importance_matrix$var, 15))
-top_15_vars_college <- as.character(head(importance_matrix_college$var, 15))
-
-cat("\n--- TOP 5 MOST IMPORTANT PREDICTORS ---\n")
-print(importance_matrix[1:15, ])
-
-cat("\n--- TOP 5 MOST IMPORTANT PREDICTORS ---\n")
-print(importance_matrix_college[1:15, ])
-```
-
-```{r}
 cat("\n--- TOP 5 PREDICTORS: CLASS & DISTRIBUTION COMPARISON ---\n")
 
 # 2. Safely compare classes and distributions without crashing
@@ -778,35 +773,4 @@ for (var in top_15_vars_college) {
 ```{r}
 hist(ACS$gbm_undocu_p, breaks = 100)  # Suggests 50 bins
 hist(ACS$college_gbm_undocu_p, breaks = 100)  # Suggests 50 bins
-```
-
-```{r}
-library(ggplot2)
-
-# Assuming 'test_gbm' is your new ACS dataset that contains the column 'p' (probabilities)
-# Replace 0.56050 and 0.53816 with the exact numbers from your quantile outputs if different
-
-ggplot(ACS, aes(x = gbm_undocu_p)) +
-  geom_density(fill = "steelblue", alpha = 0.6, color = "darkblue", bw = 0.01) +
-  
-  # Draw the NEW strict threshold
-  geom_vline(xintercept = 0.56050, color = "red", linetype = "dashed", linewidth = 1) +
-  annotate("text", x = 0.56050 + 0.02, y = 1.5, label = "New Q4 Cutoff\n(Hits Wall)", color = "red", angle = 90) +
-  
-  # Draw the OLD generous threshold
-  geom_vline(xintercept = 0.53816, color = "orange", linetype = "dotted", linewidth = 1) +
-  annotate("text", x = 0.53816 - 0.02, y = 1.5, label = "Old Q4 Cutoff\n(Clears Wall)", color = "orange", angle = 90) +
-  
-  labs(title = "Density of Predicted Probabilities (The 6,000 Observation Trap)",
-       subtitle = "Notice how dense the population is right at the 0.54 - 0.56 mark",
-       x = "Predicted Probability (p)",
-       y = "Density (Concentration of Respondents)") +
-  theme_minimal()
-```
-
-```{r}
-# Count how many people fall exactly between the old and new thresholds
-trapped_count <- sum(ACS$gbm_undocu_p >= 0.53816669 & ACS$gbm_undocu_p < 0.5605042, na.rm = TRUE)
-
-cat("Number of people trapped in the 0.02 gap:", trapped_count, "\n")
 ```

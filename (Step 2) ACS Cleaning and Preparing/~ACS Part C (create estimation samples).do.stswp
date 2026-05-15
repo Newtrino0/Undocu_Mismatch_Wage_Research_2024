@@ -201,8 +201,7 @@ replace years_us = 0 if missing(years_us)
 * Keep only the exact list of variables needed for the model
 keep central_latino bpl_asia medicaid age fem married cit_spouse ///
      nonfluent spanish_hispanic_latino household_size poverty asian ///
-     black white other_race employed ln_adj years_us years_us_missing ///
-	 yrsed bpl_foreign race
+     black white other_race employed ln_adj years_us years_us_missing yrsed bpl_foreign
 
 * --- EXPORT ---
 * Save the cleaned data to CSV
