@@ -498,86 +498,151 @@ legend("bottomleft", legend = plot_legends, col = plot_colors, lwd = 2, lty = pl
 
 ```{r}
 library(xtable)
-test_gbm$p = predict(gbm_model, newdata = test_gbm, type = "response", n.trees = optimal_trees_gbm)
-test_college$p = predict(gbm_model, newdata = test_college, type = "response", n.trees = optimal_trees_gbm)
+library(dplyr)
 
+# ==============================================================================
+# 1. Generate XGBoost Predictions
+# Note: XGBoost requires the DMatrix objects (dtest, dtest_college)
+# ==============================================================================
 
-# Create quartiles based on probability magnitude
-test_gbm$p_quartiles <- cut(test_gbm$p, 
-                                   breaks = quantile(test_gbm$p, probs = c(0, 0.25, 0.5, 0.75, 1)), 
-                                   labels = c("Q1", "Q2", "Q3", "Q4"), 
-                                   include.lowest = TRUE)
-test_college$p_quartiles <- cut(test_college$p, 
-                                   breaks = quantile(test_college$p, probs = c(0, 0.25, 0.5, 0.75, 1)), 
-                                   labels = c("Q1", "Q2", "Q3", "Q4"), 
-                                   include.lowest = TRUE)
+test_gbm$p_xgb = predict(xgb_model, newdata = dtest)
+test_college$p_xgb = predict(xgb_model, newdata = dtest_college)
+
+# ==============================================================================
+# 2. Create Population Quartiles
+# ==============================================================================
+
+test_gbm$p_xgb_quartiles <- cut(
+  test_gbm$p_xgb, 
+  breaks = quantile(test_gbm$p_xgb, probs = c(0, 0.25, 0.5, 0.75, 1)), 
+  labels = c("Q1", "Q2", "Q3", "Q4"), 
+  include.lowest = TRUE
+)
+
+test_college$p_xgb_quartiles <- cut(
+  test_college$p_xgb, 
+  breaks = quantile(test_college$p_xgb, probs = c(0, 0.25, 0.5, 0.75, 1)), 
+  labels = c("Q1", "Q2", "Q3", "Q4"), 
+  include.lowest = TRUE
+)
+
 # Check the distributions
-table(test_gbm$p_quartiles)
-table(test_college$p_quartiles)
+table(test_gbm$p_xgb_quartiles)
+table(test_college$p_xgb_quartiles)
 
-# Proportion of undocu_likely in each quartiles
-quartiles_table_gbm <- test_gbm %>%
-  group_by(p_quartiles) %>%
+# ==============================================================================
+# 3. Calculate True Positive Proportions per Quartile
+# ==============================================================================
+
+quartiles_table_xgb_ff <- test_gbm %>%
+  group_by(p_xgb_quartiles) %>%
   summarise(
     count = sum(undocu_likely == 1),
     n = n(),
     actual_proportion = (count / n)
-    )
-quartiles_table_college <- test_college %>%
-  group_by(p_quartiles) %>%
+  )
+
+quartiles_table_xgb_fc <- test_college %>%
+  group_by(p_xgb_quartiles) %>%
   summarise(
     count = sum(undocu_likely == 1),
     n = n(),
     actual_proportion = (count / n)
-    )
+  )
 
-xtable(quartiles_table_gbm, digits=4)
-print(quartiles_table_gbm)
-xtable(quartiles_table_college, digits=4)
-print(quartiles_table_college)
+print("=== XGBoost: Full to Full Quartiles ===")
+print(quartiles_table_xgb_ff)
+xtable(quartiles_table_xgb_ff, digits=4)
 
+print("=== XGBoost: Full to College Quartiles ===")
+print(quartiles_table_xgb_fc)
+xtable(quartiles_table_xgb_fc, digits=4)
 
-top_75_sample_num <- test_gbm %>%
+# ==============================================================================
+# 4. Calculate 75% Recall Thresholds
+# ==============================================================================
+
+top_75_sample_xgb_ff <- test_gbm %>%
   filter(undocu_likely == 1) %>%
-  arrange(desc(p)) %>%
+  arrange(desc(p_xgb)) %>%
   mutate(
     rank = row_number(),
     cumulative_p = rank / n(),
     top_75 = cumulative_p <= 0.75
   ) %>%
-  filter(top_75==TRUE)
-threshold_75_num <- min(top_75_sample_num$p)
+  filter(top_75 == TRUE)
 
-top_75_sample_college <- test_college %>%
+threshold_75_xgb_ff <- min(top_75_sample_xgb_ff$p_xgb)
+
+top_75_sample_xgb_fc <- test_college %>%
   filter(undocu_likely == 1) %>%
-  arrange(desc(p)) %>%
+  arrange(desc(p_xgb)) %>%
   mutate(
     rank = row_number(),
     cumulative_p = rank / n(),
     top_75 = cumulative_p <= 0.75
   ) %>%
-  filter(top_75==TRUE)
-threshold_75_num_college <- min(top_75_sample_college$p)
+  filter(top_75 == TRUE)
 
+threshold_75_xgb_fc <- min(top_75_sample_xgb_fc$p_xgb)
 
-undocu_test_num <- test_gbm %>%
+# Create XGBoost high recall class predictions
+test_gbm$predicted_class_xgb <- ifelse(test_gbm$p_xgb >= threshold_75_xgb_ff, 1, 0)
+test_college$predicted_class_xgb <- ifelse(test_college$p_xgb >= threshold_75_xgb_fc, 1, 0)
+
+# ==============================================================================
+# 5. Calculate Quartiles Specifically for the Positive Class (Undocumented)
+# ==============================================================================
+
+undocu_test_xgb_ff <- test_gbm %>%
   filter(undocu_likely == 1) %>%
-  arrange(desc(p))
+  arrange(desc(p_xgb))
 
-undocu_test_college <- test_college %>%
+undocu_test_xgb_fc <- test_college %>%
   filter(undocu_likely == 1) %>%
-  arrange(desc(p))
+  arrange(desc(p_xgb))
 
-# Create GBM high recall (p>threshold), high probability (75% of actual), low probability (Q1)
-test_gbm$predicted_class <- ifelse(test_gbm$p >= threshold_75_num, 1, 0)
-test_college$predicted_class <- ifelse(test_college$p >= threshold_75_num_college, 1, 0)
+quartile_thresholds_xgb_ff <- quantile(undocu_test_xgb_ff$p_xgb, probs = c(0, 0.25, 0.5, 0.75, 1))
+print("=== XGBoost Positive-Class Thresholds (Full-Full) ===")
+print(quartile_thresholds_xgb_ff)
 
-## Thersholds on undocu likely sample (BUG????)
-quartile_thresholds_gbm <- quantile(undocu_test_num$p, probs = c(0, 0.25, 0.5, 0.75, 1))
-print(quartile_thresholds_gbm)
+quartile_thresholds_xgb_fc <- quantile(undocu_test_xgb_fc$p_xgb, probs = c(0, 0.25, 0.5, 0.75, 1))
+print("=== XGBoost Positive-Class Thresholds (Full-College) ===")
+print(quartile_thresholds_xgb_fc)
 
-quartile_thresholds_college <- quantile(undocu_test_college$p, probs = c(0, 0.25, 0.5, 0.75, 1))
-print(quartile_thresholds_college)
+# ==============================================================================
+# MISSING STEP: Calculate Thresholds for Best GBM Model
+# ==============================================================================
+library(dplyr)
+
+# 1. Generate predictions for the best_model on the test set
+test_gbm$p_best <- predict(best_model, newdata = test_gbm, 
+                           type = "response", n.trees = best_params$optimal_trees)
+
+# 2. Calculate the 75% Recall Threshold (Full to Full)
+top_75_sample_best_ff <- test_gbm %>%
+  filter(undocu_likely == 1) %>%
+  arrange(desc(p_best)) %>%
+  mutate(
+    rank = row_number(),
+    cumulative_p = rank / n(),
+    top_75 = cumulative_p <= 0.75
+  ) %>%
+  filter(top_75 == TRUE)
+
+threshold_75_best_ff <- min(top_75_sample_best_ff$p_best)
+
+# 3. Calculate Positive-Class Quartiles (Full to Full)
+undocu_test_best_ff <- test_gbm %>%
+  filter(undocu_likely == 1) %>%
+  arrange(desc(p_best))
+
+quartile_thresholds_best_ff <- quantile(undocu_test_best_ff$p_best, probs = c(0, 0.25, 0.5, 0.75, 1))
+
+# Check the values
+cat("Best GBM 75% Threshold:", threshold_75_best_ff, "\n")
+print("Best GBM Quartiles:")
+print(quartile_thresholds_best_ff)
 ```
 
 # Imputing ACS
@@ -607,108 +672,96 @@ ACS <- ACS %>%
 #View(ACS)
 ```
 
-## Pre-imputation Check (Will try to train with matrices later and see if this is an issue)
-
-```{r}
-# 1. Extract expected variables from the model
-model_vars <- gbm_model$var.names
-acs_vars <- colnames(ACS)
-
-cat("=== 1. Missing Variables Check ===\n")
-missing_in_acs <- setdiff(model_vars, acs_vars)
-if(length(missing_in_acs) > 0) {
-  cat("WARNING: The model expects the following variables, but they are missing in ACS:\n")
-  print(missing_in_acs)
-} else {
-  cat("SUCCESS: All required variables are present in ACS.\n")
-}
-
-cat("\n=== 2. Data Type & Factor Level Check ===\n")
-# GBM stores levels in gbm_model$var.levels
-# A length > 1 (or anything other than "0") means it expects a categorical variable
-
-for (i in seq_along(model_vars)) {
-  var_name <- model_vars[i]
-  expected_levels <- gbm_model$var.levels[[i]]
-  
-  if (var_name %in% acs_vars) {
-    acs_col <- ACS[[var_name]]
-    
-    # Check if the model expects a CATEGORICAL variable
-    if (length(expected_levels) > 1 || (length(expected_levels) == 1 && expected_levels[1] != "0")) {
-      
-      if (!is.character(acs_col) && !is.factor(acs_col)) {
-        cat(sprintf("TYPE MISMATCH: Model expects '%s' to be categorical (factor/character), but it is %s in ACS.\n", 
-                    var_name, class(acs_col)))
-      } else {
-        # Check for unseen factor levels in ACS that will crash GBM
-        acs_levels <- unique(as.character(acs_col))
-        acs_levels <- acs_levels[!is.na(acs_levels)] # Ignore NAs
-        
-        unseen_levels <- setdiff(acs_levels, expected_levels)
-        if (length(unseen_levels) > 0) {
-          cat(sprintf("LEVEL MISMATCH: ACS variable '%s' contains levels not seen in training: %s\n", 
-                      var_name, paste(unseen_levels, collapse = ", ")))
-        }
-      }
-      
-    } else {
-      # Check if the model expects a NUMERIC variable
-      if (!is.numeric(acs_col)) {
-        cat(sprintf("TYPE MISMATCH: Model expects '%s' to be numeric, but it is %s in ACS.\n", 
-                    var_name, class(acs_col)))
-      }
-    }
-  }
-}
-cat("=== End of Check ===\n")
-
-
-
-```
-
 ## Imputations
 
 ```{r Undocu imputation}
-## Imputation method 4: GBM
+library(dplyr)
+library(xgboost)
+
+# ==============================================================================
+# 1. Prep ACS Data for XGBoost
+# ==============================================================================
+# Create the numeric matrix using the exact same columns used in training
+acs_matrix <- ACS %>% 
+  select(age, fem, married, cit_spouse, medicaid, nonfluent, 
+         spanish_hispanic_latino, central_latino, bpl_asia, household_size, 
+         poverty, asian, black, white, other_race, employed, years_us, yrsed) %>%
+  mutate(across(everything(), as.numeric)) %>% 
+  as.matrix()
+
+# Since ACS doesn't have the labels yet, we omit the 'label' argument
+dacs <- xgb.DMatrix(data = acs_matrix)
+
+
+# ==============================================================================
+# 2. Impute Predictions and Quartiles into ACS
+# ==============================================================================
 setwd(data_path)
 
 ACS <- ACS %>%
   mutate(
-gbm_undocu_p = predict(gbm_model, newdata = ACS, n.trees = optimal_trees_gbm, type = "response"),
+    # --- 1. Base GBM Model ---
+    gbm_undocu_p = predict(gbm_model, newdata = ACS, n.trees = optimal_trees_gbm, type = "response"),
     
     gbm_undocu_q = case_when(
       gbm_undocu_p < quartile_thresholds_gbm[2] ~ "Q1",
-      gbm_undocu_p > quartile_thresholds_gbm[2] & gbm_undocu_p < quartile_thresholds_gbm[3] ~ "Q2",
-      gbm_undocu_p > quartile_thresholds_gbm[3] & gbm_undocu_p < quartile_thresholds_gbm[4] ~ "Q3",
-      gbm_undocu_p > quartile_thresholds_gbm[4] ~ "Q4",
+      gbm_undocu_p >= quartile_thresholds_gbm[2] & gbm_undocu_p < quartile_thresholds_gbm[3] ~ "Q2",
+      gbm_undocu_p >= quartile_thresholds_gbm[3] & gbm_undocu_p < quartile_thresholds_gbm[4] ~ "Q3",
+      gbm_undocu_p >= quartile_thresholds_gbm[4] ~ "Q4",
       TRUE ~ "Unknown"
-      ),
-    gbm_high_prob = ifelse(gbm_undocu_q=="Q4", 1, 0),
-    gbm_low_prob = ifelse(gbm_undocu_q=="Q1", 1, 0),
-    gbm_high_recall = ifelse(gbm_undocu_p > threshold_75_num, 1, 0),
+    ),
+    gbm_high_prob = ifelse(gbm_undocu_q == "Q4", 1, 0),
+    gbm_low_prob = ifelse(gbm_undocu_q == "Q1", 1, 0),
+    gbm_high_recall = ifelse(gbm_undocu_p >= threshold_75_num, 1, 0),
 
 
-  ### College Probability Quartiles and Thresholds ###
-college_gbm_undocu_p = predict(college_gbm_model, newdata = ACS, n.trees = optimal_trees_college, type = "response"),
+    # --- 2. Best GBM Model (From Grid Search) ---
+    best_gbm_undocu_p = predict(best_model, newdata = ACS, n.trees = best_params$optimal_trees, type = "response"),
     
-    college_undocu_q = case_when(
-      college_gbm_undocu_p < quartile_thresholds_college[2] ~ "Q1",
-      college_gbm_undocu_p > quartile_thresholds_college[2] & college_gbm_undocu_p < quartile_thresholds_college[3] ~ "Q2",
-      college_gbm_undocu_p > quartile_thresholds_college[3] & college_gbm_undocu_p < quartile_thresholds_college[4] ~ "Q3",
-      college_gbm_undocu_p > quartile_thresholds_college[4] ~ "Q4",
+    # Assuming you created 'quartile_thresholds_best_ff' and 'threshold_75_best_ff' in the previous step
+    # If not, you can swap these out for the base thresholds for comparison
+    best_gbm_undocu_q = case_when(
+      best_gbm_undocu_p < quartile_thresholds_best_ff[2] ~ "Q1",
+      best_gbm_undocu_p >= quartile_thresholds_best_ff[2] & best_gbm_undocu_p < quartile_thresholds_best_ff[3] ~ "Q2",
+      best_gbm_undocu_p >= quartile_thresholds_best_ff[3] & best_gbm_undocu_p < quartile_thresholds_best_ff[4] ~ "Q3",
+      best_gbm_undocu_p >= quartile_thresholds_best_ff[4] ~ "Q4",
       TRUE ~ "Unknown"
-      ),
-    gbm_high_prob_college = ifelse(college_undocu_q=="Q4", 1, 0),
-    gbm_low_prob_college = ifelse(college_undocu_q=="Q1", 1, 0),
-    gbm_high_recall_college = ifelse(college_undocu_q > threshold_75_num_college, 1, 0),
+    ),
+    best_gbm_high_prob = ifelse(best_gbm_undocu_q == "Q4", 1, 0),
+    best_gbm_low_prob = ifelse(best_gbm_undocu_q == "Q1", 1, 0),
+    best_gbm_high_recall = ifelse(best_gbm_undocu_p >= threshold_75_best_ff, 1, 0),
 
+
+    # --- 3. XGBoost Model ---
+    # predict() here uses the dacs matrix we created at the top
+    xgb_undocu_p = predict(xgb_model, newdata = dacs),
+    
+    xgb_undocu_q = case_when(
+      xgb_undocu_p < quartile_thresholds_xgb_ff[2] ~ "Q1",
+      xgb_undocu_p >= quartile_thresholds_xgb_ff[2] & xgb_undocu_p < quartile_thresholds_xgb_ff[3] ~ "Q2",
+      xgb_undocu_p >= quartile_thresholds_xgb_ff[3] & xgb_undocu_p < quartile_thresholds_xgb_ff[4] ~ "Q3",
+      xgb_undocu_p >= quartile_thresholds_xgb_ff[4] ~ "Q4",
+      TRUE ~ "Unknown"
+    ),
+    xgb_high_prob = ifelse(xgb_undocu_q == "Q4", 1, 0),
+    xgb_low_prob = ifelse(xgb_undocu_q == "Q1", 1, 0),
+    xgb_high_recall = ifelse(xgb_undocu_p >= threshold_75_xgb_ff, 1, 0)
   )
-#write.csv(ACS, "ACS_SIPP_gbm.csv", row.names = FALSE)
-#write.csv(ACS, "ACS_foreign_gbm.csv", row.names = FALSE)
 
-table(ACS$gbm_undocu_q)
-table(ACS$college_undocu_q)
+# ==============================================================================
+# 3. Output Checks
+# ==============================================================================
+
+# write.csv(ACS, "ACS_SIPP_imputed_all_models.csv", row.names = FALSE)
+
+print("=== Base GBM Quartile Distribution ===")
+print(table(ACS$gbm_undocu_q))
+
+print("=== Best GBM Quartile Distribution ===")
+print(table(ACS$best_gbm_undocu_q))
+
+print("=== XGBoost Quartile Distribution ===")
+print(table(ACS$xgb_undocu_q))
 ```
 
 # Diagnostics
