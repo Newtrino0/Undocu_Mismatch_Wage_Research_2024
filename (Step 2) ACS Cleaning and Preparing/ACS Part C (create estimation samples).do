@@ -143,4 +143,67 @@ save "EO_C.dta", replace
 
 // Creates ML Training sample after creating mismatch indicators
 keep if undocu==1
-export delimited using "ML Training Sample.csv", replace nolabel
+
+***********************************************
+******* ACS Target Sample Cleaning ************
+***********************************************
+
+* Assuming the dataset "ML Training Sample.csv" is already loaded into Stata
+
+* 0. Ensure variables are numeric (Replicating the 'as.numeric' checks)
+* This prevents type-mismatch errors if any columns imported as strings
+local num_vars "hisp spanish bpld empstat numprec yrsusa1 black white asian poverty married cit_spouse nonfluent bpl_asia fem bpl_usa hinscare hinscaid undocu age yrsed ln_adj"
+capture destring `num_vars', replace force
+
+* 1. PREPARING ACS DATA (The mutate block)
+gen spanish_hispanic_latino = (hisp == 1 | spanish == 1)
+
+gen central_latino =  inlist(bpld, 20000, 21010, 21020, 21030, 21040, 21050, 21060, 21070)
+
+gen employed = (empstat == 1) if !missing(empstat)
+
+gen household_size = numprec
+
+gen years_us = yrsusa1
+
+gen other_race = (black != 1 & white != 1 & asian != 1) if !missing(black, white, asian)
+
+* Overwrite poverty to be a 0/1 dummy (safe against Stata treating missing as infinity)
+replace poverty = (poverty < 100) if !missing(poverty)
+
+* 1. Set true N/A values to system missing (.)
+* This specifically targets native-born individuals where 0 actually meant "Not in Universe"
+replace years_us = . if years_us == 0
+
+* 2. Create the indicator flag for the ML model
+* This will flag both native-born individuals and true non-responses
+gen years_us_missing = missing(years_us)
+
+* 3. Zero-impute the missing values
+* This ensures the ML algorithm retains the observation.
+replace years_us = 0 if missing(years_us)
+
+
+
+* --- FILTERING ---
+* Keep only undocumented sample
+*keep if undocu == 1
+
+* Replicate the !is.na() filter block
+drop if missing(years_us, years_us_missing, medicaid, age, fem, married, cit_spouse, ///
+                nonfluent, spanish_hispanic_latino, central_latino, ///
+                bpl_asia, household_size, poverty, asian, black, ///
+                white, other_race, employed, yrsed)
+
+* Note: If your GBM requires 'college', you must generate it before this step!
+
+* --- SELECT COLUMNS ---
+* Keep only the exact list of variables needed for the model
+keep central_latino bpl_asia medicaid age fem married cit_spouse ///
+     nonfluent spanish_hispanic_latino household_size poverty asian ///
+     black white other_race employed ln_adj years_us years_us_missing yrsed bpl_foreign
+
+* --- EXPORT ---
+* Save the cleaned data to CSV
+export delimited using "ACS Target Sample.csv", replace nolabel
+*export delimited using "new_ACS_SIPP.csv", replace nolabel

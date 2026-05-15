@@ -110,7 +110,6 @@ drop hispan
 gen white = race==1
 gen black = race==2
 gen asian = race==4 | race==5 | race==6
-for any white black asian: replace X=0 if hisp==1
 gen other = hisp!=1 & white!=1 & black!=1 & asian!=1
 
 label var white "White"

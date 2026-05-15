@@ -1,7 +1,6 @@
 ---
-title: "Leading ML model"
+title: "GBM_Models"
 format: html
-editor: visual
 ---
 
 ## Read data
@@ -27,14 +26,19 @@ library(readr)
 
 sipp08_2_wmissing <- read_csv(file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv"))
 
+sipp08_2_wmissing$years_us <- ifelse(sipp08_2_wmissing$years_us == 0, NA, sipp08_2_wmissing$years_us)
+
 # 1. Create your vector (list) of variables
-features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "years_us_missing", "yrsed")
+features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", "spanish_hispanic_latino", "central_latino", "bpl_asia", "household_size", "poverty", "asian", "black", "white", "other_race", "employed", "years_us", "yrsed")
 
 # 2. Use all_of() to tell drop_na to look at that list
 sipp08_2 <- sipp08_2_wmissing %>%
   drop_na(all_of(features))
 
 sipp08_2_college <- sipp08_2 %>%
+  filter(college == 1)
+
+sipp08_2_college_wmissing <- sipp08_2_wmissing %>%
   filter(college == 1)
   
 
@@ -56,9 +60,9 @@ library(gridExtra)
 set.seed(1)
 ## Data partitioning for caret library
 #levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
-train_index_gbm <- createDataPartition(sipp08_2$undocu_likely, p = 0.7, list = FALSE)
-train_gbm <- sipp08_2[train_index_gbm, ]
-test_gbm <- sipp08_2[-train_index_gbm, ]
+train_index_gbm <- createDataPartition(sipp08_2_wmissing$undocu_likely, p = 0.7, list = FALSE)
+train_gbm <- sipp08_2_wmissing[train_index_gbm, ]
+test_gbm <- sipp08_2_wmissing[-train_index_gbm, ]
 
 ```
 
@@ -70,7 +74,7 @@ set.seed(1)
 train_gbm$undocu_likely <- ifelse(train_gbm$undocu_likely %in% c("X1", "1", 1), 1, 0)
 test_gbm$undocu_likely <- ifelse(test_gbm$undocu_likely %in% c("X1", "1", 1), 1, 0)
 
-gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us + years_us_missing + yrsed, data = train_gbm, 
+gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us  + yrsed, data = train_gbm, 
                  verbose = FALSE,
                  cv.folds = 10,
                  n.trees = 3500,
@@ -100,15 +104,15 @@ summary(gbm_model)
 ```{r}
 set.seed(1)
 ## Data partitioning for gbm library
-sipp08_2_college$undocu_likely <- ifelse(sipp08_2_college$undocu_likely %in% c("X1", "1", 1), 1, 0)
+sipp08_2_college_wmissing$undocu_likely <- ifelse(sipp08_2_college_wmissing$undocu_likely %in% c("X1", "1", 1), 1, 0)
 
 
 
-train_index_college <- createDataPartition(sipp08_2_college$undocu_likely, p = 0.7, list = FALSE)
-train_college <- sipp08_2_college[train_index_college, ]
-test_college <- sipp08_2_college[-train_index_college, ]
+train_index_college <- createDataPartition(sipp08_2_college_wmissing$undocu_likely, p = 0.7, list = FALSE)
+train_college <- sipp08_2_college_wmissing[train_index_college, ]
+test_college <- sipp08_2_college_wmissing[-train_index_college, ]
 
-college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us + years_us_missing + yrsed, data = train_college, 
+college_gbm_model <- gbm(undocu_likely ~ age + fem + married + cit_spouse + medicaid + nonfluent + spanish_hispanic_latino + central_latino + bpl_asia + household_size + poverty + asian + black + white + other_race + employed  + years_us  + yrsed, data = train_college, 
                  verbose = FALSE,
                  cv.folds = 10,
                  n.trees = 3500,

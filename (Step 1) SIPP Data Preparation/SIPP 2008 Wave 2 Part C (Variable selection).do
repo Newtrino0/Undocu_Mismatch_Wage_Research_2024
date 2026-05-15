@@ -1,7 +1,14 @@
 *ssc install pq
 
 *** SET DIRECTORIES 
-global data "G:/Shared drives/Undocu Research/Data"
+*global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu"
+global drive "G:/Shared drives"
+
+
+global main "$drive/Shared drives/Undocu Research"
+
+*global data "$main/Data"
+global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
 
 
 					 ***********************************************
@@ -42,7 +49,45 @@ bysort ssuid (spouse cit): egen cond1 = max(spouse)
 bysort ssuid (spouse cit): egen cond2 = max(cit)
 
 * Spouse is citizen (misclassifies citizens as having citizen spouse when not true)
-gen cit_spouse = (cond1 & cond2)
+gen cit_spouse_old = (cond1 & cond2)
+
+
+* Correct citizen spouse indicator
+* epnspous = spouse's person number
+* 9999 = spouse not in household/person
+
+preserve
+    keep ssuid eentaid shhadid epppnum ecitizen
+    rename epppnum epnspous
+	 * epppnum is string like "0101"; convert to numeric 101
+    destring epnspous, replace
+    rename ecitizen spouse_ecitizen
+    tempfile spouse_lookup
+    save `spouse_lookup'
+restore
+
+merge m:1 ssuid eentaid shhadid epnspous using `spouse_lookup' , keep(master match)
+
+/*
+gen cit_spouse = 0
+replace cit_spouse = 1 if spouse_ecitizen == 1
+replace cit_spouse = . if epnspous != 9999 & missing(spouse_ecitizen)
+
+tab cit_spouse, missing
+count if epnspous != 9999 & missing(spouse_ecitizen)
+*/
+
+* 1. Initialize everyone as missing
+gen cit_spouse = .
+* 2. Assign 1 if they have a spouse AND the spouse is a citizen
+replace cit_spouse = 1 if epnspous != 9999 & spouse_ecitizen == 1
+* 3. Assign 0 if they have a spouse AND the spouse is explicitly NOT a citizen
+replace cit_spouse = 0 if epnspous != 9999 & spouse_ecitizen == 2
+
+* (Optional) Check your work
+tab cit_spouse epnspous, missing
+
+
 
 * tpmsum1: Earnings from job received in this month What was ...'s gross pay before deductions in this month?
 * epayhr1: Does ... have a set annual salary, was ... paid by the hour or was ... paid some other way?
@@ -139,6 +184,7 @@ replace education = "Bachelor's" if eeducate == 44
 replace education = "Master's" if eeducate == 45
 replace education = "PhD/Professional" if inlist(eeducate, 46, 47)
 
+*Note: this is nonmissing for ages 15 and up, so it will be missing for younger ages (dropped from ml model)
 gen yrsed = .
 replace yrsed = 0    if eeducate == 31
 replace yrsed = 2.5  if eeducate == 32
@@ -163,7 +209,21 @@ recode tmoveus (1=1961) (2=1966) (3=1971) (4=1976) (5=1980) ///
                (16=2001) (17=2002) (18=2004) (19=2005) (20=2006) ///
                (21=2007) (22=2009) (else=0), gen(immig_yr)
 
-gen years_us = rhcalyr - immig_yr
+* TMOVEUS == 22 is a grouped category labeled "2008-2009".
+* Coding it as 2009 creates impossible negative years_us values
+* for 2008 reference-year records: 2008 - 2009 = -1.
+* Use 2008 so this group is treated as recent arrivals with 0-1 years in the U.S.
+replace immig_yr = 2008 if tmoveus == 22
+
+			   gen years_us = rhcalyr - immig_yr
+			   
+replace years_us = . if inlist(years_us, 2008, 2009, -1)
+
+* Flag missing year-moved information before filling missing values
+gen years_us_missing = missing(years_us)
+
+* Fill missing years_us so ML does not drop these observations
+replace years_us = 0 if missing(years_us)
 
 gen married = inlist(ems, 1, 2)
 gen fem = (esex == 2)
@@ -180,7 +240,9 @@ gen white = (erace == 1)
 gen other_race = (erace == 4)
 
 gen spanish_hispanic_latino = (eorigin == 1)
-gen central_latino = (tbrstate == 570 & eorigin == 1)
+
+*removed ethinicity requirement for central/latino
+gen central_latino = (tbrstate == 570)
 gen bpl_asia = inrange(tbrstate, 565, 567)
 
 * 4. LANGUAGE 
@@ -221,25 +283,31 @@ gen bpl_foreign = (bpl_usa == 0)
 replace undocu_likely = 0 if immig_yr <= 1961
 replace undocu_likely = 0 if armed_forces == 1 | social_security == 1
 
-replace years_us = . if inlist(years_us, 2008, 2009, -1)
+
 gen age = tage
 
-gen undocu_logical = (citizen == 0 & (armed_forces == 0 | medicare == 0 | social_security == 0))
+gen undocu_logical_old = (citizen == 0 & (armed_forces == 0 | medicare == 0 | social_security == 0))
+
+*corrected filter
+gen undocu_logical = (citizen == 0 & armed_forces == 0 & medicare == 0 & social_security == 0)
+
 gen id = _n
 
 * Export the master dataset (requires Stata 18+ for parquet, otherwise use export delimited)
 *export parquet "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
 
+
 keep if undocu_logical == 1	 
+				
 				
 				
 * Keep with the ID variable included
 keep id undocu_likely age fem married cit_spouse medicaid nonfluent ///
      spanish_hispanic_latino central_latino bpl_asia household_size ///
-     poverty asian black white other_race employed years_us yrsed ///
+     poverty asian black white other_race employed years_us years_us_missing yrsed ///
 	 race college
 	 
-
+sum
 
 *pq save "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
 export delimited using "G:\Shared drives\Undocu Research\Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace nolabel

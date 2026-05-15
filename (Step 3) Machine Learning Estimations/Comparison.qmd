@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-## Quarto
+## SIPP
 
 ```{r}
 library(here)
@@ -58,5 +58,50 @@ invisible(lapply(vars, function(v) {
   print(summary(sipp08_2_old[[v]]))
   cat("New:\n")
   print(summary(sipp08_2_new[[v]]))
+}))
+```
+
+## ACS
+
+```{r}
+library(here)
+
+if (Sys.info()["sysname"] == "Windows") {
+  base_dir <- "G:/Shared drives/Undocu Research"
+} else {
+  base_dir <- "~/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu/Shared drives/Undocu Research"
+}
+
+# 2. Build the specific folder paths dynamically using file.path()
+data_path <- file.path(base_dir, "Data")
+figures_path <- file.path(base_dir, "Output", "Figures")
+
+library(arrow)
+library(readr)
+
+
+ACS_target_new <- read_csv(file.path(data_path, "incomplete_ACS_SIPP.csv"))
+ACS_target_old <- read_csv(file.path(data_path, "new_ACS_SIPP.csv"))
+```
+
+```{r}
+library(arrow)
+setwd(data_path)
+
+
+ACS_vars <- c("gbm_undocu_p", "central_latino", "bpl_asia", "medicaid", "age", "fem", 
+           "married", "cit_spouse", "nonfluent", "spanish_hispanic_latino", 
+           "household_size", "poverty", "asian", "black", "white", "other_race", 
+           "employed", "years_us", "yrsed")
+```
+
+```{r}
+invisible(lapply(ACS_vars, function(v) {
+  cat("\n========================================\n", toupper(v), "\n")
+  cat("Class -> Old:", class(ACS_target_old[[v]])[1], " | New:", class(ACS_target_new[[v]])[1], "\n")
+  cat("----------------------------------------\nOld:\n")
+  print(summary(ACS_target_old[[v]]))
+  cat("New:\n")
+  print(summary(ACS_target_new[[v]]))
 }))
 ```
