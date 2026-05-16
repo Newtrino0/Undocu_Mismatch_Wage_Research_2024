@@ -1,6 +1,13 @@
 *** SET DIRECTORIES 
-global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
-global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path here	
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu"
+*global drive "G:/Shared drives"
+*global data "G:/Shared drives/Undocu Research/Data"	
+
+global main "$drive/Shared drives/Undocu Research"
+
+global data "$main/Data"
+
+global dofiles "$main/Code"		// Set your do file path here	
 
 *create mismatch variable
 *save full dataset
@@ -10,6 +17,8 @@ global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path
 
 
 cd "$data"
+
+
 use "EO_B.dta", clear
 
 drop if degfield==9999
@@ -141,6 +150,9 @@ label var adj_hourly "Inflation-adjusted Hourly wage"
 
 save "EO_C.dta", replace
 
+
+*use if undocu == 1 using "EO_C.dta", clear
+
 // Creates ML Training sample after creating mismatch indicators
 keep if undocu==1
 
@@ -171,6 +183,7 @@ gen other_race = (black != 1 & white != 1 & asian != 1) if !missing(black, white
 * Overwrite poverty to be a 0/1 dummy (safe against Stata treating missing as infinity)
 replace poverty = (poverty < 100) if !missing(poverty)
 
+/*
 * 1. Set true N/A values to system missing (.)
 * This specifically targets native-born individuals where 0 actually meant "Not in Universe"
 replace years_us = . if years_us == 0
@@ -182,6 +195,14 @@ gen years_us_missing = missing(years_us)
 * 3. Zero-impute the missing values
 * This ensures the ML algorithm retains the observation.
 replace years_us = 0 if missing(years_us)
+*/
+
+* In the foreign-born ACS sample, YRSUSA1 == 0 means less than one year in the U.S.,
+* so keep it as a valid recent-arrival value.
+gen years_us_missing = missing(years_us)
+
+* Only fill true system missing values, not valid zeros.
+replace years_us = 0 if years_us_missing == 1
 
 
 
@@ -202,7 +223,7 @@ replace years_us = 0 if missing(years_us)
 keep central_latino bpl_asia medicaid age fem married cit_spouse ///
      nonfluent spanish_hispanic_latino household_size poverty asian ///
      black white other_race employed ln_adj years_us years_us_missing ///
-	 yrsed bpl_foreign race
+	 yrsed bpl_foreign race year serial pernum
 
 * --- EXPORT ---
 * Save the cleaned data to CSV

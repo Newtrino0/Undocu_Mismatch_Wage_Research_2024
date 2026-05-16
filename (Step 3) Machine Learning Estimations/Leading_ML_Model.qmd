@@ -56,9 +56,18 @@ library(gridExtra)
 set.seed(1)
 ## Data partitioning for caret library
 #levels(all_data$sample$undocu_likely) <- make.names(levels(all_data$sample$undocu_likely))
+# Create one master index
 train_index_gbm <- createDataPartition(sipp08_2$undocu_likely, p = 0.7, list = FALSE)
+# Master Train and Test sets
 train_gbm <- sipp08_2[train_index_gbm, ]
 test_gbm <- sipp08_2[-train_index_gbm, ]
+
+
+# The college models train ONLY on the college grads from the master training set
+train_college <- train_gbm %>% filter(college == 1)
+
+# ALL models are evaluated on the exact same holdout college grads
+test_college <- test_gbm %>% filter(college == 1)
 
 ```
 
