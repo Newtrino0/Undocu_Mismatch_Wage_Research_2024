@@ -1,12 +1,6 @@
-
-
-<h3>Keywords:</h3>
- Undocumented; Education-occupation mismatch; Legal status; Labor; Wage;
-DACA; Income inequality
-
 # ML-Causal-Undocu-Research
 
-**Contributors**: Mario Arce Acosta, Dr. Veronica Sovero (MSRIP 2024)
+**Contributors**:  Dr. Veronica Sovero (MSRIP 2024), Mario Arce Acosta
 
 ## Abstract
 This study estimates the extent of education-occupation mismatch and the associated wage
@@ -61,3 +55,7 @@ To ensure full reproducibility, the research pipeline is structured into four di
 
 **Step 4: Regression Analysis**
 * Execute the regression models on the fully prepared ACS dataset to evaluate the causal labor market and wage penalties.
+
+<h3>Keywords:</h3>
+ Undocumented; Education-occupation mismatch; Legal status; Labor; Wage;
+DACA; Income inequality
