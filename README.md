@@ -1,52 +1,61 @@
-<h1 align="center">Abstract</h1>
-This study aims to estimate the education-occupation mismatch rates and associated wage
-penalties of undocumented status for college graduates. We use data from the Survey of
-Income and Program Participation (SIPP) and machine learning methods to impute undocu-
-mented status in our American Community Survey (ACS) sample. Then, we identify whether
-a worker is vertically mismatched (employed in an occupation that doesn’t match their ed-
-ucational attainment) or horizontally mismatched (employed in an occupation that doesn’t
-match their field of study). We find that undocumented status is associated with an increase
-in education-occupation mismatch. Moreover, we find that earnings are approximately four to
-seven percentage points lower for undocumented college graduate workers. The results suggest
-that undocumented status generates additional mismatch and wage penalties for college grad-
-uates, with generally lessened effects for the DACA-eligible population and for immigrants
-living in states with inclusive policy climates
+# ML-Causal-Undocu-Research
+
+**Contributors**:  Dr. Veronica Sovero (MSRIP 2024), Mario Arce Acosta
+
+## Abstract
+This study estimates the extent of education-occupation mismatch and the associated wage
+penalties for undocumented college graduates. Using data from the American Community Sur-
+vey (ACS), we classify workers as vertically mismatched (higher educational attainment than
+is typical for the occupation) or horizontally mismatched (field of degree is not typical for the
+occupation). Because the ACS does not identify undocumented status, we train a gradient
+boosting machine (GBM) model on the Survey of Income and Program Participation (SIPP)
+and use predicted probabilities to impute status in the ACS. This approach enables new analy-
+ses of labor market outcomes for undocumented college graduates in nationally representative
+surveys. Undocumented college graduates have higher rates of both vertical and horizontal
+mismatch and face a wage penalty of about 8 percent overall, rising to over 20 percent among
+those most likely undocumented. In STEM fields, mismatch differences are small, but a siz-
+able wage penalty remains in the high-probability sample, indicating that pay disparities arise
+largely within occupations rather than from differences in job placement. Wage and mismatch
+penalties are smaller in states with inclusive immigrant policy climates, underscoring the role
+of institutional context.
+
+## Data Sources
+This research relies on two primary datasets:
+1. **Survey of Income and Program Participation (SIPP)**: Acts as the "donor" dataset for our machine learning imputation because it contains direct information on immigration status.
+2. **American Community Survey (ACS)**: Acts as the "target" dataset. We impute the undocumented status into this nationally representative dataset to estimate causal labor market penalties.
+
+### Mismatch Definitions
+* **Vertical mismatch**: Workers that hold an educational attainment that is not the most common for their occupation (e.g. college graduate as retail worker).
+* **Horizontal mismatch**: Worker that holds a degree in a field that is not one of two most common degree fields for an occupation (e.g. engineering major working as an accountant).
+* **Horizontal undermatch**: A horizontally mismatched worker whose median wage for their occupation is less than the median wage for workers that are horizontally matched with the same field of study.
+* **Horizontal overmatch**: A horizontally mismatched worker whose median wage for their occupation is more than the median wage for workers that are horizontally matched with the same field of study.
+
+### DACA Eligibility Imputation Strategy
+A worker is considered DACA-eligible if they are (i) not a citizen and (ii) they meet DACA's age and year of arrival requirements. To distinguish undocumented individuals from other noncitizens with legal status, we filter out individuals with indicators set as true for:
+* Receiving social security benefits
+* Having veteran status
+* Receiving welfare
+* Receiving supplementary security income
+
+## Process Overview and Replication Steps
+To ensure full reproducibility, the research pipeline is structured into four distinct steps:
+
+**Step 1: SIPP (Survey of Income and Program Participation) Data Preparation**
+* *Part A*: Prepare the SIPP core module using the associated DO file.
+* *Part B*: Prepare the SIPP topical module (with data on immigration status) using the associated DO file.
+* *Part C*: Merge the two module datasets and keep only the variables relevant to the study.
+
+**Step 2: ACS (American Community Survey) Cleaning and Preparing**
+* *Part A*: Clean and prepare ACS data by creating all variables except mismatch indicators.
+* *Part B*: Create a collapsed table of modal occupations and fields of study, as well as associated median wages.
+
+**Step 3: Machine Learning Estimations**
+* *Part A*: Train and evaluate machine learning models on the SIPP data. Impute undocumented status with the best-performing models.
+* *Part B*: Reintroduce machine learning imputations of undocumented status into the ACS dataset and create the mismatch indicators.
+
+**Step 4: Regression Analysis**
+* Execute the regression models on the fully prepared ACS dataset to evaluate the causal labor market and wage penalties.
 
 <h3>Keywords:</h3>
  Undocumented; Education-occupation mismatch; Legal status; Labor; Wage;
 DACA; Income inequality
-
-
-<h3>DACA Eligibility Imputation Strategy:</h3>
-
-A worker is considered DACA-eligible if they are 
-- " (i) not a citizen and
-- (ii) they meet DACA’s age and year of arrival requirements" (Kuka, Elira, Shenhav, Na’ama, and Shih, Kevin (2020). Do Human Capital Decisions Respond to
-the Returns to Education? Evidence from DACA.).
-
-Kuka, Shenhav, and Shih rightfully emphasize that this method cannot distinguish undocumented, DACA recipients from lawful permanent residents and other immigrant/nonimmigrants. Departing from the methods of Kuka et. al., we decide to implement the variables in the replication code to exclude noncitizens with any of the legal status indicators set as true. Legal status indicators are
-- receiving social secuirty benefits,
-- having veteran status,
-- receiving welfare,
-- or receiving supplmentary security income
-
-<h3>Mismatch definitions:</h3>
-
-- Vertical mismatch: Workers that hold an educational attainment that is not the most common for their occupation (e.g. college graduate as retail worker)
-- Horizontal mismatch: Worker that holds a degree in a field that is not one of two most common degree fields for an occupation (e.g. engineering major working as an accountant)
-- Horizontal undermatch: A horizontally mismatched worker, whose median wage for their occupation is less than the median wage for workers, that are horizontally matched, with the same field of study
-- Horizontal overmatch: A horizontally mismatched worker, whose median wage for their occupation is more than the median wage for workers, that are horizontally matched, with the same field of study
-
-<h3>Replication steps</h3>
-<h4> Step 1: SIPP (Survey of Income and Program Participation) Data Preparation </h4>
-- Part A: Prepare the SIPP core module using the associated DO file
-- Part B: Prepare the SIPP topical module (with data on immigration status) using the associated DO file
-- Part C: Merge the two module datasets and keep only the variables relevant to the study
-<h4> Step 2: ACS (American Community Survey) Cleaning and Preparing </h4>
-- Part A: Clean and prepare ACS data by creating all variables except mismatch indicators
-- Part B: Create collapsed table of modal occupations and fields of study, as well as associated median wages
-<h4> Step 3: Machine Learning Estmations </h4>
-- Part A: Train and evaluate machine learning models, impute undocumented status with best-performing models
-- Part B: Reintroduce machine learning imputations of undocumented status into ACS and create mismatch indicators
-<h4> Step 4: Regression Analysis </h4>
-- 
