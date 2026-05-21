@@ -1,14 +1,14 @@
 *ssc install pq
 
 *** SET DIRECTORIES 
-*global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu"
-global drive "G:/Shared drives"
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu"
+*global drive "G:/Shared drives"
 
 
 global main "$drive/Shared drives/Undocu Research"
 
-*global data "$main/Data"
-global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
+global data "$main/Data"
+*global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
 
 
 					 ***********************************************
@@ -68,24 +68,16 @@ restore
 
 merge m:1 ssuid eentaid shhadid epnspous using `spouse_lookup' , keep(master match)
 
-/*
+
 gen cit_spouse = 0
 replace cit_spouse = 1 if spouse_ecitizen == 1
 replace cit_spouse = . if epnspous != 9999 & missing(spouse_ecitizen)
 
 tab cit_spouse, missing
 count if epnspous != 9999 & missing(spouse_ecitizen)
-*/
 
-* 1. Initialize everyone as missing
-gen cit_spouse = .
-* 2. Assign 1 if they have a spouse AND the spouse is a citizen
-replace cit_spouse = 1 if epnspous != 9999 & spouse_ecitizen == 1
-* 3. Assign 0 if they have a spouse AND the spouse is explicitly NOT a citizen
-replace cit_spouse = 0 if epnspous != 9999 & spouse_ecitizen == 2
 
-* (Optional) Check your work
-tab cit_spouse epnspous, missing
+
 
 
 
@@ -310,6 +302,6 @@ keep id undocu_likely age fem married cit_spouse medicaid nonfluent ///
 sum
 
 *pq save "G:/Shared drives/Undocu Research/Data/Stata_cleaned_SIPP.parquet", replace
-export delimited using "G:\Shared drives\Undocu Research\Data\(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace nolabel
+export delimited using "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv", replace nolabel
 
 *save "(Step 1 output) Core_TM SIPP 2008 Wave 2.dta", replace

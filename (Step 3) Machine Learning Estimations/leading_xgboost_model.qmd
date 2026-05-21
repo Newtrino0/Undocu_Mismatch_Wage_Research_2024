@@ -1,6 +1,6 @@
 ---
-title: "Leading GBM Model Testing File"
-subtitle: "Train SIPP model, score ACS, validate target-like thresholds, and export Stata predictions"
+title: "Leading XGBoost Model Testing File"
+subtitle: "Train SIPP XGBoost model, score ACS, and compare target-like validation performance"
 format:
   pdf:
     toc: false
@@ -10,20 +10,28 @@ execute:
   echo: true
   warning: false
   message: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r}
 # ============================================================================
 # PURPOSE
 # ============================================================================
-# Single-file testing workflow:
-#   1. Train the leading GBM model in SIPP.
-#   2. Define quartiles using the target-like SIPP test sample.
-#   3. Score the ACS target sample.
-#   4. Export ACS_SIPP_gbm.csv for Stata.
+# This file is the leading XGBoost prediction workflow. It trains the SIPP donor
+# model, scores ACS, validates the target-like threshold choice, and exports the
+# Stata-facing prediction file.
 #
-# The donor-sample restriction is written as an explicit filter below so it is
-# easy to test alternatives without tracing helper functions.
+# Current official threshold rule:
+# - Train the XGBoost model on the SIPP donor sample.
+# - Define quartile thresholds using the target-like SIPP test sample only.
+# - Export those target-like threshold groups to ACS using the downstream names:
+#     gbm_undocu_p
+#     gbm_undocu_q
+#     gbm_high_prob
+#     gbm_low_prob
+#     gbm_high_recall
 # ============================================================================
 
 report_timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
@@ -34,7 +42,7 @@ cat("Report rendered at:", report_timestamp, "\n")
 # Packages
 library(dplyr)
 library(readr)
-library(gbm)
+library(xgboost)
 library(caret)
 library(pROC)
 library(knitr)
@@ -52,18 +60,19 @@ if (Sys.info()["sysname"] == "Windows") {
 }
 
 data_path <- file.path(base_dir, "Data")
-ml_output_path <- file.path(data_path, "ML Outputs")
-dir.create(ml_output_path, showWarnings = FALSE, recursive = TRUE)
 
 sipp_file <- file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
 acs_file  <- file.path(data_path, "ACS Target Sample.csv")
 
-# Stata-facing export
+# Official Stata-facing ACS prediction export
 acs_prediction_export <- file.path(data_path, "ACS_SIPP_gbm.csv")
 
-# Optional reproducibility objects
-leading_gbm_model_file <- file.path(ml_output_path, "leading_gbm_model.rds")
-leading_gbm_metadata_file <- file.path(ml_output_path, "leading_gbm_metadata.rds")
+# Optional saved R objects for reproducibility
+ml_output_path <- file.path(data_path, "ML Outputs")
+dir.create(ml_output_path, showWarnings = FALSE, recursive = TRUE)
+
+leading_xgb_model_file <- file.path(ml_output_path, "leading_xgb_model.rds")
+leading_xgb_metadata_file <- file.path(ml_output_path, "leading_xgb_metadata.rds")
 ```
 
 ```{r}
@@ -73,18 +82,29 @@ leading_gbm_metadata_file <- file.path(ml_output_path, "leading_gbm_metadata.rds
 
 seed <- 1
 
-gbm_n_trees <- 3500
-gbm_shrinkage <- 0.005
-gbm_interaction_depth <- 6
-gbm_cv_folds <- 10
+# XGBoost tuning grid.
+# Keep this small enough for iterative testing. Larger grids can be tested later.
+xgb_grid <- expand.grid(
+  eta = c(0.01, 0.05, 0.10),
+  max_depth = c(3, 4, 6),
+  subsample = c(0.8, 1.0),
+  colsample_bytree = c(0.8, 1.0)
+)
+
+xgb_nrounds <- 5000
+xgb_nfold <- 5
+xgb_early_stopping_rounds <- 50
 ```
 
 ```{r}
 # ============================================================================
-# MODEL FEATURES AND FORMULA
+# MODEL FEATURES
 # ============================================================================
+# This mirrors the cleaned GBM file.
+#
 # Because the donor sample below is restricted to employed respondents, employed
-# is intentionally not included as a predictor.
+# is intentionally not included as a predictor. The target-like validation sample
+# still uses employed == 1 as part of the validation definition.
 # ============================================================================
 
 features <- c(
@@ -107,26 +127,6 @@ features <- c(
   "years_us_missing",
   "yrsed"
 )
-
-gbm_formula <- undocu_likely ~
-  age +
-  fem +
-  married +
-  cit_spouse +
-  medicaid +
-  nonfluent +
-  spanish_hispanic_latino +
-  central_latino +
-  bpl_asia +
-  household_size +
-  poverty +
-  asian +
-  black +
-  white +
-  other_race +
-  years_us +
-  years_us_missing +
-  yrsed
 ```
 
 ```{r}
@@ -149,9 +149,8 @@ tibble(
 # PREPARE MODEL SAMPLES
 # ============================================================================
 # EDIT THE SIPP FILTER HERE to test alternative donor samples.
-# Current preferred donor sample: employed SIPP respondents ages 18-55.
-# The ACS target sample is already employed, college-educated, and age-restricted
-# in the Stata cleaning pipeline, so no extra substantive ACS filter is added here.
+# Current comparison donor sample: employed SIPP respondents ages 18-55.
+# This matches the preferred cleaned GBM testing file.
 # ============================================================================
 
 sipp <- sipp_raw %>%
@@ -162,12 +161,12 @@ sipp <- sipp_raw %>%
   filter(
     age >= 18,
     age <= 55,
-    employed == 1
+    employed==1
     # To test college-only donor training, add: , college == 1
     # To test age 22-55 donor training, change age >= 18 to age >= 22
   )
 
-# Drop rows that are missing the outcome, any model feature, or college.
+# Drop rows missing the outcome, any model feature, or college.
 # college is retained because it defines the target-like SIPP validation sample.
 sipp <- sipp[
   complete.cases(sipp[, c("undocu_likely", features, "college")]),
@@ -199,19 +198,19 @@ train_index <- createDataPartition(
   list = FALSE
 )
 
-train_gbm <- sipp[train_index, ]
-test_gbm <- sipp[-train_index, ]
+train_xgb <- sipp[train_index, ]
+test_xgb  <- sipp[-train_index, ]
 
 tibble(
   sample = c("Training SIPP", "Held-out SIPP test"),
-  n = c(nrow(train_gbm), nrow(test_gbm)),
+  n = c(nrow(train_xgb), nrow(test_xgb)),
   positives = c(
-    sum(train_gbm$undocu_likely == 1),
-    sum(test_gbm$undocu_likely == 1)
+    sum(train_xgb$undocu_likely == 1),
+    sum(test_xgb$undocu_likely == 1)
   ),
   positive_share = c(
-    mean(train_gbm$undocu_likely == 1),
-    mean(test_gbm$undocu_likely == 1)
+    mean(train_xgb$undocu_likely == 1),
+    mean(test_xgb$undocu_likely == 1)
   )
 ) %>%
   kable(digits = 4)
@@ -219,39 +218,134 @@ tibble(
 
 ```{r}
 # ============================================================================
-# TRAIN THE LEADING GBM MODEL
+# CREATE XGBOOST MATRICES
 # ============================================================================
+# XGBoost requires numeric matrices. The variables in features are already coded
+# numerically, but mutate(across(..., as.numeric)) makes that explicit.
+# ============================================================================
+
+train_matrix <- train_xgb %>%
+  select(all_of(features)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  as.matrix()
+
+test_matrix <- test_xgb %>%
+  select(all_of(features)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  as.matrix()
+
+acs_matrix <- acs %>%
+  select(all_of(features)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  as.matrix()
+
+train_y <- as.numeric(train_xgb$undocu_likely)
+test_y <- as.numeric(test_xgb$undocu_likely)
+
+dtrain <- xgb.DMatrix(data = train_matrix, label = train_y)
+dtest  <- xgb.DMatrix(data = test_matrix, label = test_y)
+dacs   <- xgb.DMatrix(data = acs_matrix)
+```
+
+```{r}
+# ============================================================================
+# TUNE XGBOOST MODEL USING CROSS-VALIDATED AUC
+# ============================================================================
+# For each grid row, xgb.cv chooses the best number of boosting rounds using
+# held-out folds from the training sample. We then choose the grid row with the
+# highest cross-validated test AUC.
+# ============================================================================
+
+xgb_grid$optimal_rounds <- NA_integer_
+xgb_grid$cv_auc <- NA_real_
 
 set.seed(seed)
 
-gbm_model <- gbm(
-  formula = gbm_formula,
-  data = train_gbm,
-  distribution = "bernoulli",
-  verbose = FALSE,
-  cv.folds = gbm_cv_folds,
-  n.trees = gbm_n_trees,
-  shrinkage = gbm_shrinkage,
-  interaction.depth = gbm_interaction_depth
+for (i in 1:nrow(xgb_grid)) {
+  params_i <- list(
+    objective = "binary:logistic",
+    eval_metric = "auc",
+    eta = xgb_grid$eta[i],
+    max_depth = xgb_grid$max_depth[i],
+    subsample = xgb_grid$subsample[i],
+    colsample_bytree = xgb_grid$colsample_bytree[i]
+  )
+
+  cv_i <- xgb.cv(
+    params = params_i,
+    data = dtrain,
+    nrounds = xgb_nrounds,
+    nfold = xgb_nfold,
+    early_stopping_rounds = xgb_early_stopping_rounds,
+    maximize = TRUE,
+    verbose = 0
+  )
+
+  eval_log_i <- cv_i$evaluation_log
+
+  xgb_grid$cv_auc[i] <- max(eval_log_i$test_auc_mean)
+  xgb_grid$optimal_rounds[i] <- eval_log_i$iter[which.max(eval_log_i$test_auc_mean)]
+}
+
+xgb_grid <- xgb_grid %>%
+  arrange(desc(cv_auc))
+
+kable(xgb_grid, digits = 4)
+```
+
+```{r}
+# ============================================================================
+# TRAIN FINAL XGBOOST MODEL USING BEST GRID ROW
+# ============================================================================
+
+best_xgb <- xgb_grid[1, ]
+
+final_params <- list(
+  objective = "binary:logistic",
+  eval_metric = "auc",
+  eta = best_xgb$eta,
+  max_depth = best_xgb$max_depth,
+  subsample = best_xgb$subsample,
+  colsample_bytree = best_xgb$colsample_bytree
 )
 
-optimal_trees_gbm <- gbm.perf(
-  gbm_model,
-  method = "cv",
-  plot.it = FALSE
+set.seed(seed)
+
+xgb_model <- xgb.train(
+  params = final_params,
+  data = dtrain,
+  nrounds = best_xgb$optimal_rounds,
+  verbose = 0
 )
 
 tibble(
-  setting = c("Maximum trees", "Optimal trees selected by CV", "Shrinkage", "Interaction depth", "CV folds"),
-  value = c(gbm_n_trees, optimal_trees_gbm, gbm_shrinkage, gbm_interaction_depth, gbm_cv_folds)
+  setting = c("eta", "max_depth", "subsample", "colsample_bytree", "optimal_rounds", "CV AUC"),
+  value = c(
+    best_xgb$eta,
+    best_xgb$max_depth,
+    best_xgb$subsample,
+    best_xgb$colsample_bytree,
+    best_xgb$optimal_rounds,
+    best_xgb$cv_auc
+  )
 ) %>%
   kable(digits = 4)
 ```
 
 ```{r}
-# Variable importance: descriptive, not causal.
-var_importance <- summary(gbm_model, plotit = FALSE)
-kable(var_importance, digits = 3)
+# ============================================================================
+# VARIABLE IMPORTANCE
+# ============================================================================
+# Gain is the most useful XGBoost importance metric for this purpose. It measures
+# the relative contribution of splits using each variable.
+# ============================================================================
+
+xgb_importance <- xgb.importance(
+  feature_names = features,
+  model = xgb_model
+)
+
+kable(xgb_importance, digits = 4)
 ```
 
 ```{r}
@@ -259,22 +353,11 @@ kable(var_importance, digits = 3)
 # PREDICT PROBABILITIES IN SIPP TEST AND ACS TARGET SAMPLES
 # ============================================================================
 
-test_gbm$gbm_undocu_p <- predict(
-  gbm_model,
-  newdata = test_gbm,
-  n.trees = optimal_trees_gbm,
-  type = "response"
-)
-
-acs$gbm_undocu_p <- predict(
-  gbm_model,
-  newdata = acs,
-  n.trees = optimal_trees_gbm,
-  type = "response"
-)
+test_xgb$gbm_undocu_p <- predict(xgb_model, newdata = dtest)
+acs$gbm_undocu_p <- predict(xgb_model, newdata = dacs)
 
 bind_rows(
-  test_gbm %>%
+  test_xgb %>%
     summarise(
       sample = "Held-out SIPP test",
       n = n(),
@@ -298,13 +381,13 @@ bind_rows(
 
 ```{r}
 # ============================================================================
-# DEFINE OFFICIAL QUARTILES USING TARGET-LIKE SIPP TEST SAMPLE
+# DEFINE COMPARISON QUARTILES USING TARGET-LIKE SIPP TEST SAMPLE
 # ============================================================================
 # Threshold reference sample: SIPP test observations that match the ACS target
 # population: college graduates, employed, ages 22-55.
 # ============================================================================
 
-sipp_targetlike_test <- test_gbm %>%
+sipp_targetlike_test <- test_xgb %>%
   filter(
     college == 1,
     employed == 1,
@@ -312,36 +395,40 @@ sipp_targetlike_test <- test_gbm %>%
     age <= 55
   )
 
-targetlike_breaks <- quantile(
+xgb_targetlike_breaks <- quantile(
   sipp_targetlike_test$gbm_undocu_p,
   probs = c(0, .25, .50, .75, 1),
   na.rm = TRUE
 )
 
-targetlike_breaks[1] <- -Inf
-targetlike_breaks[5] <- Inf
+xgb_targetlike_breaks[1] <- -Inf
+xgb_targetlike_breaks[5] <- Inf
 
 sipp_targetlike_test$gbm_undocu_q <- cut(
   sipp_targetlike_test$gbm_undocu_p,
-  breaks = targetlike_breaks,
+  breaks = xgb_targetlike_breaks,
   include.lowest = TRUE,
   labels = c("Q1", "Q2", "Q3", "Q4")
 )
 
 acs$gbm_undocu_q <- cut(
   acs$gbm_undocu_p,
-  breaks = targetlike_breaks,
+  breaks = xgb_targetlike_breaks,
   include.lowest = TRUE,
   labels = c("Q1", "Q2", "Q3", "Q4")
 )
 
 tibble(
   cutoff = c("Q1/Q2", "Q2/Q3", "Q3/Q4"),
-  probability_cutoff = c(targetlike_breaks[2], targetlike_breaks[3], targetlike_breaks[4])
+  probability_cutoff = c(
+    xgb_targetlike_breaks[2],
+    xgb_targetlike_breaks[3],
+    xgb_targetlike_breaks[4]
+  )
 ) %>%
   kable(digits = 4)
 
-targetlike_sipp_quartiles <- sipp_targetlike_test %>%
+xgb_targetlike_sipp_quartiles <- sipp_targetlike_test %>%
   group_by(gbm_undocu_q) %>%
   summarise(
     n = n(),
@@ -351,7 +438,7 @@ targetlike_sipp_quartiles <- sipp_targetlike_test %>%
     .groups = "drop"
   )
 
-acs_quartiles <- acs %>%
+xgb_acs_quartiles <- acs %>%
   group_by(gbm_undocu_q) %>%
   summarise(
     n = n(),
@@ -360,16 +447,17 @@ acs_quartiles <- acs %>%
     .groups = "drop"
   )
 
-kable(targetlike_sipp_quartiles, digits = 4)
-kable(acs_quartiles, digits = 4)
+kable(xgb_targetlike_sipp_quartiles, digits = 4)
+kable(xgb_acs_quartiles, digits = 4)
 ```
 
 ```{r}
 # ============================================================================
 # DEFINE HIGH-RECALL THRESHOLD USING TARGET-LIKE SIPP TEST SAMPLE
 # ============================================================================
-# The threshold is the lowest predicted probability among the top 75% of true
-# positives in the target-like SIPP test sample.
+# This threshold mirrors the cleaned GBM file: it is the lowest predicted
+# probability among the top 75% of true positives in the target-like SIPP test
+# sample.
 # ============================================================================
 
 top_75_targetlike <- sipp_targetlike_test %>%
@@ -382,11 +470,11 @@ top_75_targetlike <- sipp_targetlike_test %>%
   ) %>%
   filter(top_75 == TRUE)
 
-threshold_75_gbm <- min(top_75_targetlike$gbm_undocu_p)
+threshold_75_xgb <- min(top_75_targetlike$gbm_undocu_p)
 
 tibble(
   threshold = "Target-like high recall",
-  probability_cutoff = threshold_75_gbm
+  probability_cutoff = threshold_75_xgb
 ) %>%
   kable(digits = 4)
 ```
@@ -398,8 +486,8 @@ tibble(
 
 auc_full <- pROC::auc(
   pROC::roc(
-    response = test_gbm$undocu_likely,
-    predictor = test_gbm$gbm_undocu_p,
+    response = test_xgb$undocu_likely,
+    predictor = test_xgb$gbm_undocu_p,
     quiet = TRUE
   )
 )
@@ -420,13 +508,13 @@ tibble(
 
 targetlike_base_rate <- mean(sipp_targetlike_test$undocu_likely == 1)
 
-targetlike_lift <- targetlike_sipp_quartiles %>%
+xgb_targetlike_lift <- xgb_targetlike_sipp_quartiles %>%
   mutate(
     base_rate = targetlike_base_rate,
     lift = precision / base_rate
   )
 
-kable(targetlike_lift, digits = 4)
+kable(xgb_targetlike_lift, digits = 4)
 ```
 
 ```{r}
@@ -435,7 +523,7 @@ kable(targetlike_lift, digits = 4)
 # ============================================================================
 
 prob_distribution_check <- bind_rows(
-  test_gbm %>%
+  test_xgb %>%
     mutate(sample = "Full SIPP test") %>%
     select(sample, gbm_undocu_p),
   sipp_targetlike_test %>%
@@ -464,12 +552,16 @@ kable(prob_distribution_check, digits = 4)
 # ============================================================================
 # EXPORT ACS PREDICTIONS FOR STATA
 # ============================================================================
+# Export only the downstream GBM-named variables expected by the Stata pipeline.
+# Even though the model is XGBoost, the variable names stay gbm_* so that the
+# downstream Stata regression files do not need to change.
+# ============================================================================
 
 acs_gbm_export <- acs %>%
   mutate(
     gbm_high_prob = ifelse(gbm_undocu_q == "Q4", 1, 0),
     gbm_low_prob = ifelse(gbm_undocu_q == "Q1", 1, 0),
-    gbm_high_recall = ifelse(gbm_undocu_p >= threshold_75_gbm, 1, 0)
+    gbm_high_recall = ifelse(gbm_undocu_p >= threshold_75_xgb, 1, 0)
   ) %>%
   select(
     gbm_undocu_p,
@@ -482,7 +574,10 @@ acs_gbm_export <- acs %>%
     pernum
   )
 
-write_csv(acs_gbm_export, acs_prediction_export)
+write_csv(
+  acs_gbm_export,
+  acs_prediction_export
+)
 
 tibble(
   output = "Official ACS prediction export for Stata",
@@ -494,37 +589,39 @@ tibble(
 
 ```{r}
 # ============================================================================
-# SAVE MODEL AND METADATA
+# SAVE MODEL AND METADATA FOR REPRODUCIBILITY
+# ============================================================================
+# These files are optional but useful if later scripts need to load the exact
+# trained model or threshold settings.
 # ============================================================================
 
 model_metadata <- list(
-  model_name = "leading_gbm",
+  model_name = "leading_xgboost",
   threshold_definition = "target-like SIPP test sample: college graduates, employed, ages 22-55",
-  donor_sample = "SIPP age 18-55, employed == 1",
   report_timestamp = report_timestamp,
   features = features,
   seed = seed,
-  gbm_n_trees = gbm_n_trees,
-  gbm_shrinkage = gbm_shrinkage,
-  gbm_interaction_depth = gbm_interaction_depth,
-  gbm_cv_folds = gbm_cv_folds,
-  optimal_trees_gbm = optimal_trees_gbm,
-  targetlike_breaks = targetlike_breaks,
-  threshold_75_gbm = threshold_75_gbm,
-  train_n = nrow(train_gbm),
-  test_n = nrow(test_gbm),
+  xgb_grid = xgb_grid,
+  best_xgb = best_xgb,
+  xgb_nrounds = xgb_nrounds,
+  xgb_nfold = xgb_nfold,
+  xgb_early_stopping_rounds = xgb_early_stopping_rounds,
+  targetlike_breaks = xgb_targetlike_breaks,
+  threshold_75_gbm = threshold_75_xgb,
+  train_n = nrow(train_xgb),
+  test_n = nrow(test_xgb),
   targetlike_test_n = nrow(sipp_targetlike_test),
   full_sipp_auc = as.numeric(auc_full),
   targetlike_sipp_auc = as.numeric(auc_targetlike),
   created_at = Sys.time()
 )
 
-saveRDS(gbm_model, leading_gbm_model_file)
-saveRDS(model_metadata, leading_gbm_metadata_file)
+saveRDS(xgb_model, leading_xgb_model_file)
+saveRDS(model_metadata, leading_xgb_metadata_file)
 
 tibble(
-  object = c("Fitted leading GBM model", "Leading GBM metadata"),
-  path = c(leading_gbm_model_file, leading_gbm_metadata_file)
+  object = c("Fitted leading XGBoost model", "Leading XGBoost metadata"),
+  path = c(leading_xgb_model_file, leading_xgb_metadata_file)
 ) %>%
   kable()
 ```

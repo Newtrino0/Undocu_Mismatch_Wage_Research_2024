@@ -50,34 +50,14 @@ tab _merge
 * Observations outside the ML target/export receive zero flags for the ML predictions.
 * Leave gbm_undocu_p and gbm_undocu_q missing for observations outside the ML target.
 
-foreach v in gbm_high_prob_full gbm_low_prob_full gbm_high_recall_full ///
-             gbm_high_prob_targetlike gbm_low_prob_targetlike gbm_high_recall_targetlike {
+foreach v in gbm_high_prob gbm_low_prob gbm_high_recall ///
+              {
     replace `v' = 0 if missing(`v')
 }
 
 drop _merge
 
 
-rename gbm_undocu_q_full gbm_undocu_q_full
-rename gbm_high_prob gbm_high_prob_full
-rename gbm_low_prob gbm_low_prob_full
-rename gbm_high_recall gbm_high_recall_full
-
-capture drop gbm_high_prob gbm_low_prob gbm_high_recall
-
-*choose your quartile code block (quartiles based on full sipp or matched sample)
-
-*option 1
-	*gen gbm_high_prob   = gbm_high_prob_full
-    *gen gbm_low_prob    = gbm_low_prob_full
-    *gen gbm_high_recall = gbm_high_recall_full
-	
-
-*option 2
-
-	gen gbm_high_prob   = gbm_high_prob_targetlike
-    gen gbm_low_prob    = gbm_low_prob_targetlike
-    gen gbm_high_recall = gbm_high_recall_targetlike
 ********************************
 /* Filters applied before EO_C include:
 

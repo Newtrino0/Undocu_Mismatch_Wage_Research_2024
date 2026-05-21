@@ -1,6 +1,14 @@
 *** SET DIRECTORIES 
-global data "G:/Shared drives/Undocu Research/Data"			// Set your data file path here
-global dofiles "G:/Shared drives/Undocu Research/Code"		// Set your do file path here	
+global drive "/Users/verosovero/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu"
+*global drive "G:/Shared drives"
+*global data "G:/Shared drives/Undocu Research/Data"	
+
+global main "$drive/Shared drives/Undocu Research"
+
+global data "$main/Data"
+
+global dofiles "$main/Code"		// Set your do file path here	
+
 
 *** SET CODE
 cap log close
@@ -87,7 +95,6 @@ bysort serial sample year: egen hhwelf = max(anywelfare)
 bysort serial sample year: egen hhss = max(anyss)
 bysort serial sample year: egen hhssi = max(anyssi)
 bysort serial sample year: egen hhmedicare = max(medicare)
-drop vetstat incwelfr incss incsupp vet anyss anyssi anywelfare
 
 *** Legal if any of the above hold
 egen hhlegal = rowtotal(hhvet hhss hhssi hhmedicare hhwelf)
@@ -370,7 +377,14 @@ replace arrival_inelig_16_20=. if noncit==0
 gen both_inelig = elig==0 & noncit==1 & yrimmig>2007 & (ageimmig>16  | (2012.5-(birthyr+(birthqtr*.25)))>=31)
 replace both_inelig=. if noncit==0
 
-gen undocu = noncit==1 & H1B_likely==0 & hhlegal==0
+gen undocu_old = noncit==1 & H1B_likely==0 & hhlegal==0
+
+gen undocu = noncit == 1 ///
+    & H1B_likely == 0 ///
+    & vet == 0 ///
+    & medicare == 0 ///
+    & anyss == 0 ///
+    & anyssi == 0
 **********************************************************
 
 
