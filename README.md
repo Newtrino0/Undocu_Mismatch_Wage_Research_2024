@@ -21,12 +21,10 @@ graph TD
     %% Step 2: ACS Cleaning and Preparation
     subgraph Step2 ["(Step 2) ACS Cleaning and Preparation"]
         direction TB
-        2Foreign["ACS (Foreign and Noncitizen).do"]
         2A["ACS Part A (Clean).do"]
         2B["ACS Part B (US-born dataframes).do"]
         2C["ACS Part C (create estimation sample).do"]
         
-        2Foreign --> 2A
         2A --> 2B --> 2C
     end
     class Step2 step2;
