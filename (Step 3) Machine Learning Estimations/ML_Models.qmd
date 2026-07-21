@@ -1,0 +1,321 @@
+---
+title: "Leading ML Models Comparison: GBM vs XGBoost"
+subtitle: "Train SIPP models, compare hyperparameters, validate thresholds, and evaluate performance"
+format:
+  pdf:
+    toc: false
+    number-sections: false
+    colorlinks: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## PURPOSE
+
+```{r}
+# ============================================================================
+# PURPOSE
+# ============================================================================
+# Model Comparison Workflow:
+#   1. Define global parameters and feature sets.
+#   2. Train multiple models (GBM, XGBoost) on the SIPP donor sample.
+#   3. Aggregate hyperparameter settings into a single reference table.
+#   4. Score the target-like SIPP test sample for all models.
+#   5. Evaluate PR AUC and automatically export ONLY the highest-performing model.
+# ============================================================================
+
+report_timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
+cat("Report rendered at:", report_timestamp, "\n")
+
+# Packages
+library(here) 
+library(dplyr)
+library(readr)
+library(gbm)
+library(xgboost)
+library(caret)
+library(pROC)
+library(ROCR) # Required for PR AUC
+library(knitr)
+library(tidyr)
+```
+
+## 1. SETUP & PATHS
+
+```{r}
+# ============================================================================
+# 1. SETUP & PATHS
+# ============================================================================
+report_timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
+cat("Report rendered at:", report_timestamp, "\n")
+
+library(here) 
+library(dplyr)
+library(tidyr)
+library(readr)
+library(caret)
+library(ROCR)
+library(MLmetrics)
+library(knitr)
+
+# Model Libraries
+library(catboost)
+library(xgboost)
+library(lightgbm)
+library(ranger)
+library(ada)
+
+# Paths
+if (Sys.info()["sysname"] == "Windows") {
+  base_dir <- "G:/Shared drives/Undocu Research"
+} else {
+  base_dir <- "~/Library/CloudStorage/GoogleDrive-vsovero@ucr.edu/Shared drives/Undocu Research"
+}
+
+data_path <- file.path(base_dir, "Data")
+ml_output_path <- here("ML Outputs")
+dir.create(ml_output_path, showWarnings = FALSE, recursive = TRUE)
+
+acs_prediction_export <- file.path(ml_output_path, "ACS_SIPP_8Model_Predictions.csv")
+```
+
+## 2. READ AND CLEAN BASE DATA
+
+```{r}
+# ============================================================================
+# 2. READ AND CLEAN BASE DATA
+# ============================================================================
+sipp_file <- file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
+acs_file  <- file.path(data_path, "ACS Target Sample.csv")
+
+sipp_raw <- read_csv(sipp_file, show_col_types = FALSE)
+acs_raw <- read_csv(acs_file, show_col_types = FALSE)
+
+features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", 
+              "spanish_hispanic_latino", "central_latino", "bpl_asia", 
+              "household_size", "poverty", "asian", "black", "white", 
+              "other_race", "years_us", "years_us_missing", "yrsed")
+
+sipp <- sipp_raw %>%
+  mutate(undocu_likely = ifelse(undocu_likely %in% c("X1", "1", 1), 1, 0)) %>%
+  filter(age >= 18, age <= 55, employed == 1) %>%
+  drop_na(all_of(features), undocu_likely, college)
+
+acs <- acs_raw %>% drop_na(all_of(features))
+
+# Split SIPP
+set.seed(1)
+train_index <- createDataPartition(sipp$undocu_likely, p = 0.70, list = FALSE)
+sipp_train <- sipp[train_index, ]
+sipp_test <- sipp[-train_index, ]
+
+# Define Target-Like Validation Set
+sipp_targetlike <- sipp_test %>%
+  filter(college == 1, employed == 1, age >= 22, age <= 55)
+```
+
+## 3. FORMAT DATA STRUCTURES FOR DIVERSE MODELS
+
+```{r}
+# ============================================================================
+# 3. FORMAT DATA STRUCTURES FOR DIVERSE MODELS
+# ============================================================================
+# Extract features and targets
+x_train <- sipp_train %>% select(all_of(features))
+y_train_num <- as.numeric(sipp_train$undocu_likely)
+
+x_valid <- sipp_targetlike %>% select(all_of(features))
+y_valid_num <- as.numeric(sipp_targetlike$undocu_likely)
+
+x_acs <- acs %>% select(all_of(features))
+
+# A. CatBoost Pools
+pool_train <- catboost.load_pool(data = x_train, label = y_train_num)
+pool_valid <- catboost.load_pool(data = x_valid, label = y_valid_num)
+pool_acs   <- catboost.load_pool(data = x_acs)
+
+# B. Caret Dataframes (Require Factor Targets)
+caret_train <- x_train %>% mutate(undocu_likely = factor(y_train_num, levels = c(1, 0), labels = c("Class1", "Class0")))
+caret_valid <- x_valid %>% mutate(undocu_likely = factor(y_valid_num, levels = c(1, 0), labels = c("Class1", "Class0")))
+caret_acs   <- x_acs
+
+# C. One-Hot Matrices (XGBoost & LightGBM)
+dummy_model <- dummyVars(~ ., data = x_train)
+mat_train <- predict(dummy_model, newdata = x_train)
+mat_valid <- predict(dummy_model, newdata = x_valid)
+mat_acs   <- predict(dummy_model, newdata = x_acs)
+
+# XGBoost DMatrices
+dtrain_xgb <- xgb.DMatrix(data = mat_train, label = y_train_num)
+dvalid_xgb <- xgb.DMatrix(data = mat_valid, label = y_valid_num)
+dacs_xgb   <- xgb.DMatrix(data = mat_acs)
+
+# LightGBM Datasets
+lgb_train <- lgb.Dataset(data = mat_train, label = y_train_num)
+```
+
+## 4. TRAIN THE 8 MODELS
+
+```{r}
+# ============================================================================
+# 4. TRAIN THE 8 MODELS
+# ============================================================================
+# Note: When rendering this Quarto document, this chunk will take time to 
+# execute due to the comprehensive caret cross-validation grids.
+# ============================================================================
+models <- list()
+caret_ctrl <- trainControl(method="cv", number=5, summaryFunction=prSummary, classProbs=TRUE)
+
+# 1. CatBoost
+set.seed(1)
+models$CatBoost <- catboost.train(
+  learn_pool = pool_train, 
+  params = list(loss_function='Logloss', eval_metric='PRAUC', iterations=500, logging_level='Silent')
+)
+
+# 2. XGBoost
+set.seed(1)
+models$XGBoost <- xgb.train(
+  params = list(objective="binary:logistic", eval_metric="aucpr", eta=0.05, max_depth=6), 
+  data = dtrain_xgb, nrounds = 500, verbose = 0
+)
+
+# 3. LightGBM
+set.seed(1)
+models$LightGBM <- lgb.train(
+  params = list(objective="binary", metric="average_precision", learning_rate=0.05, num_leaves=31), 
+  data = lgb_train, nrounds = 500, verbose = -1
+)
+
+# 4. Random Forest (ranger)
+set.seed(1)
+models$`Random Forest` <- ranger(
+  dependent.variable.name="undocu_likely", data=caret_train, 
+  num.trees=500, probability=TRUE
+)
+
+# 5. Caret Models (GBM, GLM, KNN, AdaBoost)
+set.seed(1)
+models$GBM <- train(undocu_likely ~ ., data=caret_train, method="gbm", metric="AUC", trControl=caret_ctrl, verbose=FALSE)
+
+models$`Logistic Regression` <- train(undocu_likely ~ ., data=caret_train, method="glmnet", metric="AUC", trControl=caret_ctrl)
+
+models$KNN <- train(undocu_likely ~ ., data=caret_train, method="knn", metric="AUC", trControl=caret_ctrl, preProcess=c("center", "scale"))
+
+models$AdaBoost <- train(undocu_likely ~ ., data=caret_train, method="ada", metric="AUC", trControl=caret_ctrl)
+
+cat("Successfully trained all 8 models.\n")
+```
+
+## 5. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
+
+```{r}
+# ============================================================================
+# 5. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
+# ============================================================================
+# Helper to generate predictions based on algorithm type
+generate_preds <- function(algo, model_obj, cat_pool, xgb_mat, lgb_mat, caret_df) {
+  if (algo == "CatBoost") return(catboost.predict(model_obj, cat_pool, prediction_type = "Probability"))
+  if (algo == "XGBoost")  return(predict(model_obj, newdata = xgb_mat))
+  if (algo == "LightGBM") return(predict(model_obj, newdata = lgb_mat))
+  if (algo == "Random Forest") return(predict(model_obj, data = caret_df)$predictions[, "Class1"])
+  return(predict(model_obj, newdata = caret_df, type = "prob")[, "Class1"])
+}
+
+# Helper for PR AUC Calculation
+calc_auc_pr <- function(preds, true_y) {
+  perf_obj <- performance(prediction(preds, true_y), "prec", "rec")
+  x <- perf_obj@x.values[[1]]; y <- perf_obj@y.values[[1]]
+  idx <- order(x); x <- x[idx]; y <- y[idx]
+  sum(diff(x) * (y[-1] + y[-length(y)]) / 2, na.rm = TRUE)
+}
+
+val_results <- data.frame(Algorithm = character(), PR_AUC = numeric(), Threshold_75 = numeric())
+thresholds <- list()
+
+for (algo in names(models)) {
+  # Predict on Target-Like validation set
+  preds <- generate_preds(algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid)
+  
+  # Calculate Metrics
+  pr_auc_score <- calc_auc_pr(preds, y_valid_num)
+  
+  # Calculate top 75% high-recall threshold
+  valid_df <- tibble(p = preds, y = y_valid_num)
+  t_75 <- min((valid_df %>% filter(y == 1) %>% arrange(desc(p)) %>% slice(1:floor(0.75 * n())))$p)
+  
+  # Store results
+  val_results <- rbind(val_results, data.frame(Algorithm = algo, PR_AUC = pr_auc_score, Threshold_75 = t_75))
+  thresholds[[algo]] <- t_75
+}
+
+val_results <- val_results %>% arrange(desc(PR_AUC))
+kable(val_results, digits = 4, caption = "Target-Like SIPP Validation Metrics")
+```
+
+## 6. SCORE ACS TARGET SAMPLE AND EXPORT DATA
+
+```{r}
+# ============================================================================
+# 6. SCORE ACS TARGET SAMPLE AND EXPORT DATA
+# ============================================================================
+acs_export <- acs %>% select(year, serial, pernum)
+
+for (algo in names(models)) {
+  # Generate continuous probabilities for ACS
+  acs_probs <- generate_preds(algo, models[[algo]], pool_acs, dacs_xgb, mat_acs, caret_acs)
+  
+  # Assign to column based on algorithm name (e.g., CatBoost_p)
+  col_p <- paste0(make.names(algo), "_p")
+  col_hr <- paste0(make.names(algo), "_high_recall")
+  
+  acs_export[[col_p]] <- acs_probs
+  acs_export[[col_hr]] <- ifelse(acs_probs >= thresholds[[algo]], 1, 0)
+}
+
+write_csv(acs_export, acs_prediction_export)
+cat("Exported predictions for all 8 algorithms to:", acs_prediction_export, "\n")
+```
+
+## 7. AUTOMATED BEST MODEL SELECTION & SAVE
+
+```{r}
+# ============================================================================
+# 7. AUTOMATED BEST MODEL SELECTION & SAVE
+# ============================================================================
+# Change to a specific algorithm name (e.g., "XGBoost") to manually override 
+manual_override <- "Auto"
+
+if (manual_override %in% names(models)) {
+  best_model_name <- manual_override
+  cat("Manual Override Engaged. Saving Model:", best_model_name, "\n")
+} else {
+  best_model_name <- val_results$Algorithm[which.max(val_results$PR_AUC)]
+  cat("Automatic Selection Engaged. Best Model (by PR AUC):", best_model_name, "\n")
+}
+
+# Define dynamic paths for the singular winning model
+best_model_file <- file.path(ml_output_path, "best_ml_model.rds")
+best_metadata_file <- file.path(ml_output_path, "best_ml_metadata.rds")
+
+final_model <- models[[best_model_name]]
+final_metadata <- list(
+  algorithm = best_model_name,
+  report_timestamp = report_timestamp,
+  features = features,
+  pr_auc = val_results$PR_AUC[val_results$Algorithm == best_model_name],
+  threshold_75 = thresholds[[best_model_name]]
+)
+
+# Save only the best model and its metadata
+saveRDS(final_model, best_model_file)
+saveRDS(final_metadata, best_metadata_file)
+
+tibble(
+  saved_object = c(paste("Winner:", best_model_name), "Matching Metadata"),
+  path = c(best_model_file, best_metadata_file)
+) %>%
+  kable()
+```
