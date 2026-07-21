@@ -1,4 +1,70 @@
+# Pipeline
+
+```mermaid
+graph TD
+    %% Define Global Styles
+    classDef step1 fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px;
+    classDef step2 fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px;
+    classDef step3 fill:#e8f5e9,stroke:#43a047,stroke-width:2px;
+    classDef step4 fill:#fff3e0,stroke:#fb8c00,stroke-width:2px;
+
+    %% Step 1: SIPP Data Preparation
+    subgraph Step1 ["(Step 1) SIPP Data Preparation"]
+        direction TB
+        1A["SIPP 2008 Wave 2 Part A (Prep).do"]
+        1B["TM SIPP 2008 Wave 2 Part B (Prep).do"]
+        1C["SIPP 2008 Wave 2 Part C (Variables).do"]
+        1A --> 1B --> 1C
+    end
+    class Step1 step1;
+
+    %% Step 2: ACS Cleaning and Preparation
+    subgraph Step2 ["(Step 2) ACS Cleaning and Preparation"]
+        direction TB
+        2Foreign["ACS (Foreign and Noncitizen).do"]
+        2A["ACS Part A (Clean).do"]
+        2B["ACS Part B (US-born dataframes).do"]
+        2C["ACS Part C (create estimation sample).do"]
+        
+        2Foreign --> 2A
+        2A --> 2B --> 2C
+    end
+    class Step2 step2;
+
+    %% Step 3: Machine Learning Estimations
+    subgraph Step3 ["(Step 3) Machine Learning Estimations"]
+        direction TB
+        3Models["Leading ML Models<br/>(leading_gbm_model.qmd / leading_xgboost_model.qmd)"]
+        3Reintro["ML Part B (Reintroduce Results to pipeline).do"]
+        
+        3Models --> 3Reintro
+    end
+    class Step3 step3;
+
+    %% Step 4: Regression Analysis
+    subgraph Step4 ["(Step 4) Regression Analysis"]
+        direction TB
+        4Setup["00_everify_setup.do"]
+        4Build["01a/b/c_everify_build_stack (baseline/never/strict).do"]
+        4Wage["02_everify_wage_main.do & 03_everify_wage_robustness.do"]
+        4Secondary["04_everify_secondary_outcomes.do"]
+        4Runner["99_run_everify_pipeline.do"]
+        4Misc["Additional Regressions<br/>(EO, DACA, coop_ddd, dl_ddd, inclusive_ddd)"]
+        
+        4Setup --> 4Build --> 4Wage --> 4Secondary
+        4Secondary -.-> 4Misc
+        4Misc -.-> 4Runner
+    end
+    class Step4 step4;
+
+    %% Pipeline Connections
+    Step1 ==>|Prepared SIPP Donor Data| Step3
+    Step2 ==>|Cleaned ACS Target Data| Step3
+    Step3 ==>|ML Predicted Scores/Thresholds| Step4
+```
+
 # ML-Causal-Undocu-Research
+
 
 **Contributors**:  Dr. Veronica Sovero (MSRIP 2024), Mario Arce Acosta
 
