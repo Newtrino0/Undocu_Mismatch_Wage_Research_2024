@@ -37,7 +37,7 @@ library(gbm)
 library(xgboost)
 library(caret)
 library(pROC)
-library(ROCR) # Required for PR AUC
+library(ROCR)
 library(knitr)
 library(tidyr)
 ```
@@ -209,7 +209,74 @@ models$AdaBoost <- train(undocu_likely ~ ., data=caret_train, method="ada", metr
 cat("Successfully trained all 8 models.\n")
 ```
 
-## 5. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
+## 5. DIAGNOSTICS: COMPREHENSIVE METRICS ACROSS CONTEXTS
+
+```{r}
+# ============================================================================
+# 5. DIAGNOSTICS: COMPREHENSIVE METRICS ACROSS CONTEXTS
+# ============================================================================
+
+# Helper Functions for Calibration Metrics (Native math to avoid package issues)
+calc_brier <- function(preds, actuals) {
+  mean((preds - actuals)^2, na.rm = TRUE)
+}
+
+calc_logloss <- function(preds, actuals) {
+  # Add tiny epsilon to prevent log(0) infinity errors
+  eps <- 1e-15
+  preds <- pmax(pmin(preds, 1 - eps), eps)
+  -mean(actuals * log(preds) + (1 - actuals) * log(1 - preds), na.rm = TRUE)
+}
+
+# Helper Function for PR AUC
+calc_prauc <- function(preds, actuals) {
+  perf_obj <- performance(prediction(preds, actuals), "prec", "rec")
+  x <- perf_obj@x.values[[1]]; y <- perf_obj@y.values[[1]]
+  idx <- order(x); x <- x[idx]; y <- y[idx]
+  sum(diff(x) * (y[-1] + y[-length(y)]) / 2, na.rm = TRUE)
+}
+
+# Format full Out-of-Sample Test set
+x_test <- sipp_test %>% select(all_of(features))
+y_test_num <- as.numeric(sipp_test$undocu_likely)
+
+pool_test <- catboost.load_pool(data = x_test, label = y_test_num)
+caret_test <- x_test %>% mutate(undocu_likely = factor(y_test_num, levels = c(1, 0), labels = c("Class1", "Class0")))
+mat_test <- predict(dummy_model, newdata = x_test)
+dtest_xgb <- xgb.DMatrix(data = mat_test, label = y_test_num)
+
+robustness_tracker <- data.frame()
+
+for (algo in names(models)) {
+  
+  # Predict across the three contexts
+  p_in    <- generate_preds(algo, models[[algo]], pool_train, dtrain_xgb, mat_train, caret_train)
+  p_out   <- generate_preds(algo, models[[algo]], pool_test, dtest_xgb, mat_test, caret_test)
+  p_drift <- generate_preds(algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid)
+  
+  # Calculate Metrics (PR AUC, ROC AUC, Brier, LogLoss)
+  robustness_tracker <- rbind(robustness_tracker, data.frame(
+    Algorithm = algo,
+    
+    # Target-Like Drift Performance (The most important hurdle)
+    Drift_PRAUC  = calc_prauc(p_drift, y_valid_num),
+    Drift_ROCAUC = as.numeric(pROC::auc(pROC::roc(y_valid_num, p_drift, quiet = TRUE))),
+    Drift_Brier  = calc_brier(p_drift, y_valid_num),
+    Drift_LogLoss= calc_logloss(p_drift, y_valid_num),
+    
+    # Overfit Penalties (How much PR AUC dropped from training)
+    PRAUC_Overfit_Penalty = calc_prauc(p_in, y_train_num) - calc_prauc(p_out, y_test_num),
+    PRAUC_Shift_Penalty   = calc_prauc(p_out, y_test_num) - calc_prauc(p_drift, y_valid_num)
+  ))
+}
+
+# Sort by the best PR AUC on the Target-Like Drift sample
+robustness_tracker %>%
+  arrange(desc(Drift_PRAUC)) %>%
+  kable(digits = 4, caption = "Comprehensive Model Diagnostics (Sorted by Drift PR AUC)")
+```
+
+## 6. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
 
 ```{r}
 # ============================================================================
@@ -259,24 +326,26 @@ kable(val_results, digits = 4, caption = "Target-Like SIPP Validation Metrics")
 
 ```{r}
 # ============================================================================
-# 6. SCORE ACS TARGET SAMPLE AND EXPORT DATA
+# 6. SCORE ACS TARGET SAMPLE (WINNING MODEL ONLY)
 # ============================================================================
+
+# Isolate the highest-performing model from Step 5
+best_model_name <- val_results$Algorithm[1]
+cat("Scoring ACS dataset using the winning model:", best_model_name, "\n")
+
+# Initialize export dataframe
 acs_export <- acs %>% select(year, serial, pernum)
 
-for (algo in names(models)) {
-  # Generate continuous probabilities for ACS
-  acs_probs <- generate_preds(algo, models[[algo]], pool_acs, dacs_xgb, mat_acs, caret_acs)
-  
-  # Assign to column based on algorithm name (e.g., CatBoost_p)
-  col_p <- paste0(make.names(algo), "_p")
-  col_hr <- paste0(make.names(algo), "_high_recall")
-  
-  acs_export[[col_p]] <- acs_probs
-  acs_export[[col_hr]] <- ifelse(acs_probs >= thresholds[[algo]], 1, 0)
-}
+# Generate continuous probabilities for ACS using ONLY the best model
+acs_probs <- generate_preds(best_model_name, models[[best_model_name]], pool_acs, dacs_xgb, mat_acs, caret_acs)
 
+# Attach predictions and the binary high-recall flag
+acs_export$winning_model_p <- acs_probs
+acs_export$winning_model_high_recall <- ifelse(acs_probs >= thresholds[[best_model_name]], 1, 0)
+
+# Export the lightweight CSV
 write_csv(acs_export, acs_prediction_export)
-cat("Exported predictions for all 8 algorithms to:", acs_prediction_export, "\n")
+cat("Successfully exported winning model predictions to:", acs_prediction_export, "\n")
 ```
 
 ## 7. AUTOMATED BEST MODEL SELECTION & SAVE
@@ -318,4 +387,14 @@ tibble(
   path = c(best_model_file, best_metadata_file)
 ) %>%
   kable()
+```
+
+## R ENVIRONMENT PACKAGE AND STYLE LOCKING
+
+```{r}
+# Saves any added libraries
+renv::snapshot()
+
+# Rewrites file with specific formatting
+styler::style_file("ML_Models.qmd")
 ```
