@@ -1,6 +1,6 @@
 ---
-title: "Leading ML Models Comparison: GBM vs XGBoost"
-subtitle: "Train SIPP models, compare hyperparameters, validate thresholds, and evaluate performance"
+title: "Algorithm Performance & Transferability: 8-Model Tournament"
+subtitle: "Train models, evaluate PR AUC, score ACS, execute sanity checks, and auto-export"
 format:
   pdf:
     toc: false
@@ -20,26 +20,16 @@ execute:
 # ============================================================================
 # Model Comparison Workflow:
 #   1. Define global parameters and feature sets.
-#   2. Train multiple models (GBM, XGBoost) on the SIPP donor sample.
-#   3. Aggregate hyperparameter settings into a single reference table.
-#   4. Score the target-like SIPP test sample for all models.
-#   5. Evaluate PR AUC and automatically export ONLY the highest-performing model.
+#   2. Train 8 diverse ML models on the SIPP donor sample.
+#   3. Evaluate diagnostics across In-Sample, Out-of-Sample, and Drift contexts.
+#   4. Validate thresholds on the target-like test set.
+#   5. Score the ACS Target Sample with the winning model.
+#   6. Generate Sanity Checks (Percentiles, Lift, Feature Importance).
+#   7. Automatically export ONLY the highest-performing model and lock environment.
 # ============================================================================
 
 report_timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
 cat("Report rendered at:", report_timestamp, "\n")
-
-# Packages
-library(here) 
-library(dplyr)
-library(readr)
-library(gbm)
-library(xgboost)
-library(caret)
-library(pROC)
-library(ROCR)
-library(knitr)
-library(tidyr)
 ```
 
 ## 1. SETUP & PATHS
@@ -48,10 +38,7 @@ library(tidyr)
 # ============================================================================
 # 1. SETUP & PATHS
 # ============================================================================
-report_timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
-cat("Report rendered at:", report_timestamp, "\n")
-
-library(here) 
+library(here)
 library(dplyr)
 library(tidyr)
 library(readr)
@@ -59,6 +46,7 @@ library(caret)
 library(ROCR)
 library(MLmetrics)
 library(knitr)
+library(pROC)
 
 # Model Libraries
 library(catboost)
@@ -78,7 +66,7 @@ data_path <- file.path(base_dir, "Data")
 ml_output_path <- here("ML Outputs")
 dir.create(ml_output_path, showWarnings = FALSE, recursive = TRUE)
 
-acs_prediction_export <- file.path(ml_output_path, "ACS_SIPP_8Model_Predictions.csv")
+acs_prediction_export <- file.path(ml_output_path, "ACS_SIPP_gbm.csv")
 ```
 
 ## 2. READ AND CLEAN BASE DATA
@@ -87,21 +75,31 @@ acs_prediction_export <- file.path(ml_output_path, "ACS_SIPP_8Model_Predictions.
 # ============================================================================
 # 2. READ AND CLEAN BASE DATA
 # ============================================================================
+# DATA FILTERS APPLIED:
+# 1. Base Universe: SIPP 2008 Wave 2 and ACS Target Sample
+# 2. Age Constraint: 18 to 55 years old (Prime working age)
+# 3. Employment: Currently employed (employed == 1)
+# 4. Missingness: Dropped rows missing core demographic features
+# 5. Target Variable: undocu_likely standardized to numeric 1 (Yes) or 0 (No)
+# ============================================================================
+
 sipp_file <- file.path(data_path, "(Step 1 output) Core_TM SIPP 2008 Wave 2.csv")
-acs_file  <- file.path(data_path, "ACS Target Sample.csv")
+acs_file <- file.path(data_path, "ACS Target Sample.csv")
 
 sipp_raw <- read_csv(sipp_file, show_col_types = FALSE)
 acs_raw <- read_csv(acs_file, show_col_types = FALSE)
 
-features <- c("age", "fem", "married", "cit_spouse", "medicaid", "nonfluent", 
-              "spanish_hispanic_latino", "central_latino", "bpl_asia", 
-              "household_size", "poverty", "asian", "black", "white", 
-              "other_race", "years_us", "years_us_missing", "yrsed")
+features <- c(
+  "age", "fem", "married", "cit_spouse", "medicaid", "nonfluent",
+  "spanish_hispanic_latino", "central_latino", "bpl_asia",
+  "household_size", "poverty", "asian", "black", "white",
+  "other_race", "years_us", "years_us_missing", "yrsed"
+)
 
 sipp <- sipp_raw %>%
   mutate(undocu_likely = ifelse(undocu_likely %in% c("X1", "1", 1), 1, 0)) %>%
   filter(age >= 18, age <= 55, employed == 1) %>%
-  drop_na(all_of(features), undocu_likely, college)
+  drop_na(all_of(features), undocu_likely)
 
 acs <- acs_raw %>% drop_na(all_of(features))
 
@@ -113,7 +111,7 @@ sipp_test <- sipp[-train_index, ]
 
 # Define Target-Like Validation Set
 sipp_targetlike <- sipp_test %>%
-  filter(college == 1, employed == 1, age >= 22, age <= 55)
+  filter(employed == 1, age >= 22, age <= 55)
 ```
 
 ## 3. FORMAT DATA STRUCTURES FOR DIVERSE MODELS
@@ -134,23 +132,31 @@ x_acs <- acs %>% select(all_of(features))
 # A. CatBoost Pools
 pool_train <- catboost.load_pool(data = x_train, label = y_train_num)
 pool_valid <- catboost.load_pool(data = x_valid, label = y_valid_num)
-pool_acs   <- catboost.load_pool(data = x_acs)
+pool_acs <- catboost.load_pool(data = x_acs)
 
 # B. Caret Dataframes (Require Factor Targets)
-caret_train <- x_train %>% mutate(undocu_likely = factor(y_train_num, levels = c(1, 0), labels = c("Class1", "Class0")))
-caret_valid <- x_valid %>% mutate(undocu_likely = factor(y_valid_num, levels = c(1, 0), labels = c("Class1", "Class0")))
-caret_acs   <- x_acs
+caret_train <- x_train %>%
+  mutate(undocu_likely = factor(
+    y_train_num,
+    levels = c(1, 0), labels = c("Class1", "Class0")
+  ))
+caret_valid <- x_valid %>%
+  mutate(undocu_likely = factor(
+    y_valid_num,
+    levels = c(1, 0), labels = c("Class1", "Class0")
+  ))
+caret_acs <- x_acs
 
 # C. One-Hot Matrices (XGBoost & LightGBM)
-dummy_model <- dummyVars(~ ., data = x_train)
+dummy_model <- dummyVars(~., data = x_train)
 mat_train <- predict(dummy_model, newdata = x_train)
 mat_valid <- predict(dummy_model, newdata = x_valid)
-mat_acs   <- predict(dummy_model, newdata = x_acs)
+mat_acs <- predict(dummy_model, newdata = x_acs)
 
 # XGBoost DMatrices
 dtrain_xgb <- xgb.DMatrix(data = mat_train, label = y_train_num)
 dvalid_xgb <- xgb.DMatrix(data = mat_valid, label = y_valid_num)
-dacs_xgb   <- xgb.DMatrix(data = mat_acs)
+dacs_xgb <- xgb.DMatrix(data = mat_acs)
 
 # LightGBM Datasets
 lgb_train <- lgb.Dataset(data = mat_train, label = y_train_num)
@@ -160,53 +166,163 @@ lgb_train <- lgb.Dataset(data = mat_train, label = y_train_num)
 
 ```{r}
 # ============================================================================
-# 4. TRAIN THE 8 MODELS
-# ============================================================================
-# Note: When rendering this Quarto document, this chunk will take time to 
-# execute due to the comprehensive caret cross-validation grids.
+# 4. TRAIN THE 8 MODELS (GRID SEARCH OPTIMIZED)
 # ============================================================================
 models <- list()
-caret_ctrl <- trainControl(method="cv", number=5, summaryFunction=prSummary, classProbs=TRUE)
-
-# 1. CatBoost
-set.seed(1)
-models$CatBoost <- catboost.train(
-  learn_pool = pool_train, 
-  params = list(loss_function='Logloss', eval_metric='PRAUC', iterations=500, logging_level='Silent')
+caret_ctrl <- trainControl(
+  method = "cv", number = 5,
+  summaryFunction = prSummary, classProbs = TRUE
 )
 
-# 2. XGBoost
+# 1. CatBoost (Grid Search)
 set.seed(1)
+catboost_grid <- expand.grid(
+  learning_rate = c(0.01, 0.05), depth = c(4, 6), l2_leaf_reg = c(3, 5)
+)
+best_cb_pr <- 0
+best_cb_params <- list()
+for (i in 1:nrow(catboost_grid)) {
+  cv_res <- catboost.cv(
+    pool = pool_train,
+    params = list(
+      loss_function = "Logloss", eval_metric = "PRAUC",
+      learning_rate = catboost_grid$learning_rate[i],
+      depth = catboost_grid$depth[i],
+      l2_leaf_reg = catboost_grid$l2_leaf_reg[i],
+      iterations = 500, od_type = "Iter", od_wait = 50,
+      logging_level = "Silent"
+    ),
+    fold_count = 5
+  )
+  if (max(cv_res$test.PRAUC.mean) > best_cb_pr) {
+    best_cb_pr <- max(cv_res$test.PRAUC.mean)
+    best_cb_params <- catboost_grid[i, ]
+  }
+}
+models$CatBoost <- catboost.train(
+  learn_pool = pool_train,
+  params = list(
+    loss_function = "Logloss", eval_metric = "PRAUC",
+    learning_rate = best_cb_params$learning_rate,
+    depth = best_cb_params$depth,
+    l2_leaf_reg = best_cb_params$l2_leaf_reg,
+    iterations = 500, logging_level = "Silent"
+  )
+)
+
+# 2. XGBoost (Grid Search)
+set.seed(1)
+xgb_grid <- expand.grid(eta = c(0.01, 0.05), max_depth = c(4, 6))
+best_xgb_pr <- 0
+best_xgb_params <- list()
+for (i in 1:nrow(xgb_grid)) {
+  cv_res <- xgb.cv(
+    params = list(
+      objective = "binary:logistic", eval_metric = "aucpr",
+      eta = xgb_grid$eta[i], max_depth = xgb_grid$max_depth[i]
+    ),
+    data = dtrain_xgb, nrounds = 500, nfold = 5,
+    early_stopping_rounds = 50, maximize = TRUE, verbose = 0
+  )
+  best_iter_pr <- max(cv_res$evaluation_log$test_aucpr_mean)
+  if (best_iter_pr > best_xgb_pr) {
+    best_xgb_pr <- best_iter_pr
+    best_xgb_params <- xgb_grid[i, ]
+  }
+}
 models$XGBoost <- xgb.train(
-  params = list(objective="binary:logistic", eval_metric="aucpr", eta=0.05, max_depth=6), 
+  params = list(
+    objective = "binary:logistic", eval_metric = "aucpr",
+    eta = best_xgb_params$eta, max_depth = best_xgb_params$max_depth
+  ),
   data = dtrain_xgb, nrounds = 500, verbose = 0
 )
 
-# 3. LightGBM
+# 3. LightGBM (Grid Search)
 set.seed(1)
+lgb_grid <- expand.grid(learning_rate = c(0.01, 0.05), num_leaves = c(15, 31))
+best_lgb_pr <- 0
+best_lgb_params <- list()
+for (i in 1:nrow(lgb_grid)) {
+  cv_res <- lgb.cv(
+    params = list(
+      objective = "binary", metric = "average_precision",
+      learning_rate = lgb_grid$learning_rate[i],
+      num_leaves = lgb_grid$num_leaves[i]
+    ),
+    data = lgb_train, nrounds = 500, nfold = 5,
+    early_stopping_rounds = 50, verbose = -1
+  )
+  if (cv_res$best_score > best_lgb_pr) {
+    best_lgb_pr <- cv_res$best_score
+    best_lgb_params <- lgb_grid[i, ]
+  }
+}
 models$LightGBM <- lgb.train(
-  params = list(objective="binary", metric="average_precision", learning_rate=0.05, num_leaves=31), 
+  params = list(
+    objective = "binary", metric = "average_precision",
+    learning_rate = best_lgb_params$learning_rate,
+    num_leaves = best_lgb_params$num_leaves
+  ),
   data = lgb_train, nrounds = 500, verbose = -1
 )
 
-# 4. Random Forest (ranger)
+# 4. Random Forest (ranger with tuneGrid)
 set.seed(1)
-models$`Random Forest` <- ranger(
-  dependent.variable.name="undocu_likely", data=caret_train, 
-  num.trees=500, probability=TRUE
+models$`Random Forest` <- train(
+  undocu_likely ~ .,
+  data = caret_train, method = "ranger",
+  metric = "AUC", trControl = caret_ctrl,
+  tuneGrid = expand.grid(
+    mtry = c(2, 4, 6), splitrule = "gini", min.node.size = c(1, 5)
+  ),
+  num.trees = 500, importance = "impurity"
 )
 
-# 5. Caret Models (GBM, GLM, KNN, AdaBoost)
+# 5. Caret Models (GBM, GLM, KNN, AdaBoost) with Explicit Grids
 set.seed(1)
-models$GBM <- train(undocu_likely ~ ., data=caret_train, method="gbm", metric="AUC", trControl=caret_ctrl, verbose=FALSE)
+models$GBM <- train(
+  undocu_likely ~ .,
+  data = caret_train,
+  method = "gbm",
+  metric = "AUC",
+  trControl = caret_ctrl,
+  verbose = FALSE,
+  tuneGrid = expand.grid(
+    n.trees = c(100, 300, 500),
+    interaction.depth = c(3, 5, 7),
+    shrinkage = c(0.01, 0.05),
+    n.minobsinnode = c(10, 20)
+  )
+)
 
-models$`Logistic Regression` <- train(undocu_likely ~ ., data=caret_train, method="glmnet", metric="AUC", trControl=caret_ctrl)
+models$`Logistic Regression` <- train(
+  undocu_likely ~ .,
+  data = caret_train, method = "glmnet",
+  metric = "AUC", trControl = caret_ctrl,
+  tuneGrid = expand.grid(
+    alpha = seq(0, 1, 0.5), lambda = 10^seq(-3, -1, length = 5)
+  )
+)
 
-models$KNN <- train(undocu_likely ~ ., data=caret_train, method="knn", metric="AUC", trControl=caret_ctrl, preProcess=c("center", "scale"))
+models$KNN <- train(
+  undocu_likely ~ .,
+  data = caret_train, method = "knn",
+  metric = "AUC", trControl = caret_ctrl,
+  preProcess = c("center", "scale"),
+  tuneGrid = expand.grid(k = c(5, 9, 15, 21))
+)
 
-models$AdaBoost <- train(undocu_likely ~ ., data=caret_train, method="ada", metric="AUC", trControl=caret_ctrl)
+models$AdaBoost <- train(
+  undocu_likely ~ .,
+  data = caret_train, method = "ada",
+  metric = "AUC", trControl = caret_ctrl,
+  tuneGrid = expand.grid(
+    iter = c(50, 100, 150), maxdepth = c(2, 4, 6), nu = c(0.01, 0.1, 1)
+  )
+)
 
-cat("Successfully trained all 8 models.\n")
+cat("Successfully trained and grid-searched all 8 models.\\n")
 ```
 
 ## 5. DIAGNOSTICS: COMPREHENSIVE METRICS ACROSS CONTEXTS
@@ -216,105 +332,118 @@ cat("Successfully trained all 8 models.\n")
 # 5. DIAGNOSTICS: COMPREHENSIVE METRICS ACROSS CONTEXTS
 # ============================================================================
 
-# Helper Functions for Calibration Metrics (Native math to avoid package issues)
+# 1. Shared Helper Functions for Predictions and Evaluation
+generate_preds <- function(algo, model_obj, cat_pool, xgb_mat, lgb_mat, caret_df) {
+  if (algo == "CatBoost") {
+    return(catboost.predict(model_obj, cat_pool, prediction_type = "Probability"))
+  }
+  if (algo == "XGBoost") {
+    return(predict(model_obj, newdata = xgb_mat))
+  }
+  if (algo == "LightGBM") {
+    return(predict(model_obj, newdata = lgb_mat))
+  }
+  # Caret prediction method (Random Forest, GBM, GLM, KNN, AdaBoost)
+  return(predict(model_obj, newdata = caret_df, type = "prob")[, "Class1"])
+}
+
 calc_brier <- function(preds, actuals) {
   mean((preds - actuals)^2, na.rm = TRUE)
 }
 
 calc_logloss <- function(preds, actuals) {
-  # Add tiny epsilon to prevent log(0) infinity errors
   eps <- 1e-15
   preds <- pmax(pmin(preds, 1 - eps), eps)
   -mean(actuals * log(preds) + (1 - actuals) * log(1 - preds), na.rm = TRUE)
 }
 
-# Helper Function for PR AUC
 calc_prauc <- function(preds, actuals) {
   perf_obj <- performance(prediction(preds, actuals), "prec", "rec")
-  x <- perf_obj@x.values[[1]]; y <- perf_obj@y.values[[1]]
-  idx <- order(x); x <- x[idx]; y <- y[idx]
+  x <- perf_obj@x.values[[1]]
+  y <- perf_obj@y.values[[1]]
+  idx <- order(x)
+  x <- x[idx]
+  y <- y[idx]
   sum(diff(x) * (y[-1] + y[-length(y)]) / 2, na.rm = TRUE)
 }
 
-# Format full Out-of-Sample Test set
+# 2. Format full Out-of-Sample Test set
 x_test <- sipp_test %>% select(all_of(features))
 y_test_num <- as.numeric(sipp_test$undocu_likely)
 
 pool_test <- catboost.load_pool(data = x_test, label = y_test_num)
-caret_test <- x_test %>% mutate(undocu_likely = factor(y_test_num, levels = c(1, 0), labels = c("Class1", "Class0")))
+caret_test <- x_test %>%
+  mutate(undocu_likely = factor(
+    y_test_num,
+    levels = c(1, 0), labels = c("Class1", "Class0")
+  ))
 mat_test <- predict(dummy_model, newdata = x_test)
 dtest_xgb <- xgb.DMatrix(data = mat_test, label = y_test_num)
 
 robustness_tracker <- data.frame()
 
+# 3. Generate Diagnostics
 for (algo in names(models)) {
-  
-  # Predict across the three contexts
-  p_in    <- generate_preds(algo, models[[algo]], pool_train, dtrain_xgb, mat_train, caret_train)
-  p_out   <- generate_preds(algo, models[[algo]], pool_test, dtest_xgb, mat_test, caret_test)
-  p_drift <- generate_preds(algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid)
-  
-  # Calculate Metrics (PR AUC, ROC AUC, Brier, LogLoss)
+  # Predict across contexts
+  p_in <- generate_preds(
+    algo, models[[algo]], pool_train, dtrain_xgb, mat_train, caret_train
+  )
+  p_out <- generate_preds(
+    algo, models[[algo]], pool_test, dtest_xgb, mat_test, caret_test
+  )
+  p_drift <- generate_preds(
+    algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid
+  )
+
+  # Calculate Metrics
   robustness_tracker <- rbind(robustness_tracker, data.frame(
     Algorithm = algo,
-    
-    # Target-Like Drift Performance (The most important hurdle)
-    Drift_PRAUC  = calc_prauc(p_drift, y_valid_num),
+    Drift_PRAUC = calc_prauc(p_drift, y_valid_num),
     Drift_ROCAUC = as.numeric(pROC::auc(pROC::roc(y_valid_num, p_drift, quiet = TRUE))),
-    Drift_Brier  = calc_brier(p_drift, y_valid_num),
-    Drift_LogLoss= calc_logloss(p_drift, y_valid_num),
-    
-    # Overfit Penalties (How much PR AUC dropped from training)
-    PRAUC_Overfit_Penalty = calc_prauc(p_in, y_train_num) - calc_prauc(p_out, y_test_num),
-    PRAUC_Shift_Penalty   = calc_prauc(p_out, y_test_num) - calc_prauc(p_drift, y_valid_num)
+    Drift_Brier = calc_brier(p_drift, y_valid_num),
+    Drift_LogLoss = calc_logloss(p_drift, y_valid_num),
+    Overfit_Penalty = calc_prauc(p_in, y_train_num) - calc_prauc(p_out, y_test_num),
+    Shift_Penalty = calc_prauc(p_out, y_test_num) - calc_prauc(p_drift, y_valid_num)
   ))
 }
 
-# Sort by the best PR AUC on the Target-Like Drift sample
 robustness_tracker %>%
   arrange(desc(Drift_PRAUC)) %>%
-  kable(digits = 4, caption = "Comprehensive Model Diagnostics (Sorted by Drift PR AUC)")
+  kable(digits = 4, caption = "Diagnostics (Sorted by Drift PR AUC)")
 ```
 
 ## 6. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
 
 ```{r}
 # ============================================================================
-# 5. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
+# 6. VALIDATE TARGET-LIKE SAMPLE & GENERATE THRESHOLDS
 # ============================================================================
-# Helper to generate predictions based on algorithm type
-generate_preds <- function(algo, model_obj, cat_pool, xgb_mat, lgb_mat, caret_df) {
-  if (algo == "CatBoost") return(catboost.predict(model_obj, cat_pool, prediction_type = "Probability"))
-  if (algo == "XGBoost")  return(predict(model_obj, newdata = xgb_mat))
-  if (algo == "LightGBM") return(predict(model_obj, newdata = lgb_mat))
-  if (algo == "Random Forest") return(predict(model_obj, data = caret_df)$predictions[, "Class1"])
-  return(predict(model_obj, newdata = caret_df, type = "prob")[, "Class1"])
-}
 
-# Helper for PR AUC Calculation
-calc_auc_pr <- function(preds, true_y) {
-  perf_obj <- performance(prediction(preds, true_y), "prec", "rec")
-  x <- perf_obj@x.values[[1]]; y <- perf_obj@y.values[[1]]
-  idx <- order(x); x <- x[idx]; y <- y[idx]
-  sum(diff(x) * (y[-1] + y[-length(y)]) / 2, na.rm = TRUE)
-}
-
-val_results <- data.frame(Algorithm = character(), PR_AUC = numeric(), Threshold_75 = numeric())
+val_results <- data.frame(
+  Algorithm = character(),
+  PR_AUC = numeric(),
+  Threshold_75 = numeric()
+)
 thresholds <- list()
 
 for (algo in names(models)) {
   # Predict on Target-Like validation set
-  preds <- generate_preds(algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid)
-  
-  # Calculate Metrics
-  pr_auc_score <- calc_auc_pr(preds, y_valid_num)
-  
+  preds <- generate_preds(
+    algo, models[[algo]], pool_valid, dvalid_xgb, mat_valid, caret_valid
+  )
+
+  pr_auc_score <- calc_prauc(preds, y_valid_num)
+
   # Calculate top 75% high-recall threshold
   valid_df <- tibble(p = preds, y = y_valid_num)
-  t_75 <- min((valid_df %>% filter(y == 1) %>% arrange(desc(p)) %>% slice(1:floor(0.75 * n())))$p)
-  
-  # Store results
-  val_results <- rbind(val_results, data.frame(Algorithm = algo, PR_AUC = pr_auc_score, Threshold_75 = t_75))
+  t_75 <- min((valid_df %>%
+    filter(y == 1) %>%
+    arrange(desc(p)) %>%
+    slice(1:floor(0.75 * n())))$p)
+
+  val_results <- rbind(val_results, data.frame(
+    Algorithm = algo, PR_AUC = pr_auc_score, Threshold_75 = t_75
+  ))
   thresholds[[algo]] <- t_75
 }
 
@@ -322,54 +451,152 @@ val_results <- val_results %>% arrange(desc(PR_AUC))
 kable(val_results, digits = 4, caption = "Target-Like SIPP Validation Metrics")
 ```
 
-## 6. SCORE ACS TARGET SAMPLE AND EXPORT DATA
+## 7. SCORE ACS TARGET SAMPLE AND EXPORT DATA
 
 ```{r}
 # ============================================================================
-# 6. SCORE ACS TARGET SAMPLE (WINNING MODEL ONLY)
+# 7. SCORE ACS TARGET SAMPLE (WINNING MODEL ONLY)
 # ============================================================================
-
-# Isolate the highest-performing model from Step 5
 best_model_name <- val_results$Algorithm[1]
-cat("Scoring ACS dataset using the winning model:", best_model_name, "\n")
+cat("Scoring ACS dataset using the winning model:", best_model_name, "\\n")
 
-# Initialize export dataframe
 acs_export <- acs %>% select(year, serial, pernum)
 
 # Generate continuous probabilities for ACS using ONLY the best model
-acs_probs <- generate_preds(best_model_name, models[[best_model_name]], pool_acs, dacs_xgb, mat_acs, caret_acs)
+acs_probs <- generate_preds(
+  best_model_name, models[[best_model_name]], pool_acs, dacs_xgb, mat_acs, caret_acs
+)
 
-# Attach predictions and the binary high-recall flag
 acs_export$winning_model_p <- acs_probs
-acs_export$winning_model_high_recall <- ifelse(acs_probs >= thresholds[[best_model_name]], 1, 0)
-
-# Export the lightweight CSV
-write_csv(acs_export, acs_prediction_export)
-cat("Successfully exported winning model predictions to:", acs_prediction_export, "\n")
+acs_export$winning_model_high_recall <- ifelse(
+  acs_probs >= thresholds[[best_model_name]], 1, 0
+)
 ```
 
-## 7. AUTOMATED BEST MODEL SELECTION & SAVE
+## 8. DIAGNOSTIC SANITY CHECKS (WINNING MODEL)
 
 ```{r}
 # ============================================================================
-# 7. AUTOMATED BEST MODEL SELECTION & SAVE
+# 8. DIAGNOSTIC SANITY CHECKS (WINNING MODEL)
 # ============================================================================
-# Change to a specific algorithm name (e.g., "XGBoost") to manually override 
-manual_override <- "Auto"
+# Generate SIPP predictions for the winning model to compare alongside ACS
+p_test <- generate_preds(
+  best_model_name, models[[best_model_name]], pool_test, dtest_xgb, mat_test, caret_test
+)
+p_valid <- generate_preds(
+  best_model_name, models[[best_model_name]], pool_valid, dvalid_xgb, mat_valid, caret_valid
+)
 
-if (manual_override %in% names(models)) {
-  best_model_name <- manual_override
-  cat("Manual Override Engaged. Saving Model:", best_model_name, "\n")
-} else {
-  best_model_name <- val_results$Algorithm[which.max(val_results$PR_AUC)]
-  cat("Automatic Selection Engaged. Best Model (by PR AUC):", best_model_name, "\n")
+# --- Sanity Check 1: Probability Distribution Percentiles ---
+# Aggressively shortened labels to prevent LaTeX PDF overlap
+dist_acs <- tibble(Sample = "ACS", p = acs_probs)
+dist_test <- tibble(Sample = "SIPP (All)", p = p_test)
+dist_targetlike <- tibble(Sample = "SIPP (Target)", p = p_valid)
+
+dist_all <- bind_rows(dist_acs, dist_test, dist_targetlike) %>%
+  group_by(Sample) %>%
+  summarise(
+    N = n(),
+    Mean = mean(p),
+    P10 = quantile(p, 0.10),
+    P25 = quantile(p, 0.25),
+    P50 = quantile(p, 0.50),
+    P75 = quantile(p, 0.75),
+    P90 = quantile(p, 0.90)
+  ) %>%
+  arrange(match(Sample, c("ACS", "SIPP (All)", "SIPP (Target)")))
+
+kable(dist_all,
+  digits = 4,
+  caption = paste("Sanity Check 1:", best_model_name, "Probability Distributions")
+)
+
+
+# --- Sanity Check 2: Target-Like SIPP Lift by Quartile ---
+base_rate_val <- mean(y_valid_num)
+
+lift_table <- tibble(p = p_valid, truth = y_valid_num) %>%
+  mutate(quartile = ntile(p, 4)) %>%
+  group_by(quartile) %>%
+  summarise(
+    N = n(),
+    Pos = sum(truth),
+    Precision = mean(truth),
+    Mean_P = mean(p)
+  ) %>%
+  mutate(
+    Base_Rate = base_rate_val,
+    Lift = Precision / Base_Rate,
+    Q = paste0("Q", quartile)
+  ) %>%
+  select(Q, N, Pos, Precision, Mean_P, Base_Rate, Lift)
+
+kable(lift_table,
+  digits = 4,
+  caption = paste("Sanity Check 2:", best_model_name, "Lift by Quartile")
+)
+
+
+# --- Sanity Check 3: Dynamic Feature Importance ---
+# Extracts feature importance dynamically with fallback
+get_var_imp <- function(algo, model_obj, feature_names) {
+  tryCatch(
+    {
+      # Force load gbm so Caret can find the relative.influence function
+      require(gbm)
+
+      if (algo == "CatBoost") {
+        imp <- catboost.get_feature_importance(model_obj)
+        return(
+          tibble(Feature = feature_names, Importance = as.numeric(imp)) %>%
+            arrange(desc(Importance))
+        )
+      } else if (algo == "XGBoost") {
+        imp <- xgb.importance(feature_names = feature_names, model = model_obj)
+        return(as_tibble(imp) %>% select(Feature, Importance = Gain))
+      } else if (algo == "LightGBM") {
+        imp <- lgb.importance(model_obj, percentage = TRUE)
+        return(as_tibble(imp) %>% select(Feature, Importance = Gain))
+      } else {
+        # Caret models (RF, GBM, GLM, KNN, AdaBoost)
+        imp_obj <- varImp(model_obj, scale = FALSE)
+        imp_df <- imp_obj$importance
+        imp_df$Feature <- rownames(imp_df)
+        if ("Overall" %in% colnames(imp_df)) {
+          res <- as_tibble(imp_df) %>% select(Feature, Importance = Overall)
+        } else {
+          res <- as_tibble(imp_df) %>% select(Feature, Importance = 1)
+        }
+        return(res %>% arrange(desc(Importance)))
+      }
+    },
+    error = function(e) {
+      return(tibble(Feature = c("Extraction Failed", e$message), Importance = NA))
+    }
+  )
 }
 
-# Define dynamic paths for the singular winning model
-best_model_file <- file.path(ml_output_path, "best_ml_model.rds")
+top_features <- get_var_imp(best_model_name, models[[best_model_name]], features)
+kable(head(top_features, 10),
+  digits = 4,
+  caption = paste("Sanity Check 3: Top Features for", best_model_name)
+)
+```
+
+## 9. AUTOMATED SAVE AND ENVIRONMENT LOCKING
+
+```{r}
+# ============================================================================
+# 9. AUTOMATED SAVE AND ENVIRONMENT LOCKING
+# ============================================================================
+
+# 1. Export Data
+write_csv(acs_export, acs_prediction_export)
+
+# 2. Export ALL Models & Best Metadata
+all_models_file <- file.path(ml_output_path, "all_optimized_models.rds")
 best_metadata_file <- file.path(ml_output_path, "best_ml_metadata.rds")
 
-final_model <- models[[best_model_name]]
 final_metadata <- list(
   algorithm = best_model_name,
   report_timestamp = report_timestamp,
@@ -378,23 +605,16 @@ final_metadata <- list(
   threshold_75 = thresholds[[best_model_name]]
 )
 
-# Save only the best model and its metadata
-saveRDS(final_model, best_model_file)
+# Saving the entire models list for later evaluation
+saveRDS(models, all_models_file)
 saveRDS(final_metadata, best_metadata_file)
 
-tibble(
-  saved_object = c(paste("Winner:", best_model_name), "Matching Metadata"),
-  path = c(best_model_file, best_metadata_file)
-) %>%
-  kable()
-```
-
-## R ENVIRONMENT PACKAGE AND STYLE LOCKING
-
-```{r}
-# Saves any added libraries
-renv::snapshot()
-
-# Rewrites file with specific formatting
+# 3. Environment & Style Locking
+renv::snapshot(prompt = FALSE)
 styler::style_file("ML_Models.qmd")
+
+tibble(
+  Exported_Item = c("ACS Predictions", "All 8 Models Bundle", "Metadata"),
+  Status = rep("Saved", 3)
+) %>% kable()
 ```
