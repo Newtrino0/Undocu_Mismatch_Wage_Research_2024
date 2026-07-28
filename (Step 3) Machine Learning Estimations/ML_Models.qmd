@@ -111,7 +111,7 @@ sipp_test <- sipp[-train_index, ]
 
 # Define Target-Like Validation Set
 sipp_targetlike <- sipp_test %>%
-  filter(employed == 1, age >= 22, age <= 55)
+  filter(age >= 22, age <= 55, employed == 1)
 ```
 
 ## 3. FORMAT DATA STRUCTURES FOR DIVERSE MODELS
